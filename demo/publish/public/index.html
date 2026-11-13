@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>JIJU · 发布 Demo</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <a class="brand" href="#/" aria-label="返回发布页">
+        <span class="brand-mark">J</span>
+        <span>
+          <strong>JIJU</strong>
+          <small>发布流程 Demo</small>
+        </span>
+      </a>
+      <div class="session-area">
+        <span id="session-label" class="session-label">游客</span>
+        <button id="login-open" class="text-button" type="button">模拟登录</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="publish-view" class="page-card" aria-labelledby="publish-title">
+        <div class="heading-row">
+          <div>
+            <p class="eyebrow">新帖子</p>
+            <h1 id="publish-title">此刻，想说点什么？</h1>
+          </div>
+          <div id="char-counter" class="char-counter" aria-live="polite">0 / 500</div>
+        </div>
+
+        <div id="restored-banner" class="info-banner" hidden>
+          已恢复本机草稿。草稿最多保留 24 小时。
+        </div>
+        <div id="form-message" class="message" role="status" aria-live="polite" hidden></div>
+
+        <form id="publish-form" novalidate>
+          <label class="field">
+            <span class="field-label">正文</span>
+            <textarea
+              id="body-text"
+              name="body_text"
+              rows="8"
+              placeholder="不用解释背景，只写下此刻的感受。"
+              aria-describedby="body-help body-error"
+            ></textarea>
+            <span class="field-help" id="body-help">
+              去除首尾空白后 1～500 个用户可见字符。组合 emoji 按一个字素簇计算。
+            </span>
+            <span class="field-error" id="body-error"></span>
+          </label>
+
+          <div class="grid-two">
+            <label class="field">
+              <span class="field-label">情绪标签 <em>可选</em></span>
+              <select id="emotion-tag" name="emotion_tag_id">
+                <option value="">不选择</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span class="field-label">情境标签 <em>可选</em></span>
+              <select id="context-tag" name="context_tag_id">
+                <option value="">不选择</option>
+              </select>
+            </label>
+          </div>
+
+          <fieldset class="field retention-field">
+            <legend class="field-label">留存时长</legend>
+            <div id="retention-options" class="segmented-control"></div>
+            <span class="field-help">到期时间在发布成功时确定，编辑和刷新都不会延长。</span>
+          </fieldset>
+
+          <section class="public-notice" aria-labelledby="public-notice-title">
+            <div>
+              <p class="notice-kicker">发布前请确认</p>
+              <h2 id="public-notice-title">这是一条公开内容</h2>
+              <p>帖子会进入公共广场，可能被其他用户查看或截图。不要填写可识别个人身份的信息。</p>
+            </div>
+            <label class="checkbox-line">
+              <input id="public-acknowledged" type="checkbox" />
+              <span>我已了解公开属性</span>
+            </label>
+          </section>
+
+          <details class="demo-rules">
+            <summary>Demo 审核分支说明</summary>
+            <p>正文包含 <code>[[BLOCK]]</code> 时模拟明确违规阻断。</p>
+            <p>正文包含 <code>[[REVIEW]]</code> 时先提示风险，确认后以“审核中”状态发布。</p>
+          </details>
+
+          <div class="form-actions">
+            <span id="draft-status" class="draft-status">草稿仅保存在本机</span>
+            <button id="publish-button" class="primary-button" type="submit">
+              发布到广场
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section id="detail-view" class="page-card detail-card" aria-labelledby="detail-title" hidden>
+        <div class="success-banner">
+          <span class="success-icon" aria-hidden="true">✓</span>
+          <div>
+            <strong>发布成功</strong>
+            <p>已进入帖子详情预览。</p>
+          </div>
+        </div>
+        <h1 id="detail-title">帖子详情</h1>
+        <div class="detail-meta">
+          <span id="detail-author" class="author-chip"></span>
+          <span id="detail-status" class="status-chip"></span>
+        </div>
+        <p id="detail-body" class="detail-body"></p>
+        <div id="detail-tags" class="tag-list"></div>
+        <dl class="detail-grid">
+          <div>
+            <dt>发布时间</dt>
+            <dd id="detail-published"></dd>
+          </div>
+          <div>
+            <dt>到期时间</dt>
+            <dd id="detail-expires"></dd>
+          </div>
+          <div>
+            <dt>留存时长</dt>
+            <dd id="detail-retention"></dd>
+          </div>
+          <div>
+            <dt>内容版本</dt>
+            <dd id="detail-version"></dd>
+          </div>
+        </dl>
+        <button id="back-to-publish" class="secondary-button" type="button">
+          再发布一条
+        </button>
+      </section>
+    </main>
+
+    <dialog id="login-dialog" class="dialog">
+      <form id="login-form" method="dialog" class="dialog-content">
+        <p class="eyebrow">需要登录</p>
+        <h2>先完成模拟登录</h2>
+        <p>Demo 不连接真实微信。输入任意非空 code 即可创建本地会话。</p>
+        <label class="field">
+          <span class="field-label">模拟微信 code</span>
+          <input id="login-code" type="text" value="demo-code-001" autocomplete="off" />
+          <span id="login-error" class="field-error"></span>
+        </label>
+        <div class="dialog-actions">
+          <button id="login-cancel" class="secondary-button" type="button">取消登录</button>
+          <button id="login-submit" class="primary-button" type="submit">完成模拟登录</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="risk-dialog" class="dialog">
+      <div class="dialog-content">
+        <p class="eyebrow">模拟复核分支</p>
+        <h2>发布前风险确认</h2>
+        <p>
+          当前正文命中演示用“需要复核”规则。确认后帖子会以“审核中”状态发布，
+          并模拟进入人工复核队列。本 Demo 不提供真实心理援助或危机干预。
+        </p>
+        <div class="dialog-actions">
+          <button id="risk-cancel" class="secondary-button" type="button">取消</button>
+          <button id="risk-confirm" class="primary-button" type="button">确认并发布</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
