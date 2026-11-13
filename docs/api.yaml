@@ -1,0 +1,2325 @@
+openapi: 3.0.3
+info:
+  title: JIJU MVP API
+  version: 1.0.0
+  description: |
+    JIJU 微信小程序 MVP 接口契约。
+
+    依据：
+    - 根目录 domain.md；当前仓库不存在 docs/domain.md。
+    - docs/state-machine.md
+    - docs/permissions.md
+    - docs/errors.md
+
+    通用约定：
+    - 服务端校验是唯一授权依据，客户端角色声明一律不可信。
+    - 时间字段使用 RFC 3339 UTC，以 Z 结尾；业务自然日由服务端按北京时间计算。
+    - 错误响应与错误码引用 docs/errors.md。所有接口都可能出现客户端本地 NETWORK_ERROR。
+    - 只有 GET /posts/{post_id} 在调用者是作者时返回 view_count；其他接口不得返回浏览量。
+    - Unicode 扩展字素簇限制无法由 OpenAPI maxLength 精确表达，服务端仍须按扩展字素簇校验。
+    - 运营后台使用独立 adminBearerAuth；后台登录不在本次 MVP 接口范围内。
+servers:
+  - url: /api/v1
+    description: MVP API 根路径
+tags:
+  - name: Auth
+    description: 微信登录与会话注销
+  - name: Feed
+    description: 广场信息流
+  - name: Posts
+    description: 帖子读取、发布、编辑和删除
+  - name: Comments
+    description: 评论列表、提交和删除
+  - name: Reactions
+    description: 固定轻互动提交、切换和取消
+  - name: Me
+    description: 当前用户的帖子
+  - name: Reports
+    description: 用户举报
+  - name: Notices
+    description: 使用须知确认
+  - name: Admin
+    description: 独立运营后台接口
+paths:
+  /feed:
+    get:
+      tags:
+        - Feed
+      operationId: listFeed
+      summary: 获取广场信息流
+      description: |
+        鉴权要求：无需登录；游客、登录非作者、作者和运营均可按普通用户规则浏览。
+        请求参数与校验：cursor 为服务端签发的不可解释游标；limit 为 1 至 50，默认 20；仅返回有效公开帖子。
+        响应结构：按 published_at 倒序的游标分页，包含作者广场昵称、标签、正文摘要、评论数和三类轻互动数量。
+        错误码：参考 docs/errors.md；预期仅有系统暂时不可用和客户端网络失败。
+        幂等要求：GET 只读，不需要 Idempotency-Key。
+        副作用：不创建 ViewRecord、不改变评论或互动计数、不消耗配额。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: none
+        roles: [GUEST, AUTH_NON_AUTHOR, AUTHOR, OPERATOR]
+      x-validation:
+        - cursor must be an opaque server-issued token when present
+        - limit must be an integer between 1 and 50
+        - only PUBLISHED posts with publicly allowed moderation state, not expired, hidden or deleted
+      x-errors:
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: read-only request
+      x-side-effects:
+        - none
+      x-view-count:
+        returned: false
+        rule: feed responses must never serialize view_count
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 广场游标分页
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedResponse'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /posts:
+    post:
+      tags:
+        - Posts
+      operationId: publishPost
+      summary: 发布帖子
+      description: |
+        鉴权要求：必须使用普通用户登录态；运营账号在普通前台不得使用后台权限绕过。
+        请求参数与校验：正文去首尾空白后为 1 至 500 个 Unicode 扩展字素簇；情绪标签和情境标签各最多一个，必须为对应分类下当前启用的 Tag ID；retention_hours 仅允许 24、72、168，默认 168；首次表达前须确认当前使用须知。
+        响应结构：返回帖子 ID、内容版本、公开状态、审核状态、发布时间和固定到期时间。
+        错误码：未登录、登录失效、须知未确认、内容校验失败、发帖配额满、状态冲突、服务不可用或网络失败，引用 docs/errors.md。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:post.publish:<uuid_v7>；同一发布意图重试复用同一键。
+        副作用：创建 Post 与首个内容版本；成功消耗一条发帖配额；正常通过为 PASSED，高风险确认后为 PENDING 并进入复核；不返回浏览量。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: user
+        roles: [AUTH_NON_AUTHOR, AUTHOR]
+        ordinary_account_only: true
+      x-validation:
+        - body_text trimmed length is 1 to 500 Unicode extended grapheme clusters
+        - at most one emotion_tag_id and one context_tag_id
+        - tag ids must be active and belong to their declared category
+        - retention_hours must be one of 24, 72, 168
+        - current notice version must be confirmed
+        - risk_acknowledged must be true when the server requires risk confirmation
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4032
+        - JIJU_VALIDATION_4221
+        - JIJU_QUOTA_4291
+        - JIJU_CONFLICT_4091
+        - JIJU_MODERATION_4091
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: post.publish
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: reuse the same key for retries of the same publish intent; create a new key after the user materially changes the content
+      x-side-effects:
+        - create Post and immutable first content version
+        - consume one successful POST_DAILY quota unit
+        - moderation_status becomes PASSED or PENDING according to server validation
+        - create moderation review record when moderation_status is PENDING
+      x-view-count:
+        returned: false
+        rule: create-post response must never serialize view_count
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishPostRequest'
+      responses:
+        '201':
+          description: 发布成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostMutationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /posts/{post_id}:
+    get:
+      tags:
+        - Posts
+      operationId: getPostDetail
+      summary: 获取帖子详情
+      description: |
+        鉴权要求：可选登录。游客和登录用户均可读取有效公开帖子；登录态有效且为作者时返回作者视图。
+        请求参数与校验：post_id 必须为合法不透明 ID；X-View-Token 标识一次新详情页访问，同一页面刷新、回到前台或返回已打开页面时必须复用。
+        响应结构：公共视图包含作者广场昵称、标签、正文、评论数量和轻互动分类数量；作者视图额外返回 view_count。
+        错误码：非作者访问到期、隐藏、删除或不存在内容统一返回 JIJU_CONTENT_4041；可选登录态失效返回 JIJU_AUTH_4012；其他错误引用 docs/errors.md。
+        幂等要求：GET 不需要 Idempotency-Key；X-View-Token 用于浏览量去重。
+        副作用：非作者成功打开新详情页且 view_token 首次出现时创建 A 条 ViewRecord；作者访问、失败访问、内容不可用和巡检不计数。
+        浏览量：仅 is_author=true 时返回 view_count；游客和登录非作者响应必须完全省略该字段。
+      x-auth:
+        authentication: optional
+        roles: [GUEST, AUTH_NON_AUTHOR, AUTHOR, OPERATOR]
+      x-validation:
+        - post_id must be a valid opaque ID
+        - X-View-Token must be v1:<uuid_v7> and must be stable for one open detail page
+        - expired, hidden and deleted content is unavailable to non-authors
+      x-errors:
+        - JIJU_AUTH_4012
+        - JIJU_CONTENT_4041
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: X-View-Token deduplicates view recording; it is not an Idempotency-Key
+      x-side-effects:
+        - create at most one ViewRecord per post_id and X-View-Token for a countable non-author view
+        - increment view count by at most one for that new detail open
+        - do not change comment or reaction counts
+      x-view-count:
+        returned: conditional
+        condition: caller is the post author
+        rule: only the author detail response may contain view_count
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+        - $ref: '#/components/parameters/ViewToken'
+      responses:
+        '200':
+          description: 帖子详情；view_count 仅在作者视图出现
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/PostDetailPublicResponse'
+                  - $ref: '#/components/schemas/PostDetailAuthorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    patch:
+      tags:
+        - Posts
+      operationId: editPost
+      summary: 编辑本人帖子
+      description: |
+        鉴权要求：必须登录且为帖子作者；其他用户统一禁止。
+        请求参数与校验：正文可选但修改后须为 1 至 500 个扩展字素簇；标签可选并须为对应分类当前启用 Tag ID；expected_content_version 必须匹配当前版本；高风险编辑必须完成风险确认。
+        响应结构：返回帖子 ID、新内容版本、公开状态、审核状态、编辑时间和固定到期时间。
+        错误码：引用 docs/errors.md；包括未登录、登录失效、权限不足、内容不可用、内容校验失败、状态/版本冲突、审核写入拒绝和系统错误。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:post.edit:<uuid_v7>；同一编辑意图重试复用同一键。
+        副作用：生成不可变内容版本并更新展示内容；不改 ID、published_at、expires_at；高风险编辑把审核状态置为 PENDING 并新建复核记录；刷新编辑时间。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: user
+        roles: [AUTHOR]
+      x-validation:
+        - expected_content_version must be a positive integer matching current_content_version
+        - body_text, when present, must be 1 to 500 Unicode extended grapheme clusters after trimming
+        - tag ids must be active and belong to their declared category
+        - at least one editable field must be present
+        - high-risk edits require risk_acknowledged=true
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4031
+        - JIJU_CONTENT_4041
+        - JIJU_CONTENT_4221
+        - JIJU_VALIDATION_4221
+        - JIJU_CONFLICT_4091
+        - JIJU_CONFLICT_4092
+        - JIJU_MODERATION_4091
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: post.edit
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: reuse the key for retries of the same edit payload
+      x-side-effects:
+        - create immutable PostVersion and increment current_content_version
+        - update edited_at without changing published_at or expires_at
+        - high-risk edit changes moderation_status from PASSED to PENDING and opens a new review round
+        - do not refund or consume posting quota
+      x-view-count:
+        returned: false
+        rule: edit response must never serialize view_count
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditPostRequest'
+      responses:
+        '200':
+          description: 编辑成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostMutationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    delete:
+      tags:
+        - Posts
+      operationId: deletePost
+      summary: 删除本人帖子
+      description: |
+        鉴权要求：必须登录且为帖子作者。
+        请求参数与校验：post_id 合法且当前作者可删除；服务端重新校验当前状态和内容版本。
+        响应结构：成功返回 204，无响应体。
+        错误码：引用 docs/errors.md；非作者、不可用内容和状态冲突分别返回稳定错误码，但不得向非作者泄露对象存在性。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:post.delete:<uuid_v7>；同一删除意图重试不得重复产生副作用。
+        副作用：public_status 变为 DELETED、写入 deleted_at；立即从所有用户端移除；不返还发帖配额。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: user
+        roles: [AUTHOR]
+      x-validation:
+        - caller must be the author
+        - target must currently be eligible for author deletion
+        - server must re-read current state before transition
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4031
+        - JIJU_CONTENT_4041
+        - JIJU_CONTENT_4221
+        - JIJU_CONFLICT_4091
+        - JIJU_CONFLICT_4092
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: post.delete
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: retries of the same delete intent reuse the same key
+      x-side-effects:
+        - set public_status to DELETED and write deleted_at
+        - remove the post from public and author-visible lists
+        - retain audit and report associations according to approved retention rules
+        - do not refund posting quota
+      x-view-count:
+        returned: false
+        rule: no response body
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '204':
+          description: 删除成功
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /posts/{post_id}/comments:
+    get:
+      tags:
+        - Comments
+      operationId: listComments
+      summary: 获取帖子评论
+      description: |
+        鉴权要求：无需登录；仅可读取有效可见帖子的评论。
+        请求参数与校验：post_id 合法；cursor 为服务端签发游标；limit 为 1 至 50。
+        响应结构：按 published_at 正序的游标分页，包含评论 ID、评论者广场昵称、正文和发布时间。
+        错误码：帖子到期、隐藏、删除或不存在时返回 JIJU_CONTENT_4041；其他错误引用 docs/errors.md。
+        幂等要求：GET 不需要 Idempotency-Key。
+        副作用：只读，不改变任何计数、配额、状态或审计。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: none
+        roles: [GUEST, AUTH_NON_AUTHOR, AUTHOR, OPERATOR]
+      x-validation:
+        - post_id must be valid and publicly available
+        - cursor must be an opaque server-issued token when present
+        - limit must be an integer between 1 and 50
+      x-errors:
+        - JIJU_CONTENT_4041
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: read-only request
+      x-side-effects:
+        - none
+      x-view-count:
+        returned: false
+        rule: comment responses must never serialize view_count
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 评论游标分页
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentPageResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    post:
+      tags:
+        - Comments
+      operationId: createComment
+      summary: 提交评论
+      description: |
+        鉴权要求：必须登录；运营账号按普通账号规则处理。
+        请求参数与校验：正文去首尾空白后为 1 至 200 个 Unicode 扩展字素簇；帖子必须有效公开；首次互动前须确认使用须知。
+        响应结构：返回新评论 ID、帖子 ID、评论者广场昵称、正文和发布时间。
+        错误码：引用 docs/errors.md；区分未登录、登录失效、须知未确认、内容不可用、内容状态不允许、校验失败、评论配额满、状态冲突和系统错误。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:comment.publish:<uuid_v7>；同一评论意图重试复用同一键。
+        副作用：创建 Comment；评论数量加一；仅成功后消耗一条连续 60 分钟评论配额；必要时记录审核结果。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: user
+        roles: [AUTH_NON_AUTHOR, AUTHOR]
+        ordinary_account_only: true
+      x-validation:
+        - post_id must identify an effective public post
+        - body_text trimmed length is 1 to 200 Unicode extended grapheme clusters
+        - current notice version must be confirmed
+        - consecutive 60-minute comment quota must not be exhausted
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4032
+        - JIJU_CONTENT_4041
+        - JIJU_CONTENT_4221
+        - JIJU_VALIDATION_4221
+        - JIJU_QUOTA_4292
+        - JIJU_CONFLICT_4091
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: comment.publish
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: reuse the key for retries of the same comment payload
+      x-side-effects:
+        - create Comment
+        - increment comment count by one
+        - consume one successful COMMENT_ROLLING_60M quota unit only after success
+        - create moderation result when required
+      x-view-count:
+        returned: false
+        rule: comment response must never serialize view_count
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentRequest'
+      responses:
+        '201':
+          description: 评论创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /comments/{comment_id}:
+    delete:
+      tags:
+        - Comments
+      operationId: deleteComment
+      summary: 删除本人评论
+      description: |
+        鉴权要求：必须登录且为评论作者；运营后台角色不能替代作者删除。
+        请求参数与校验：comment_id 合法；服务端重新校验评论归属和当前状态。
+        响应结构：成功返回 204，无响应体。
+        错误码：引用 docs/errors.md；非作者统一拒绝，不可用内容不得泄露存在性。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:comment.delete:<uuid_v7>；同一删除意图重试复用同一键。
+        副作用：软删除评论；评论数量减一且不得为负；不返还评论配额。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: user
+        roles: [AUTHOR]
+      x-validation:
+        - comment_id must be valid
+        - caller must be the comment author
+        - repeated cancel or delete must not make aggregate counts negative
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4031
+        - JIJU_CONTENT_4041
+        - JIJU_CONTENT_4221
+        - JIJU_CONFLICT_4091
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: comment.delete
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: reuse the key for retries of the same delete intent
+      x-side-effects:
+        - set comment deleted_at
+        - decrement visible comment count by one, never below zero
+        - do not refund comment quota
+      x-view-count:
+        returned: false
+        rule: no response body
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CommentId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '204':
+          description: 删除成功
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /posts/{post_id}/reaction:
+    put:
+      tags:
+        - Reactions
+      operationId: setReaction
+      summary: 提交或切换轻互动
+      description: |
+        鉴权要求：必须登录；运营账号按普通账号规则处理。
+        请求参数与校验：type 仅允许 HUG、HEAD_PAT、CHEER；帖子必须有效公开；首次互动前须确认使用须知。
+        响应结构：返回当前用户选择、三种互动数量和总数。
+        错误码：引用 docs/errors.md；区分未登录、登录失效、内容不可用、内容状态不允许、状态冲突和系统错误。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:reaction.set:<uuid_v7>；同一选择意图重试复用同一键。
+        副作用：同一 (user_id, post_id) 只保留一条记录；首次选择新类型加一，切换时旧类型减一、新类型加一；不消耗发布或评论配额。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: user
+        roles: [AUTH_NON_AUTHOR, AUTHOR]
+        ordinary_account_only: true
+      x-validation:
+        - post must be effective and publicly available
+        - reaction type must be HUG, HEAD_PAT or CHEER
+        - current notice version must be confirmed
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4032
+        - JIJU_CONTENT_4041
+        - JIJU_CONTENT_4221
+        - JIJU_CONFLICT_4091
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: reaction.set
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: reuse the key for retries that set the same reaction type
+      x-side-effects:
+        - create or update the single Reaction for user_id and post_id
+        - when switching, decrement old type and increment new type atomically
+        - keep total reaction count unchanged during a switch
+        - do not consume posting or comment quota
+      x-view-count:
+        returned: false
+        rule: reaction response must never serialize view_count
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetReactionRequest'
+      responses:
+        '200':
+          description: 当前轻互动状态
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReactionStateResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    delete:
+      tags:
+        - Reactions
+      operationId: cancelReaction
+      summary: 取消轻互动
+      description: |
+        鉴权要求：必须登录；运营账号按普通账号规则处理。
+        请求参数与校验：post_id 必须有效；取消操作只影响当前用户对该帖子的有效互动。
+        响应结构：返回 my_reaction=null 和取消后的三类互动数量。
+        错误码：引用 docs/errors.md；内容不可用时不得泄露状态。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:reaction.cancel:<uuid_v7>；同一取消意图重试复用同一键。
+        副作用：若存在有效互动则置 active=false 并对应类型减一；重复取消保持幂等且不得产生负数；不消耗配额。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: user
+        roles: [AUTH_NON_AUTHOR, AUTHOR]
+        ordinary_account_only: true
+      x-validation:
+        - post must be effective and publicly available when recording a new cancellation
+        - only the current user's reaction may be cancelled
+        - counts must never become negative
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_CONTENT_4041
+        - JIJU_CONTENT_4221
+        - JIJU_CONFLICT_4091
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: reaction.cancel
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: reuse the key for retries of the same cancellation intent
+      x-side-effects:
+        - set the current user's Reaction active=false
+        - decrement the matching reaction type once, never below zero
+        - repeated cancellation is a no-op with the same successful response
+      x-view-count:
+        returned: false
+        rule: reaction response must never serialize view_count
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: 取消后的轻互动状态
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReactionStateResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /me/posts:
+    get:
+      tags:
+        - Me
+      operationId: listMyPosts
+      summary: 获取本人帖子列表
+      description: |
+        鉴权要求：必须登录；只返回当前账号本人帖子。
+        请求参数与校验：cursor 为服务端游标；limit 为 1 至 50；status 可选 ACTIVE、EXPIRED、HIDDEN。
+        响应结构：返回帖子 ID、正文摘要、标签、公开状态、审核状态、发布时间、到期时间、评论数和轻互动数量。
+        错误码：未登录或登录失效参考 docs/errors.md；不返回他人对象。
+        幂等要求：GET 不需要 Idempotency-Key。
+        副作用：只读，不改变状态或计数。
+        浏览量：不返回 view_count；按本次 API 范围，只有作者帖子详情接口可返回浏览量。
+      x-auth:
+        authentication: user
+        roles: [AUTH_NON_AUTHOR, AUTHOR]
+        ordinary_account_only: true
+      x-validation:
+        - status when present must be ACTIVE, EXPIRED or HIDDEN
+        - cursor must be an opaque server-issued token when present
+        - limit must be an integer between 1 and 50
+        - author_id must equal the authenticated user
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: read-only request
+      x-side-effects:
+        - none
+      x-view-count:
+        returned: false
+        rule: the MVP API exposes view_count only from the author post-detail response
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          required: false
+          description: 作者帖子筛选状态
+          schema:
+            type: string
+            enum: [ACTIVE, EXPIRED, HIDDEN]
+      responses:
+        '200':
+          description: 本人帖子游标分页
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorPostPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /reports:
+    post:
+      tags:
+        - Reports
+      operationId: createReport
+      summary: 提交举报
+      description: |
+        鉴权要求：必须登录；游客先完成登录再提交；运营账号按普通账号规则处理。
+        请求参数与校验：target_type 为 POST 或 COMMENT；target_id 合法；reason 使用固定枚举；reason=OTHER 时 other_description 必填且不得为空；服务端自行读取被举报对象的当前 content_version，不接受客户端伪造版本。
+        响应结构：返回举报 ID 和提交时间，不向普通用户公开举报人或处理结果细节。
+        错误码：引用 docs/errors.md；内容不可用、校验失败、未登录、须知未确认和状态冲突必须区分。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:report.submit:<uuid_v7>；同一举报意图重试复用同一键，同时执行同用户、同对象、同原因 24 小时业务去重。
+        副作用：创建 Report 并快照当前内容版本；涉及未成年人时标记优先队列；不改变公开计数、帖子状态或配额。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: user
+        roles: [AUTH_NON_AUTHOR, AUTHOR]
+        ordinary_account_only: true
+      x-validation:
+        - target_type must be POST or COMMENT
+        - target_id must be valid and refer to an available reportable object
+        - reason must be one of the fixed report reasons
+        - other_description is required and non-empty only when reason is OTHER
+        - server captures content_version without accepting it from the client
+        - current notice version must be confirmed
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4032
+        - JIJU_CONTENT_4041
+        - JIJU_VALIDATION_4221
+        - JIJU_CONFLICT_4091
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: report.submit
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: reuse the key for retries of the same report payload; additionally deduplicate by reporter, target and reason for 24 hours
+      x-side-effects:
+        - create Report with server-captured target_type, target_id and content_version
+        - mark is_minor_related and raise queue priority when reason is MINOR_INVOLVED
+        - do not expose reporter identity or report details to ordinary users
+        - do not change content state before authorized moderation
+      x-view-count:
+        returned: false
+        rule: report response must never serialize view_count
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReportRequest'
+      responses:
+        '201':
+          description: 举报提交成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /notices/{notice_version}/confirmations:
+    post:
+      tags:
+        - Notices
+      operationId: confirmNotice
+      summary: 确认当前版本使用须知
+      description: |
+        鉴权要求：必须登录。
+        请求参数与校验：notice_version 必须与服务端当前待确认版本一致，不得为空。
+        响应结构：返回须知版本和确认时间。
+        错误码：引用 docs/errors.md；未登录、版本不匹配、状态冲突和系统错误需区分。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:notice.confirm:<uuid_v7>；重复确认同一版本返回已存在结果。
+        副作用：创建或复用唯一 NoticeConfirmation；不改变内容、评论、互动计数或业务配额。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: user
+        roles: [AUTH_NON_AUTHOR, AUTHOR]
+        ordinary_account_only: true
+      x-validation:
+        - notice_version must equal the current required notice version
+        - one confirmation record per user_id and notice_version
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_VALIDATION_4221
+        - JIJU_CONFLICT_4091
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: notice.confirm
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: reuse the key for retries of the same notice confirmation
+      x-side-effects:
+        - create NoticeConfirmation for user_id and notice_version when absent
+        - return the existing confirmation when already present
+      x-view-count:
+        returned: false
+        rule: notice response must never serialize view_count
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: notice_version
+          in: path
+          required: true
+          description: 当前使用须知版本
+          schema:
+            type: string
+            minLength: 1
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: 须知已确认
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoticeConfirmationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /auth/wechat/login:
+    post:
+      tags:
+        - Auth
+      operationId: loginWithWechat
+      summary: 微信登录
+      description: |
+        鉴权要求：无需登录；仅接受微信小程序临时登录 code。
+        请求参数与校验：code 必须为非空微信临时登录凭证；服务端负责换取平台内部账号标识，不得返回 openid。
+        响应结构：返回平台访问令牌、到期时间、用户广场昵称、当前须知版本和须知确认状态。
+        错误码：无效 code 返回内容校验错误；服务异常和客户端网络失败参考 docs/errors.md。
+        幂等要求：不需要 Idempotency-Key；同一微信 code 不得重复换取多个平台会话，重试失败后使用新的微信 code。
+        副作用：创建或定位 User，生成/刷新会话；不创建内容、不改变计数、不消耗业务配额。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: none
+        roles: [GUEST]
+      x-validation:
+        - code must be a non-empty valid WeChat mini-program login code
+        - raw openid or unionid must never be returned
+      x-errors:
+        - JIJU_VALIDATION_4221
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: WeChat login code is one-time; retries after an exhausted or expired code require a new code
+      x-side-effects:
+        - create or locate User
+        - create or refresh a platform session
+        - return current notice version and confirmation state
+      x-view-count:
+        returned: false
+        rule: login response must never serialize view_count
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WechatLoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      operationId: logout
+      summary: 注销当前会话
+      description: |
+        鉴权要求：必须登录。
+        请求参数与校验：无请求体；从当前访问令牌定位并撤销会话。
+        响应结构：成功返回 204，无响应体。
+        错误码：未登录或登录失效参考 docs/errors.md。
+        幂等要求：不需要 Idempotency-Key；重复注销保持幂等并返回 204。
+        副作用：撤销当前会话；不删除账号、不删除内容、不改变业务计数和配额。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: user
+        roles: [AUTH_NON_AUTHOR, AUTHOR]
+      x-validation:
+        - bearer token must identify the session to revoke
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: logout is naturally idempotent
+      x-side-effects:
+        - revoke the current session
+        - do not remove account or content data
+      x-view-count:
+        returned: false
+        rule: no response body
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: 会话已撤销
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/reports:
+    get:
+      tags:
+        - Admin
+      operationId: listAdminReports
+      summary: 查询举报队列
+      description: |
+        鉴权要求：独立后台身份，需 REPORT_REVIEWER、CONTENT_MODERATOR 或 AUDITOR 角色。
+        请求参数与校验：cursor、limit、status、priority、reason 为可选筛选；limit 为 1 至 50。
+        响应结构：返回举报对象、内容类型、目标 ID、内容版本、原因、未成年人标记、优先级、处理状态和提交时间。
+        错误码：未登录、后台权限不足和系统错误参考 docs/errors.md。
+        幂等要求：GET 不需要 Idempotency-Key。
+        副作用：只读，不改变举报、内容或账号状态；读取后台敏感详情的行为可进入安全审计。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: admin
+        roles: [REPORT_REVIEWER, CONTENT_MODERATOR, AUDITOR]
+      x-validation:
+        - status, priority and reason must use documented admin enums
+        - cursor must be a server-issued token when present
+        - limit must be an integer between 1 and 50
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4031
+        - JIJU_VALIDATION_4221
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: read-only request
+      x-side-effects:
+        - none to business state
+        - optional access audit record for sensitive admin query
+      x-view-count:
+        returned: false
+        rule: admin report queue must not serialize view_count
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PENDING, PROCESSING, RESOLVED]
+        - name: priority
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PREEMPTIVE, NORMAL]
+        - name: reason
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ReportReason'
+      responses:
+        '200':
+          description: 举报队列
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminReportPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/content/{target_type}/{target_id}/reviews:
+    post:
+      tags:
+        - Admin
+      operationId: reviewContent
+      summary: 内容复核
+      description: |
+        鉴权要求：独立后台身份，需 CONTENT_MODERATOR 角色。
+        请求参数与校验：target_type 为 POST 或 COMMENT；target_id 合法；expected_content_version 必须对应当前待审版本；decision 为 PASSED 或 REJECTED；reason 非空。
+        响应结构：返回复核记录，包括内容版本、复核轮次、结论、处理人员、处理时间及前后状态。
+        错误码：引用 docs/errors.md；权限不足、内容不可用、状态冲突、版本冲突和审核写入错误必须区分。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:admin.review:<uuid_v7>；同一复核结论重试复用同一键。
+        副作用：PENDING->PASSED 或 PENDING->REJECTED；REJECTED 时公开状态必须同步为 HIDDEN；关联举报处理状态更新；写入 ModerationRecord 和 AuditLog。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: admin
+        roles: [CONTENT_MODERATOR]
+      x-validation:
+        - target_type must be POST or COMMENT
+        - expected_content_version must be positive and match the review target
+        - decision must be PASSED or REJECTED
+        - reason must be non-empty
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4031
+        - JIJU_CONTENT_4041
+        - JIJU_CONTENT_4221
+        - JIJU_VALIDATION_4221
+        - JIJU_CONFLICT_4091
+        - JIJU_CONFLICT_4092
+        - JIJU_MODERATION_4091
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: admin.review
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: reuse the key for retries of the same review decision and content version
+      x-side-effects:
+        - transition moderation status according to state-machine.md
+        - REJECTED forces public status to HIDDEN
+        - update associated report processing status without exposing it to reporters
+        - append ModerationRecord and AuditLog
+      x-view-count:
+        returned: false
+        rule: content review response must never serialize view_count
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TargetType'
+        - $ref: '#/components/parameters/TargetId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewContentRequest'
+      responses:
+        '200':
+          description: 复核完成
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModerationRecordResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/content/{target_type}/{target_id}/actions:
+    post:
+      tags:
+        - Admin
+      operationId: applyContentAction
+      summary: 隐藏、下架或恢复内容
+      description: |
+        鉴权要求：独立后台身份，需 CONTENT_MODERATOR 角色。
+        请求参数与校验：action 为 HIDE、TAKEDOWN 或 RESTORE；expected_content_version 必须匹配；reason 非空；服务端重新校验状态机。
+        响应结构：返回治理动作结果、处理时间及公开/审核状态前后值。
+        错误码：引用 docs/errors.md；权限不足、内容不可用、状态冲突和审核写入错误必须区分。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:admin.content.action:<uuid_v7>；同一治理意图重试复用同一键。
+        副作用：HIDE/TAKEDOWN 使内容不可公开；RESTORE 仅在状态机明确允许时恢复；写入 ModerationRecord 和 AuditLog。
+        浏览量：不返回 view_count。
+
+        文档边界：permissions.md 和本次接口范围要求提供 RESTORE；当前 state-machine.md 基于其指定 PRD 范围将 HIDDEN->PUBLISHED 标为禁止。实现前必须更新并确认状态机；在确认前，RESTORE 请求由服务端返回 409 JIJU_CONFLICT_4091。
+      x-auth:
+        authentication: admin
+        roles: [CONTENT_MODERATOR]
+      x-validation:
+        - action must be HIDE, TAKEDOWN or RESTORE
+        - expected_content_version must be positive and match the target
+        - reason must be non-empty
+        - RESTORE must be rejected until state-machine.md explicitly authorizes the transition
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4031
+        - JIJU_CONTENT_4041
+        - JIJU_CONTENT_4221
+        - JIJU_VALIDATION_4221
+        - JIJU_CONFLICT_4091
+        - JIJU_CONFLICT_4092
+        - JIJU_MODERATION_4091
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: admin.content.action
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: reuse the key for retries of the same action, target version and reason
+      x-side-effects:
+        - HIDE and TAKEDOWN make the target unavailable to ordinary users
+        - RESTORE is disabled until state-machine.md is updated
+        - append ModerationRecord and AuditLog with before and after states
+        - do not expose view_count
+      x-view-count:
+        returned: false
+        rule: content action response must never serialize view_count
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TargetType'
+        - $ref: '#/components/parameters/TargetId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentActionRequest'
+      responses:
+        '200':
+          description: 治理动作完成
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentActionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/users/{user_id}/restrictions:
+    post:
+      tags:
+        - Admin
+      operationId: restrictAccount
+      summary: 限制账号
+      description: |
+        鉴权要求：独立后台身份，需 ACCOUNT_MODERATOR 角色。
+        请求参数与校验：user_id 合法；action 为 WARNING、POST_LIMIT、COMMENT_LIMIT、REACTION_LIMIT 或 BAN；限制类动作需提供未来 expires_at，BAN 可使用空 expires_at 表示持续封禁；reason 非空。
+        响应结构：返回限制 ID、账号 ID、动作、生效时间、结束时间和当前状态。
+        错误码：引用 docs/errors.md；权限不足、参数校验失败、状态冲突和系统错误必须区分。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:admin.user.restrict:<uuid_v7>；同一治理意图重试复用同一键。
+        副作用：警告写入审计；限制类动作更新账号限制时间；BAN 更新账号状态；写入 AuditLog；不删除内容。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: admin
+        roles: [ACCOUNT_MODERATOR]
+      x-validation:
+        - action must be WARNING, POST_LIMIT, COMMENT_LIMIT, REACTION_LIMIT or BAN
+        - expires_at must be RFC 3339 UTC and in the future for limited actions
+        - reason must be non-empty
+        - user_id must identify an existing account
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4031
+        - JIJU_VALIDATION_4221
+        - JIJU_CONFLICT_4091
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: admin.user.restrict
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: reuse the key for retries of the same account restriction intent
+      x-side-effects:
+        - WARNING creates an audit record only
+        - POST_LIMIT, COMMENT_LIMIT and REACTION_LIMIT update matching restriction timestamps
+        - BAN updates account status
+        - append AuditLog with operator, role, reason, time and state changes
+        - do not alter or delete authored content
+      x-view-count:
+        returned: false
+        rule: account restriction response must never serialize view_count
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountRestrictionRequest'
+      responses:
+        '200':
+          description: 账号处置完成
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountRestrictionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/audit-logs:
+    get:
+      tags:
+        - Admin
+      operationId: listAuditLogs
+      summary: 查询审计日志
+      description: |
+        鉴权要求：独立后台身份，需 AUDITOR 或具有审计范围的 CONTENT_MODERATOR 角色。
+        请求参数与校验：cursor、limit、actor_id、action_type、object_type、object_id、from、to 为可选筛选；时间使用 RFC 3339 UTC。
+        响应结构：返回操作者角色、动作、对象类型、对象 ID、内容版本、原因和时间，不返回内容正文或浏览者身份。
+        错误码：引用 docs/errors.md；权限不足、参数校验失败和系统错误必须区分。
+        幂等要求：GET 不需要 Idempotency-Key。
+        副作用：只读；可记录一次后台敏感查询审计，不改变目标业务数据。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: admin
+        roles: [AUDITOR, CONTENT_MODERATOR]
+      x-validation:
+        - limit must be an integer between 1 and 50
+        - from and to must be RFC 3339 UTC timestamps
+        - from must not be later than to
+        - filters must use documented admin enums
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4031
+        - JIJU_VALIDATION_4221
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: read-only request
+      x-side-effects:
+        - none to target business data
+        - optional access audit record for the sensitive audit query
+      x-view-count:
+        returned: false
+        rule: audit query must not serialize view_count
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: actor_id
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/OpaqueId'
+        - name: action_type
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+        - name: object_type
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/AuditObjectType'
+        - name: object_id
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/OpaqueId'
+        - name: from
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/UtcTimestamp'
+        - name: to
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/UtcTimestamp'
+      responses:
+        '200':
+          description: 审计日志游标分页
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 普通用户访问令牌
+    adminBearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 独立运营后台访问令牌；发行流程不在本次 MVP API 范围内
+
+  parameters:
+    OpaqueId:
+      name: id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/OpaqueId'
+    PostId:
+      name: post_id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/OpaqueId'
+    CommentId:
+      name: comment_id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/OpaqueId'
+    UserId:
+      name: user_id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/OpaqueId'
+    TargetType:
+      name: target_type
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ContentTargetType'
+    TargetId:
+      name: target_id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/OpaqueId'
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: 服务端签发的不可解释游标；空值表示第一页
+      schema:
+        type: string
+        maxLength: 2048
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: 每页数量
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: |
+        幂等键，格式为 v1:<operation>:<uuid_v7>。
+        同一用户意图的重试必须复用同一键；载荷或业务意图变化时必须生成新键。
+      schema:
+        type: string
+        pattern: '^v1:[a-z][a-z0-9_.-]+:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+    ViewToken:
+      name: X-View-Token
+      in: header
+      required: true
+      description: |
+        单次新详情页访问标识，格式为 v1:<uuid_v7>。
+        页面刷新、回到前台、返回已打开详情页时复用；重新进入一个新的详情页时生成新值。
+      schema:
+        type: string
+        pattern: '^v1:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+
+  responses:
+    Unauthorized:
+      description: 未登录或登录失效，返回 JIJU_AUTH_4011 或 JIJU_AUTH_4012
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: 权限不足、使用须知未确认或审核状态写入被拒绝
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: 内容不可用；非作者场景不区分不存在、到期、隐藏和删除
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: 状态冲突、版本冲突或幂等载荷冲突
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnprocessableEntity:
+      description: 请求字段或内容校验失败
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    TooManyRequests:
+      description: 发帖或评论配额满
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServiceUnavailable:
+      description: 服务暂时不可用；客户端同时处理本地 NETWORK_ERROR
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    OpaqueId:
+      type: string
+      description: 服务端生成的不透明资源 ID
+      pattern: '^[a-z]{3,8}_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      example: pst_0190d6f4-7f92-7e60-a53d-2e7fc98e5bd1
+    UtcTimestamp:
+      type: string
+      format: date-time
+      description: RFC 3339 UTC 时间，以 Z 结尾
+      example: '2026-11-13T10:00:00Z'
+    PageInfo:
+      type: object
+      required: [next_cursor, has_more]
+      properties:
+        next_cursor:
+          type: string
+          nullable: true
+          maxLength: 2048
+        has_more:
+          type: boolean
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, request_id]
+      properties:
+        code:
+          type: string
+          description: 稳定业务错误码，引用 docs/errors.md
+          example: JIJU_CONTENT_4041
+        message:
+          type: string
+          description: 用户可见安全文案
+          example: 内容已不可用
+        request_id:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+          description: 仅允许白名单字段；不得包含正文、评论、举报说明或内部状态
+    PostPublicStatus:
+      type: string
+      enum: [PUBLISHED, HIDDEN, EXPIRED, DELETED]
+    ModerationStatus:
+      type: string
+      enum: [PASSED, PENDING, REJECTED]
+    ReactionType:
+      type: string
+      enum: [HUG, HEAD_PAT, CHEER]
+      description: 抱一抱、摸摸头、加油
+    ContentTargetType:
+      type: string
+      enum: [POST, COMMENT]
+    ReportReason:
+      type: string
+      enum:
+        - ABUSE
+        - PRIVACY
+        - MINOR_INVOLVED
+        - DANGEROUS_OR_INAPPROPRIATE
+        - SPAM
+        - OTHER
+    ReportStatus:
+      type: string
+      enum: [PENDING, PROCESSING, RESOLVED]
+    ReportPriority:
+      type: string
+      enum: [PREEMPTIVE, NORMAL]
+    AuditObjectType:
+      type: string
+      enum:
+        - CONTENT
+        - REPORT
+        - ACCOUNT
+        - MODERATION_RULE
+        - TAG
+        - RATE_LIMIT
+        - CRISIS_RESOURCE
+    TagRef:
+      type: object
+      additionalProperties: false
+      required: [id, name]
+      properties:
+        id:
+          $ref: '#/components/schemas/OpaqueId'
+        name:
+          type: string
+    ReactionCounts:
+      type: object
+      additionalProperties: false
+      required: [hug, head_pat, cheer, total]
+      properties:
+        hug:
+          type: integer
+          minimum: 0
+        head_pat:
+          type: integer
+          minimum: 0
+        cheer:
+          type: integer
+          minimum: 0
+        total:
+          type: integer
+          minimum: 0
+    FeedItem:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - author_nickname
+        - body_excerpt
+        - published_at
+        - comment_count
+        - reaction_counts
+      properties:
+        id:
+          $ref: '#/components/schemas/OpaqueId'
+        author_nickname:
+          type: string
+        emotion_tag:
+          allOf:
+            - $ref: '#/components/schemas/TagRef'
+          nullable: true
+        context_tag:
+          allOf:
+            - $ref: '#/components/schemas/TagRef'
+          nullable: true
+        body_excerpt:
+          type: string
+        published_at:
+          $ref: '#/components/schemas/UtcTimestamp'
+        comment_count:
+          type: integer
+          minimum: 0
+        reaction_counts:
+          $ref: '#/components/schemas/ReactionCounts'
+    FeedResponse:
+      type: object
+      additionalProperties: false
+      required: [data, page, request_id]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeedItem'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+        request_id:
+          type: string
+    PostDetailBase:
+      type: object
+      required:
+        - id
+        - author_nickname
+        - body_text
+        - published_at
+        - expires_at
+        - comment_count
+        - reaction_counts
+        - is_author
+      properties:
+        id:
+          $ref: '#/components/schemas/OpaqueId'
+        author_nickname:
+          type: string
+        emotion_tag:
+          allOf:
+            - $ref: '#/components/schemas/TagRef'
+          nullable: true
+        context_tag:
+          allOf:
+            - $ref: '#/components/schemas/TagRef'
+          nullable: true
+        body_text:
+          type: string
+        published_at:
+          $ref: '#/components/schemas/UtcTimestamp'
+        expires_at:
+          $ref: '#/components/schemas/UtcTimestamp'
+        comment_count:
+          type: integer
+          minimum: 0
+        reaction_counts:
+          $ref: '#/components/schemas/ReactionCounts'
+        is_author:
+          type: boolean
+    PostDetailPublicResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/PostDetailBase'
+            - type: object
+              properties:
+                is_author:
+                  type: boolean
+                  enum: [false]
+        request_id:
+          type: string
+    PostDetailAuthorResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/PostDetailBase'
+            - type: object
+              required: [is_author, view_count]
+              properties:
+                is_author:
+                  type: boolean
+                  enum: [true]
+                view_count:
+                  type: integer
+                  minimum: 0
+        request_id:
+          type: string
+    PublishPostRequest:
+      type: object
+      additionalProperties: false
+      required: [body_text, retention_hours]
+      properties:
+        body_text:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: 去首尾空白后按 Unicode 扩展字素簇计数，必须为 1 至 500
+        emotion_tag_id:
+          allOf:
+            - $ref: '#/components/schemas/OpaqueId'
+          nullable: true
+        context_tag_id:
+          allOf:
+            - $ref: '#/components/schemas/OpaqueId'
+          nullable: true
+        retention_hours:
+          type: integer
+          enum: [24, 72, 168]
+          default: 168
+        risk_acknowledged:
+          type: boolean
+          default: false
+          description: 仅在高风险提示已向用户展示并获得确认后设为 true
+    EditPostRequest:
+      type: object
+      additionalProperties: false
+      required: [expected_content_version]
+      minProperties: 1
+      properties:
+        expected_content_version:
+          type: integer
+          minimum: 1
+        body_text:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: 去首尾空白后按 Unicode 扩展字素簇计数，必须为 1 至 500
+        emotion_tag_id:
+          allOf:
+            - $ref: '#/components/schemas/OpaqueId'
+          nullable: true
+        context_tag_id:
+          allOf:
+            - $ref: '#/components/schemas/OpaqueId'
+          nullable: true
+        risk_acknowledged:
+          type: boolean
+          default: false
+    PostMutationResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required:
+            - id
+            - content_version
+            - public_status
+            - moderation_status
+            - published_at
+            - expires_at
+          properties:
+            id:
+              $ref: '#/components/schemas/OpaqueId'
+            content_version:
+              type: integer
+              minimum: 1
+            public_status:
+              $ref: '#/components/schemas/PostPublicStatus'
+            moderation_status:
+              $ref: '#/components/schemas/ModerationStatus'
+            published_at:
+              $ref: '#/components/schemas/UtcTimestamp'
+            expires_at:
+              $ref: '#/components/schemas/UtcTimestamp'
+            edited_at:
+              $ref: '#/components/schemas/UtcTimestamp'
+        request_id:
+          type: string
+    CreateCommentRequest:
+      type: object
+      additionalProperties: false
+      required: [body_text]
+      properties:
+        body_text:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: 去首尾空白后按 Unicode 扩展字素簇计数，必须为 1 至 200
+    CommentItem:
+      type: object
+      additionalProperties: false
+      required: [id, post_id, author_nickname, body_text, published_at]
+      properties:
+        id:
+          $ref: '#/components/schemas/OpaqueId'
+        post_id:
+          $ref: '#/components/schemas/OpaqueId'
+        author_nickname:
+          type: string
+        body_text:
+          type: string
+        published_at:
+          $ref: '#/components/schemas/UtcTimestamp'
+    CommentResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          $ref: '#/components/schemas/CommentItem'
+        request_id:
+          type: string
+    CommentPageResponse:
+      type: object
+      additionalProperties: false
+      required: [data, page, request_id]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommentItem'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+        request_id:
+          type: string
+    SetReactionRequest:
+      type: object
+      additionalProperties: false
+      required: [type]
+      properties:
+        type:
+          $ref: '#/components/schemas/ReactionType'
+    ReactionStateResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [my_reaction, counts]
+          properties:
+            my_reaction:
+              allOf:
+                - $ref: '#/components/schemas/ReactionType'
+              nullable: true
+            counts:
+              $ref: '#/components/schemas/ReactionCounts'
+        request_id:
+          type: string
+    AuthorPostItem:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - body_excerpt
+        - public_status
+        - moderation_status
+        - published_at
+        - expires_at
+        - comment_count
+        - reaction_counts
+      properties:
+        id:
+          $ref: '#/components/schemas/OpaqueId'
+        body_excerpt:
+          type: string
+        emotion_tag:
+          allOf:
+            - $ref: '#/components/schemas/TagRef'
+          nullable: true
+        context_tag:
+          allOf:
+            - $ref: '#/components/schemas/TagRef'
+          nullable: true
+        public_status:
+          $ref: '#/components/schemas/PostPublicStatus'
+        moderation_status:
+          $ref: '#/components/schemas/ModerationStatus'
+        published_at:
+          $ref: '#/components/schemas/UtcTimestamp'
+        expires_at:
+          $ref: '#/components/schemas/UtcTimestamp'
+        comment_count:
+          type: integer
+          minimum: 0
+        reaction_counts:
+          $ref: '#/components/schemas/ReactionCounts'
+    AuthorPostPageResponse:
+      type: object
+      additionalProperties: false
+      required: [data, page, request_id]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorPostItem'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+        request_id:
+          type: string
+    CreateReportRequest:
+      type: object
+      additionalProperties: false
+      required: [target_type, target_id, reason]
+      properties:
+        target_type:
+          $ref: '#/components/schemas/ContentTargetType'
+        target_id:
+          $ref: '#/components/schemas/OpaqueId'
+        reason:
+          $ref: '#/components/schemas/ReportReason'
+        other_description:
+          type: string
+          minLength: 1
+          description: reason=OTHER 时必填；仅后台可见
+    ReportReceiptResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [report_id, submitted_at]
+          properties:
+            report_id:
+              $ref: '#/components/schemas/OpaqueId'
+            submitted_at:
+              $ref: '#/components/schemas/UtcTimestamp'
+        request_id:
+          type: string
+    WechatLoginRequest:
+      type: object
+      additionalProperties: false
+      required: [code]
+      properties:
+        code:
+          type: string
+          minLength: 1
+          description: 微信小程序临时登录 code
+    LoginResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required:
+            - access_token
+            - token_type
+            - expires_at
+            - user
+            - current_notice_version
+            - notice_confirmed
+          properties:
+            access_token:
+              type: string
+            token_type:
+              type: string
+              enum: [Bearer]
+            expires_at:
+              $ref: '#/components/schemas/UtcTimestamp'
+            user:
+              type: object
+              additionalProperties: false
+              required: [id, plaza_nickname]
+              properties:
+                id:
+                  $ref: '#/components/schemas/OpaqueId'
+                plaza_nickname:
+                  type: string
+            current_notice_version:
+              type: string
+            notice_confirmed:
+              type: boolean
+        request_id:
+          type: string
+    NoticeConfirmationResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [notice_version, confirmed_at]
+          properties:
+            notice_version:
+              type: string
+            confirmed_at:
+              $ref: '#/components/schemas/UtcTimestamp'
+        request_id:
+          type: string
+    AdminReportItem:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - target_type
+        - target_id
+        - content_version
+        - reason
+        - is_minor_related
+        - priority
+        - status
+        - submitted_at
+      properties:
+        id:
+          $ref: '#/components/schemas/OpaqueId'
+        target_type:
+          $ref: '#/components/schemas/ContentTargetType'
+        target_id:
+          $ref: '#/components/schemas/OpaqueId'
+        content_version:
+          type: integer
+          minimum: 1
+        reason:
+          $ref: '#/components/schemas/ReportReason'
+        other_description:
+          type: string
+          description: 仅后台可见
+        is_minor_related:
+          type: boolean
+        priority:
+          $ref: '#/components/schemas/ReportPriority'
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+        submitted_at:
+          $ref: '#/components/schemas/UtcTimestamp'
+    AdminReportPageResponse:
+      type: object
+      additionalProperties: false
+      required: [data, page, request_id]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminReportItem'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+        request_id:
+          type: string
+    ReviewContentRequest:
+      type: object
+      additionalProperties: false
+      required: [expected_content_version, decision, reason]
+      properties:
+        expected_content_version:
+          type: integer
+          minimum: 1
+        decision:
+          type: string
+          enum: [PASSED, REJECTED]
+        reason:
+          type: string
+          minLength: 1
+    ModerationRecordResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required:
+            - id
+            - target_type
+            - target_id
+            - content_version
+            - review_round
+            - moderation_status
+            - public_status
+            - handled_by
+            - handled_at
+            - reason
+          properties:
+            id:
+              $ref: '#/components/schemas/OpaqueId'
+            target_type:
+              $ref: '#/components/schemas/ContentTargetType'
+            target_id:
+              $ref: '#/components/schemas/OpaqueId'
+            content_version:
+              type: integer
+              minimum: 1
+            review_round:
+              type: integer
+              minimum: 1
+            moderation_status:
+              $ref: '#/components/schemas/ModerationStatus'
+            public_status:
+              $ref: '#/components/schemas/PostPublicStatus'
+            handled_by:
+              $ref: '#/components/schemas/OpaqueId'
+            handled_at:
+              $ref: '#/components/schemas/UtcTimestamp'
+            reason:
+              type: string
+        request_id:
+          type: string
+    ContentActionRequest:
+      type: object
+      additionalProperties: false
+      required: [action, expected_content_version, reason]
+      properties:
+        action:
+          type: string
+          enum: [HIDE, TAKEDOWN, RESTORE]
+        expected_content_version:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          minLength: 1
+    ContentActionResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required:
+            - action
+            - public_status_before
+            - public_status_after
+            - moderation_status_before
+            - moderation_status_after
+            - handled_at
+          properties:
+            action:
+              type: string
+              enum: [HIDE, TAKEDOWN, RESTORE]
+            public_status_before:
+              $ref: '#/components/schemas/PostPublicStatus'
+            public_status_after:
+              $ref: '#/components/schemas/PostPublicStatus'
+            moderation_status_before:
+              $ref: '#/components/schemas/ModerationStatus'
+            moderation_status_after:
+              $ref: '#/components/schemas/ModerationStatus'
+            handled_at:
+              $ref: '#/components/schemas/UtcTimestamp'
+        request_id:
+          type: string
+    AccountRestrictionRequest:
+      type: object
+      additionalProperties: false
+      required: [action, reason]
+      properties:
+        action:
+          type: string
+          enum: [WARNING, POST_LIMIT, COMMENT_LIMIT, REACTION_LIMIT, BAN]
+        expires_at:
+          allOf:
+            - $ref: '#/components/schemas/UtcTimestamp'
+          nullable: true
+          description: 限制类动作必填；BAN 可为空表示持续封禁
+        reason:
+          type: string
+          minLength: 1
+    AccountRestrictionResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [id, user_id, action, effective_at, expires_at]
+          properties:
+            id:
+              $ref: '#/components/schemas/OpaqueId'
+            user_id:
+              $ref: '#/components/schemas/OpaqueId'
+            action:
+              type: string
+              enum: [WARNING, POST_LIMIT, COMMENT_LIMIT, REACTION_LIMIT, BAN]
+            effective_at:
+              $ref: '#/components/schemas/UtcTimestamp'
+            expires_at:
+              allOf:
+                - $ref: '#/components/schemas/UtcTimestamp'
+              nullable: true
+        request_id:
+          type: string
+    AuditLogItem:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - actor_id
+        - actor_role
+        - action_type
+        - object_type
+        - object_id
+        - occurred_at
+      properties:
+        id:
+          $ref: '#/components/schemas/OpaqueId'
+        actor_id:
+          $ref: '#/components/schemas/OpaqueId'
+        actor_role:
+          type: string
+        action_type:
+          type: string
+        object_type:
+          $ref: '#/components/schemas/AuditObjectType'
+        object_id:
+          $ref: '#/components/schemas/OpaqueId'
+        content_version:
+          type: integer
+          minimum: 1
+          nullable: true
+        reason:
+          type: string
+          nullable: true
+        occurred_at:
+          $ref: '#/components/schemas/UtcTimestamp'
+    AuditLogPageResponse:
+      type: object
+      additionalProperties: false
+      required: [data, page, request_id]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLogItem'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+        request_id:
+          type: string
