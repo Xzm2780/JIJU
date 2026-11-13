@@ -72,7 +72,8 @@ $requiredCodes = @(
     'JIJU_SYSTEM_5031',
     'JIJU_CONFLICT_4091',
     'JIJU_CONFLICT_4092',
-    'JIJU_MODERATION_4091'
+    'JIJU_MODERATION_4091',
+    'JIJU_MODERATION_4092'
 )
 
 foreach ($code in $requiredCodes) {

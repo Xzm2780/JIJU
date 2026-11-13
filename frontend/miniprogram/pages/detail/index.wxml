@@ -1,0 +1,32 @@
+<view class="page">
+  <view wx:if="{{!missing}}" class="card">
+    <view class="success">
+      <text class="success-mark">✓</text>
+      <view>
+        <text class="success-title">发布成功</text>
+        <text class="success-copy">已进入帖子详情预览。</text>
+      </view>
+    </view>
+    <text class="title">帖子详情</text>
+    <view class="status-row">
+      <text class="chip">{{statusLabel}}</text>
+      <text class="chip">{{post.content_version ? 'v' + post.content_version : ''}}</text>
+    </view>
+    <view class="meta-grid">
+      <view>
+        <text class="meta-label">发布时间</text>
+        <text class="meta-value">{{publishedAt}}</text>
+      </view>
+      <view>
+        <text class="meta-label">到期时间</text>
+        <text class="meta-value">{{expiresAt}}</text>
+      </view>
+    </view>
+    <button class="secondary-button" bindtap="backToPublish">再发布一条</button>
+  </view>
+  <view wx:else class="card">
+    <text class="title">详情预览不可用</text>
+    <text class="missing-copy">当前会话没有发布结果，请返回发布页重新发布。</text>
+    <button class="primary-button" bindtap="backToPublish">返回发布页</button>
+  </view>
+</view>

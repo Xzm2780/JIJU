@@ -1,0 +1,79 @@
+<view class="page">
+  <view class="header-row">
+    <view>
+      <text class="eyebrow">新帖子</text>
+      <text class="title">此刻，想说点什么？</text>
+    </view>
+    <text class="counter {{charCount > 500 ? 'counter-error' : ''}}">{{charCount}} / 500</text>
+  </view>
+
+  <view wx:if="{{noticeRestored}}" class="info-banner">
+    已恢复本机草稿。草稿最多保留 24 小时。
+  </view>
+  <view wx:if="{{message}}" class="message {{messageType}}">{{message}}</view>
+
+  <view class="card">
+    <view class="field">
+      <text class="label">正文</text>
+      <textarea
+        class="textarea"
+        value="{{bodyText}}"
+        maxlength="-1"
+        placeholder="不用解释背景，只写下此刻的感受。"
+        bindinput="onBodyInput"
+      />
+      <text class="help">去除首尾空白后 1～500 个用户可见字符，组合 emoji 按一个字素簇计算。</text>
+    </view>
+
+    <view class="grid">
+      <view class="field">
+        <text class="label">情绪标签（可选）</text>
+        <picker range="{{emotionTags}}" range-key="name" value="{{emotionIndex}}" bindchange="onEmotionChange">
+          <view class="picker">{{emotionTags[emotionIndex] ? emotionTags[emotionIndex].name : '标签加载中'}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="label">情境标签（可选）</text>
+        <picker range="{{contextTags}}" range-key="name" value="{{contextIndex}}" bindchange="onContextChange">
+          <view class="picker">{{contextTags[contextIndex] ? contextTags[contextIndex].name : '标签加载中'}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="label">留存时长</text>
+      <view class="segmented">
+        <button class="segment {{retentionHours === 24 ? 'segment-active' : ''}}" data-hours="24" bindtap="onRetentionChange">24 小时</button>
+        <button class="segment {{retentionHours === 72 ? 'segment-active' : ''}}" data-hours="72" bindtap="onRetentionChange">3 天</button>
+        <button class="segment {{retentionHours === 168 ? 'segment-active' : ''}}" data-hours="168" bindtap="onRetentionChange">7 天</button>
+      </view>
+    </view>
+
+    <view class="public-notice">
+      <text class="notice-title">这是一条公开内容</text>
+      <text class="notice-copy">帖子会进入公共广场，可能被其他用户查看或截图。不要填写可识别个人身份的信息。</text>
+      <view class="switch-row">
+        <text>我已了解公开属性</text>
+        <switch checked="{{publicAcknowledged}}" color="#2e6b55" bindchange="onPublicAcknowledgedChange" />
+      </view>
+    </view>
+
+    <view class="footer">
+      <text class="draft-tip">草稿仅保存在本机 · {{sessionLabel}}</text>
+      <button class="primary-button submit" loading="{{publishing}}" disabled="{{publishing || loadingTags}}" bindtap="onSubmit">
+        发布到广场
+      </button>
+    </view>
+  </view>
+
+  <view wx:if="{{showLoginModal}}" class="modal-mask">
+    <view class="modal">
+      <text class="modal-title">先完成模拟登录</text>
+      <text class="modal-copy">Demo 不连接真实微信服务。取消登录后，正文、标签和留存时长仍保存在本机。</text>
+      <view class="modal-actions">
+        <button class="secondary-button" bindtap="cancelLogin">取消登录</button>
+        <button class="primary-button" bindtap="confirmLogin">模拟登录</button>
+      </view>
+    </view>
+  </view>
+</view>

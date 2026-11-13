@@ -61,7 +61,7 @@
 | emotion_tag_name_snapshot | 字符串 | 条件必填：存在 `emotion_tag_id` 时必填 | 空 | 否 | 无 | TAG-05 |
 | context_tag_id | ID（Tag） | 条件必填：选择情境标签时必填 | 空 | 否 | 与 `context_tag_name_snapshot` 联合解释 | POST-03、TAG-05 |
 | context_tag_name_snapshot | 字符串 | 条件必填：存在 `context_tag_id` 时必填 | 空 | 否 | 无 | TAG-05 |
-| retention_hours | 枚举（24、72、168） | 是 | 168 | 否 | 无 | POST-04、EXP-01 |
+| retention_hours | 枚举（24、72、168） | 是 | 客户端预选 168；服务端要求显式提交 | 否 | 无 | POST-04、EXP-01 |
 | public_status | 枚举（PUBLISHED、HIDDEN、EXPIRED、DELETED） | 是 | PUBLISHED | 否 | `(public_status, moderation_status, published_at, id)` | FEED-01、POST-08、EXP-03、EXP-07、MOD-06 |
 | moderation_status | 枚举（PASSED、PENDING、REJECTED） | 是 | PASSED | 否 | `(moderation_status, public_status, published_at, id)` | FEED-01、MOD-02、MOD-05 |
 | risk_confirmed_at | 时间戳（UTC） | 条件必填：审核状态为 PENDING 且允许继续公开时必填 | 空 | 否 | 无 | MOD-02 |
@@ -174,6 +174,35 @@
 - 每个分类最多一个“其他”固定标签，不提供自由文本补充字段。（来源：TAG-01、TAG-02、TAG-03）
 - 选择器只返回 `enabled = true` 的标签，并按 `sort_order` 展示；停用标签不得用于新帖子。（来源：TAG-04）
 - 帖子必须保存标签 ID 和发布时名称快照，标签重命名或停用不得改变历史帖子语义。（来源：TAG-05）
+
+## TagCatalog
+
+| 字段名 | 类型 | 是否必填 | 默认值 | 唯一约束 | 索引建议 | 来源需求 ID |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | 固定标识 | 是 | current | 是 | 主键 | TAG-04 |
+| version | 字符串 | 是 | 版本发布时由服务端生成 | 是 | 唯一索引 | TAG-04、TAG-05 |
+| updated_at | 时间戳（UTC） | 是 | 服务端当前时间 | 否 | 无 | TAG-04 |
+
+**软删除：** 否。目录版本用于让客户端识别标签配置是否变化，历史 Post 标签语义由快照保证。（来源：TAG-04、TAG-05）
+
+**实体规则：**
+
+- `GET /tags` 只返回启用标签及当前目录版本，版本或启用状态变化后客户端须重新获取。（来源：TAG-04）
+- 发布提交必须按标签 ID 重新校验分类和启用状态，不得只信任客户端缓存版本。（来源：TAG-03、TAG-04）
+
+## ModerationChallenge
+
+| 字段名 | 类型 | 是否必填 | 默认值 | 唯一约束 | 索引建议 | 来源需求 ID |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | ID（Redis 短期挑战） | 是 | 服务端生成 | 是 | 主键键 | MOD-02 |
+| user_id | ID（User） | 是 | 无 | 否 | 与 challenge 键组合 | MOD-02 |
+| content_fingerprint | 字符串 | 是 | 服务端按正文、标签和留存计算 | 否 | 无 | MOD-02 |
+| prompt_version | 字符串 | 是 | 由规则配置决定 | 否 | 无 | MOD-02 |
+| resource_version | 字符串 | 是 | 由资源配置决定 | 否 | 无 | MOD-02 |
+| expires_at | 时间戳（UTC） | 是 | 服务端短期 TTL | 否 | Redis TTL | MOD-02 |
+| consumed_at | 时间戳（UTC） | 否 | 空 | 否 | 无 | MOD-02 |
+
+**软删除：** 不适用。挑战在 Redis 中短期存在，成功消费或到期后删除；具体 TTL 为工程配置，不作为用户数据保留承诺。（来源：MOD-02）
 
 ## NoticeConfirmation
 

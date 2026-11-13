@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: JIJU MVP API
-  version: 1.0.0
+  version: 1.1.0
   description: |
     JIJU 微信小程序 MVP 接口契约。
 
@@ -97,7 +97,7 @@ paths:
       summary: 发布帖子
       description: |
         鉴权要求：必须使用普通用户登录态；运营账号在普通前台不得使用后台权限绕过。
-        请求参数与校验：正文去首尾空白后为 1 至 500 个 Unicode 扩展字素簇；情绪标签和情境标签各最多一个，必须为对应分类下当前启用的 Tag ID；retention_hours 仅允许 24、72、168，默认 168；首次表达前须确认当前使用须知。
+        请求参数与校验：正文去首尾空白后为 1 至 500 个 Unicode 扩展字素簇；情绪标签和情境标签各最多一个，必须来自 GET /tags 返回的对应分类启用 Tag ID；retention_hours 必须显式传 24、72、168，客户端默认预选 168，服务端不隐式默认；首次表达前须确认当前使用须知。
         响应结构：返回帖子 ID、内容版本、公开状态、审核状态、发布时间和固定到期时间。
         错误码：未登录、登录失效、须知未确认、内容校验失败、发帖配额满、状态冲突、服务不可用或网络失败，引用 docs/errors.md。
         幂等要求：必须携带 Idempotency-Key，值为 v1:post.publish:<uuid_v7>；同一发布意图重试复用同一键。
@@ -111,9 +111,10 @@ paths:
         - body_text trimmed length is 1 to 500 Unicode extended grapheme clusters
         - at most one emotion_tag_id and one context_tag_id
         - tag ids must be active and belong to their declared category
-        - retention_hours must be one of 24, 72, 168
+        - retention_hours is required and must be one of 24, 72, 168
         - current notice version must be confirmed
-        - risk_acknowledged must be true when the server requires risk confirmation
+        - when the rule result is CONFIRM, the first request returns JIJU_MODERATION_4092 without creating a post
+        - the confirmation retry must include the server-issued risk_challenge_id and risk_acknowledged=true
       x-errors:
         - JIJU_AUTH_4011
         - JIJU_AUTH_4012
@@ -122,6 +123,7 @@ paths:
         - JIJU_QUOTA_4291
         - JIJU_CONFLICT_4091
         - JIJU_MODERATION_4091
+        - JIJU_MODERATION_4092
         - JIJU_SYSTEM_5031
         - NETWORK_ERROR
       x-error-reference: docs/errors.md
@@ -134,8 +136,8 @@ paths:
       x-side-effects:
         - create Post and immutable first content version
         - consume one successful POST_DAILY quota unit
-        - moderation_status becomes PASSED or PENDING according to server validation
-        - create moderation review record when moderation_status is PENDING
+        - a CONFIRM result first creates a short-lived challenge without creating a post
+        - a confirmed retry creates a PENDING post and moderation review record
       x-view-count:
         returned: false
         rule: create-post response must never serialize view_count
@@ -229,6 +231,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
+
     patch:
       tags:
         - Posts
@@ -371,6 +374,51 @@ paths:
           $ref: '#/components/responses/Conflict'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /tags:
+    get:
+      tags:
+        - Posts
+      operationId: listTags
+      summary: 获取启用的标签
+      description: |
+        鉴权要求：无需登录；游客、登录用户和运营均按公开数据读取。
+        请求参数与校验：无业务参数；只返回 enabled=true 的标签。
+        响应结构：返回标签目录版本、稳定 ID、名称、分类和排序。
+        错误码：系统暂时不可用或客户端网络失败，引用 docs/errors.md。
+        幂等要求：GET 只读，不需要 Idempotency-Key。
+        副作用：不改变标签、内容、计数、配额或审核状态。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: none
+        roles: [GUEST, AUTH_NON_AUTHOR, AUTHOR, OPERATOR]
+      x-validation:
+        - no request body
+        - only enabled tags are returned
+        - tags are sorted by category and sort_order
+      x-errors:
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: read-only request
+      x-side-effects:
+        - none
+      x-view-count:
+        returned: false
+        rule: tag catalog must never serialize view_count
+      security: []
+      responses:
+        '200':
+          description: 当前启用的标签目录
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagCatalogResponse'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
@@ -1539,7 +1587,7 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
     Conflict:
-      description: 状态冲突、版本冲突或幂等载荷冲突
+      description: 状态冲突、版本冲突、幂等载荷冲突或需确认风险提示
       content:
         application/json:
           schema:
@@ -1649,6 +1697,38 @@ components:
         id:
           $ref: '#/components/schemas/OpaqueId'
         name:
+          type: string
+    TagCatalogItem:
+      type: object
+      additionalProperties: false
+      required: [id, name, category, sort_order]
+      properties:
+        id:
+          $ref: '#/components/schemas/OpaqueId'
+        name:
+          type: string
+        category:
+          type: string
+          enum: [EMOTION, CONTEXT]
+        sort_order:
+          type: integer
+    TagCatalogResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [version, items]
+          properties:
+            version:
+              type: string
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/TagCatalogItem'
+        request_id:
           type: string
     ReactionCounts:
       type: object
@@ -1804,11 +1884,14 @@ components:
         retention_hours:
           type: integer
           enum: [24, 72, 168]
-          default: 168
+          description: 必填；客户端可默认预选 168，但必须显式提交
         risk_acknowledged:
           type: boolean
           default: false
           description: 仅在高风险提示已向用户展示并获得确认后设为 true
+        risk_challenge_id:
+          type: string
+          description: CONFIRM 分支首次响应返回的短期 challenge_id；确认后重试时必填
     EditPostRequest:
       type: object
       additionalProperties: false

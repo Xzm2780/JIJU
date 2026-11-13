@@ -1,0 +1,84 @@
+.title {
+  display: block;
+  margin-bottom: 24rpx;
+  font-family: "Songti SC", serif;
+  font-size: 44rpx;
+  font-weight: 650;
+}
+
+.success {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin-bottom: 34rpx;
+  padding: 22rpx;
+  border-radius: 20rpx;
+  background: #dcebe4;
+  color: #214f40;
+}
+
+.success-mark {
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  background: #2e6b55;
+  color: #fff;
+  text-align: center;
+  line-height: 52rpx;
+  font-weight: 800;
+}
+
+.success-title,
+.success-copy {
+  display: block;
+}
+
+.success-copy {
+  margin-top: 4rpx;
+  font-size: 24rpx;
+}
+
+.status-row {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 30rpx;
+}
+
+.chip {
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background: #eef0ec;
+  color: #69736c;
+  font-size: 24rpx;
+}
+
+.meta-grid {
+  display: grid;
+  gap: 22rpx;
+  margin-bottom: 32rpx;
+  padding: 26rpx;
+  border-radius: 22rpx;
+  background: #f5f4ef;
+}
+
+.meta-label,
+.meta-value {
+  display: block;
+}
+
+.meta-label {
+  color: #69736c;
+  font-size: 22rpx;
+}
+
+.meta-value {
+  margin-top: 8rpx;
+  font-size: 28rpx;
+}
+
+.missing-copy {
+  display: block;
+  margin-bottom: 28rpx;
+  color: #69736c;
+  line-height: 1.7;
+}

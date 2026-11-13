@@ -60,6 +60,7 @@ Post 使用两个独立状态维度：
 | PENDING | 内容再次编辑后仍待审 | 作者本人；帖子仍处于 PUBLISHED；编辑内容校验通过并完成必要风险确认 | PENDING（保持） | 更新内容版本；复核对象切换到新版本；不得沿用旧版本的人工复核结论 | PRD 5.7；domain.md ModerationRecord |
 | PENDING | 人工复核通过 | 具备后台身份和复核权限；审核对象为当前待审内容版本 | PASSED | 记录处理人员、时间、命中的规则和处理结果；不自动改写公开状态 | PRD 5.6；domain.md ModerationRecord |
 | PENDING | 人工判定明确违规 | 具备后台身份和复核权限；确认内容明确违规 | REJECTED | 立即将公开状态从 PUBLISHED 改为 HIDDEN；记录内容版本、处理人员、时间、原因和前后状态 | PRD 5.6；domain.md Post、ModerationRecord |
+| NEW（尚未持久化） | 首次命中风险确认 | 服务端规则结果为 CONFIRM，用户尚未确认当前提示版本 | NEW（保持） | 返回 `JIJU_MODERATION_4092`、challenge_id、提示版本和求助资源；不创建 Post、不消耗配额 | PRD 5.6；domain.md ModerationChallenge |
 
 明确阻断的首次投稿不会创建服务端 Post，也不会产生 `NEW -> REJECTED` 的 Post 迁移；请求应直接以内容校验错误结束。
 

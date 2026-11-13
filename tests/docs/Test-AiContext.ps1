@@ -20,6 +20,11 @@ for ($section = 1; $section -le 5; $section++) {
 $requiredStatements = @(
     'Taro',
     'uni-app',
+    'Native Mini Program + TypeScript',
+    'Node.js + NestJS',
+    'PostgreSQL',
+    'Prisma',
+    'Redis',
     'frontend/',
     'components/',
     'server/',
@@ -40,6 +45,11 @@ foreach ($statement in $requiredStatements) {
     if (-not $content.Contains($statement)) {
         throw "Missing required statement: $statement"
     }
+}
+
+$firstLine = ($content -split "`r?`n")[0]
+if (-not $firstLine.Contains('docs/')) {
+    throw 'ai-context.md first line must declare that docs/ references stay synchronized.'
 }
 
 $sectionFourStart = $content.IndexOf('## 4. ')

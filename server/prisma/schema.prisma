@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TagCategory {
+  EMOTION
+  CONTEXT
+}
+
+enum PublicStatus {
+  PUBLISHED
+  HIDDEN
+  EXPIRED
+  DELETED
+}
+
+enum ModerationStatus {
+  PASSED
+  PENDING
+  REJECTED
+}
+
+enum QuotaType {
+  POST_DAILY
+}
+
+enum IdempotencyStatus {
+  PROCESSING
+  SUCCEEDED
+}
+
+enum ModerationPriority {
+  PREEMPTIVE
+  NORMAL
+}
+
+model User {
+  id                 String               @id
+  loginCode          String               @unique
+  plazaNickname      String
+  accountStatus      String               @default("ACTIVE")
+  deactivatedAt      DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  sessions           AuthSession[]
+  notices            NoticeConfirmation[]
+  posts              Post[]
+  quotaUsages        QuotaUsage[]
+  idempotencyRecords IdempotencyRecord[]
+  moderationRecords  ModerationRecord[]
+}
+
+model AuthSession {
+  id        String    @id
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+}
+
+model NoticeConfirmation {
+  id            String   @id
+  userId        String
+  noticeVersion String
+  confirmedAt   DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, noticeVersion])
+  @@index([userId, noticeVersion])
+}
+
+model TagCatalog {
+  id        String   @id @default("current")
+  version   String   @unique
+  updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id             String      @id
+  category       TagCategory
+  name           String
+  sortOrder      Int         @default(0)
+  enabled        Boolean     @default(true)
+  isOther        Boolean     @default(false)
+  catalogVersion String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@unique([category, name])
+  @@index([category, enabled, sortOrder])
+}
+
+model Post {
+  id                     String           @id
+  authorId               String
+  bodyText               String
+  bodyGraphemeLength     Int
+  emotionTagId           String?
+  emotionTagNameSnapshot String?
+  contextTagId           String?
+  contextTagNameSnapshot String?
+  retentionHours         Int
+  publicStatus           PublicStatus     @default(PUBLISHED)
+  moderationStatus       ModerationStatus @default(PASSED)
+  riskConfirmedAt        DateTime?
+  publishedAt            DateTime
+  expiresAt              DateTime
+  currentContentVersion  Int              @default(1)
+  editedAt               DateTime?
+  hiddenAt               DateTime?
+  deletedAt              DateTime?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  author                 User             @relation(fields: [authorId], references: [id])
+  versions               PostVersion[]
+
+  @@index([publicStatus, moderationStatus, publishedAt, id])
+  @@index([authorId, publicStatus, publishedAt, id])
+  @@index([expiresAt, publicStatus])
+}
+
+model PostVersion {
+  id                     String   @id
+  postId                 String
+  versionNumber          Int
+  bodyText               String
+  bodyGraphemeLength     Int
+  emotionTagId           String?
+  emotionTagNameSnapshot String?
+  contextTagId           String?
+  contextTagNameSnapshot String?
+  createdAt              DateTime @default(now())
+  post                   Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, versionNumber])
+}
+
+model QuotaUsage {
+  id         String    @id
+  userId     String
+  quotaType  QuotaType
+  requestId  String
+  sourceId   String
+  consumedAt DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, quotaType, requestId])
+  @@unique([userId, quotaType, sourceId])
+  @@index([userId, quotaType, consumedAt])
+}
+
+model IdempotencyRecord {
+  id                 String            @id
+  actorId            String
+  operation          String
+  idempotencyKey     String
+  requestFingerprint String
+  status             IdempotencyStatus
+  responseStatus     Int?
+  responseJson       Json?
+  expiresAt          DateTime
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  actor              User              @relation(fields: [actorId], references: [id])
+
+  @@unique([actorId, operation, idempotencyKey])
+  @@index([expiresAt])
+}
+
+model ModerationRecord {
+  id                    String             @id
+  targetType            String
+  targetId              String
+  contentVersion        Int
+  reviewRound           Int                @default(1)
+  priority              ModerationPriority @default(NORMAL)
+  status                String             @default("PENDING")
+  hitRuleRefs           Json?
+  moderationStatusAfter ModerationStatus?
+  publicStatusAfter     PublicStatus?
+  handledBy             String?
+  handledAt             DateTime?
+  reason                String?
+  createdAt             DateTime           @default(now())
+  handler               User?              @relation(fields: [handledBy], references: [id])
+
+  @@unique([targetType, targetId, contentVersion, reviewRound])
+  @@index([status, priority, createdAt])
+  @@index([targetType, targetId, contentVersion])
+}

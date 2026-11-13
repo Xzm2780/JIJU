@@ -8,11 +8,11 @@ $tasksResolved = (Resolve-Path -LiteralPath $TasksPath).Path
 $acMatrixResolved = (Resolve-Path -LiteralPath $AcMatrixPath).Path
 $taskFiles = Get-ChildItem -LiteralPath $tasksResolved -Filter 'T??-*.md' -File | Sort-Object Name
 
-if ($taskFiles.Count -ne 18) {
-    throw "Expected exactly 18 task files, found $($taskFiles.Count)."
+if ($taskFiles.Count -ne 19) {
+    throw "Expected exactly 19 task files, found $($taskFiles.Count)."
 }
 
-$expectedTaskIds = 0..17 | ForEach-Object { 'T{0:D2}' -f $_ }
+$expectedTaskIds = 0..18 | ForEach-Object { 'T{0:D2}' -f $_ }
 $dependencies = @{}
 $allTaskText = ''
 
@@ -145,6 +145,7 @@ foreach ($taskId in $expectedTaskIds) {
 
 $requiredInterfaces = @(
     'GET /feed',
+    'GET /tags',
     'GET /posts/{post_id}',
     'POST /posts',
     'PATCH /posts/{post_id}',
@@ -190,4 +191,4 @@ foreach ($row in $acRows) {
     }
 }
 
-Write-Host "Task package validation passed: 18 tasks, 20 covered interfaces, acyclic dependencies, and 31 AC task mappings."
+Write-Host "Task package validation passed: 19 tasks, 21 covered interfaces, acyclic dependencies, and 31 AC task mappings."

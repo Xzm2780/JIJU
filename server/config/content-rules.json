@@ -1,0 +1,26 @@
+{
+  "version": "mvp-rules-v1",
+  "promptVersion": "risk-notice-v1",
+  "resourceVersion": "demo-resources-v1",
+  "resources": [
+    {
+      "name": "演示求助资源",
+      "scope": "Demo only",
+      "url": "https://example.com/support"
+    }
+  ],
+  "rules": [
+    {
+      "id": "demo-explicit-block",
+      "decision": "BLOCK",
+      "match": "contains",
+      "values": ["[[BLOCK]]"]
+    },
+    {
+      "id": "demo-review-confirm",
+      "decision": "CONFIRM",
+      "match": "contains",
+      "values": ["[[REVIEW]]"]
+    }
+  ]
+}

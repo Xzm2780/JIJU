@@ -108,7 +108,7 @@ erDiagram
 | emotion_tag_name_snapshot | 字符串 | 否 | 与 emotion_tag_id 同时存在。 |
 | context_tag_id | 标签 ID | 否 | 最多一个。 |
 | context_tag_name_snapshot | 字符串 | 否 | 与 context_tag_id 同时存在。 |
-| retention_hours | 枚举 | 是 | 24、72、168，默认 168。 |
+| retention_hours | 枚举 | 是 | 24、72、168；客户端默认预选 168，API 必须显式提交，服务端不隐式补值。 |
 | public_status | 枚举 | 是 | PUBLISHED、HIDDEN、EXPIRED、DELETED；DRAFT 只存在客户端。 |
 | moderation_status | 枚举 | 是 | PASSED、PENDING、REJECTED。 |
 | risk_confirmed_at | UTC 时间 | 条件 | PENDING 且继续公开时必填。 |
@@ -218,6 +218,16 @@ PostVersion 是支撑编辑历史、举报版本和审核快照的内部实体�
 | updated_at | UTC 时间 | 是 | 最近变更时间。 |
 
 主要约束：`(category, name)` 唯一；停用不删除，历史帖子依赖快照。
+
+### 4.9.1 TagCatalog
+
+| 字段 | 逻辑类型 | 必填 | 约束与说明 |
+| --- | --- | --- | --- |
+| id | 固定标识 | 是 | 固定为 current 的目录配置记录。 |
+| version | 字符串 | 是 | 标签目录版本；标签新增、停用、重命名或排序变化时更新。 |
+| updated_at | UTC 时间 | 是 | 最近配置变更时间。 |
+
+`GET /tags` 返回该版本和所有启用标签。发布接口仍按标签 ID 重新校验分类和启用状态，不接受仅凭旧版本通过。
 
 ### 4.10 NoticeConfirmation
 
@@ -330,6 +340,22 @@ IdempotencyRecord 是写接口可靠重试的内部支撑实体，不对外暴�
 
 主要约束：`(actor_id, operation, idempotency_key)` 唯一。同键不同载荷返回 `JIJU_CONFLICT_4091`，不得执行第二次副作用。
 
+### 4.16 ModerationChallenge
+
+ModerationChallenge 是发布规则的短期确认挑战，保存在 Redis，不进入公开数据。
+
+| 字段 | 逻辑类型 | 必填 | 约束与说明 |
+| --- | --- | --- | --- |
+| id | 不透明挑战 ID | 是 | UUIDv7，Redis 键。 |
+| user_id | 用户 ID | 是 | 挑战只能由同一用户消费。 |
+| content_fingerprint | 字符串 | 是 | 绑定正文、标签、留存和规则结果。 |
+| prompt_version | 字符串 | 是 | 用户看到的提示版本。 |
+| resource_version | 字符串 | 是 | 外部求助资源版本。 |
+| expires_at | UTC 时间 | 是 | 短期配置 TTL 到期后不可使用。 |
+| consumed_at | UTC 时间 | 否 | 成功后标记消费，防重复使用。 |
+
+首次 `CONFIRM` 只创建挑战，不创建 Post。确认重试必须校验 challenge_id、用户、内容指纹和 `risk_acknowledged=true`；成功后创建 PENDING Post。
+
 ## 5. 计数模型
 
 | 计数 | 事实来源 | 规则 |
@@ -379,6 +405,8 @@ IdempotencyRecord 是写接口可靠重试的内部支撑实体，不对外暴�
 | openid、unionid、session_key | 不返回 | 不返回 | 不返回 |
 | 后台审计字段 | 不返回 | 不返回 | 授权审计角色可见 |
 
+`GET /tags` 只公开标签版本、稳定 ID、名称、分类和排序；不得返回内部规则、停用标签或审核配置。
+
 本次 API 设计要求只有作者帖子详情返回浏览量，因此“我的帖子列表”不返回 `view_count`。如果产品坚持在列表展示浏览量，必须单独调整接口范围和权限约定。
 
 ## 9. 软删除与保留
@@ -401,3 +429,4 @@ IdempotencyRecord 是写接口可靠重试的内部支撑实体，不对外暴�
 3. 账号注销、帖子到期、帖子删除、举报、审计、浏览记录和幂等记录的具体保留期限与物理清理策略仍未确认。
 4. 用户关于“只有作者帖子详情可返回浏览量”的当前 API 约束与 PRD 中“我的”列表展示浏览量的描述存在潜在差异；如需在列表展示，必须重新确认 API 暴露范围。
 5. 后台管理员角色最终枚举、角色组合与数据范围需要和运营权限方案共同确认。
+6. `IDEMPOTENCY_TTL` 默认 24 小时、`RISK_CHALLENGE_TTL` 为短期工程配置；前者待 BLOCK-05 批准，不得视为正式数据保留承诺。

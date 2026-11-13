@@ -1,0 +1,14 @@
+{
+  "appid": "touristappid",
+  "compileType": "miniprogram",
+  "projectname": "jiju-publish",
+  "miniprogramRoot": "miniprogram/",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "postcss": true,
+    "minified": false,
+    "compileHotReLoad": true,
+    "useCompilerPlugins": ["typescript"]
+  }
+}

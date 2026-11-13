@@ -19,6 +19,7 @@ if ($api -notmatch '(?m)^openapi: 3\.0\.3$') {
 $expectedPaths = @(
     '  /feed:',
     '  /posts:',
+    '  /tags:',
     '  /posts/{post_id}:',
     '  /posts/{post_id}/comments:',
     '  /comments/{comment_id}:',
@@ -47,13 +48,13 @@ if ($pathCount -ne $expectedPaths.Count) {
 }
 
 $operationIds = [regex]::Matches($api, '(?m)^      operationId: ([A-Za-z0-9_]+)$')
-if ($operationIds.Count -ne 20) {
-    throw "Expected exactly 20 operations, found $($operationIds.Count)."
+if ($operationIds.Count -ne 21) {
+    throw "Expected exactly 21 operations, found $($operationIds.Count)."
 }
 
 $uniqueOperationIds = @($operationIds | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
-if ($uniqueOperationIds.Count -ne 20) {
-    throw "Expected 20 unique operation IDs, found $($uniqueOperationIds.Count)."
+if ($uniqueOperationIds.Count -ne 21) {
+    throw "Expected 21 unique operation IDs, found $($uniqueOperationIds.Count)."
 }
 
 $requiredExtensions = @(
@@ -74,8 +75,8 @@ foreach ($extension in $requiredExtensions) {
     else {
         $count = [regex]::Matches($api, "(?m)^      ${escaped}:$").Count
     }
-    if ($count -ne 20) {
-        throw "Expected $extension on all 20 operations, found $count."
+    if ($count -ne 21) {
+        throw "Expected $extension on all 21 operations, found $count."
     }
 }
 
@@ -89,8 +90,8 @@ if ($idempotencyHeaderRefs -ne 12) {
 
 $viewCountFalse = [regex]::Matches($api, '(?m)^        returned: false$').Count
 $viewCountConditional = [regex]::Matches($api, '(?m)^        returned: conditional$').Count
-if ($viewCountFalse -ne 19 -or $viewCountConditional -ne 1) {
-    throw "Expected 19 non-view-count responses and one conditional author-detail response, found $viewCountFalse and $viewCountConditional."
+if ($viewCountFalse -ne 20 -or $viewCountConditional -ne 1) {
+    throw "Expected 20 non-view-count responses and one conditional author-detail response, found $viewCountFalse and $viewCountConditional."
 }
 
 $viewCountSchemas = [regex]::Matches($api, '(?m)^\s+view_count:$').Count
@@ -116,6 +117,7 @@ $requiredCodes = @(
     'JIJU_VALIDATION_4221',
     'JIJU_QUOTA_4291',
     'JIJU_QUOTA_4292',
+    'JIJU_MODERATION_4092',
     'NETWORK_ERROR'
 )
 

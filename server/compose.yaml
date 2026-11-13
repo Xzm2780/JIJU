@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: jiju
+      POSTGRES_USER: jiju
+      POSTGRES_PASSWORD: jiju
+    ports:
+      - "5432:5432"
+    volumes:
+      - jiju_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jiju -d jiju"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://jiju:jiju@postgres:5432/jiju?schema=public
+      REDIS_URL: redis://redis:6379
+      PORT: 3001
+      NOTICE_VERSION: mvp-v1
+      CONTENT_RULES_FILE: config/content-rules.json
+      IDEMPOTENCY_TTL: 24h
+      IDEMPOTENCY_LOCK_TTL: 30s
+      RISK_CHALLENGE_TTL: 10m
+      MOCK_WECHAT_LOGIN: "true"
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  jiju_postgres:
