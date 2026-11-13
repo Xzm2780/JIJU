@@ -1,0 +1,61 @@
+# T13 任务包：后台账号限制
+
+## 1. 任务名（Task name）
+
+后台账号限制
+
+## 2. 范围（Scope）
+
+- 页面：后台账号处置页。
+- 接口：`POST /admin/users/{user_id}/restrictions`。
+- 支持警告、限制发帖、限制评论、限制互动和封禁。
+
+## 3. 非目标（Non-goals）
+
+- 不删除或修改用户内容。
+- 不提供普通用户端治理入口。
+- 不处理年龄、未成年人资格或身份核验。
+- 不定义限制期限的产品或法务规则。
+
+## 4. 前置任务（Dependencies）
+
+T00、T03
+
+## 5. 相关 PRD 需求 ID
+
+MOD-07、MOD-08、NFR-SEC-05、AUTH-06
+
+## 6. 相关 AC
+
+无直接 PRD AC；对应 MOD-07、MOD-08 的后台账号治理验收。
+
+## 7. 涉及接口（Interfaces）
+
+`POST /admin/users/{user_id}/restrictions`
+
+## 8. 涉及表（Tables）
+
+User、AdminRoleAssignment、AuditLog、IdempotencyRecord
+
+## 9. 实现要点（Implementation points / core rules）
+
+1. 仅具备 ACCOUNT_MODERATOR 角色的后台身份可执行，且必须校验目标账号存在。
+2. 动作限定 WARNING、POST_LIMIT、COMMENT_LIMIT、REACTION_LIMIT、BAN。
+3. 限制类动作必须提供未来 `expires_at`；BAN 可为空表示持续封禁，具体运营期限须按批准规则填写。
+4. WARNING 只写审计；其他动作更新对应账号限制或封禁字段，不删除内容。
+5. 使用 `admin.user.restrict` 幂等键并写完整 AuditLog，重复请求不得重复改变状态。
+
+## 10. 测试要求（Test requirements）
+
+- `[AUTO]` 接口：五种动作、时间校验、账号不存在和重复幂等请求。
+- `[AUTO]` 越权：普通用户、作者和非账号治理角色不能调用。
+- `[AUTO]` 副作用：限制只影响对应能力，不改写或删除用户内容。
+- `[AUTO]` 审计：操作者、角色、原因、时间和前后状态完整。
+- `[MANUAL]` UI：目标账号确认、动作/期限选择、二次确认和结果展示。
+
+## 11. 完成定义（Definition of done）
+
+- 授权后台可执行警告、单项能力限制和封禁。
+- 限制在到期前由服务端执行，到期后按批准规则恢复。
+- 所有动作可审计，普通用户不能访问后台接口。
+- 本任务仅使用 `POST /admin/users/{user_id}/restrictions`，未定义未成年人或保留期限规则。

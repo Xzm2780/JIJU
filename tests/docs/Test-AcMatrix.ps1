@@ -39,6 +39,10 @@ foreach ($row in $rowLines) {
         throw "Expected 8 columns in AC row: $row"
     }
 
+    if ([string]::IsNullOrWhiteSpace($cells[8]) -or $cells[8] -notmatch 'T[0-9]{2}') {
+        throw "AC row does not reference a task package: $row"
+    }
+
     if ($row -notmatch '\[AUTO\]' -and $row -notmatch '\[MANUAL\]' -and $row -notmatch '\[AUTO\+MANUAL\]') {
         throw "AC row must identify automated or manual execution: $row"
     }
