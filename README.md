@@ -26,5 +26,12 @@
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-PrD.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-Production.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-ApiDocs.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-AuthorizationDocs.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-StateMachine.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-AcMatrix.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-Tasks.ps1
 ```
+
+生产 API 契约测试使用 `JIJU_CONTRACT_BASE_URL`、测试会话令牌和显式写开关。未提供专用 PostgreSQL/Redis 或真实微信凭据时，相关用例显示为 skip/未验证，不得表述为集成通过。
 

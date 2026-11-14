@@ -46,7 +46,7 @@ export class SessionAuthGuard implements CanActivate {
     request.authSessionId = session.id;
     request.user = {
       id: session.user.id,
-      loginCode: session.user.loginCode,
+      authProvider: session.user.authProvider,
       plazaNickname: session.user.plazaNickname,
       accountStatus: session.user.accountStatus
     };

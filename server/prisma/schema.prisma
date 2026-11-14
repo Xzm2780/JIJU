@@ -39,20 +39,68 @@ enum ModerationPriority {
   NORMAL
 }
 
+enum AdminRole {
+  REPORT_REVIEWER
+  CONTENT_MODERATOR
+  ACCOUNT_MODERATOR
+  AUDITOR
+  CONFIG_ADMIN
+}
+
+enum ReportTargetType {
+  POST
+  COMMENT
+}
+
+enum ReportReason {
+  ABUSE
+  PRIVACY
+  MINOR_INVOLVED
+  DANGEROUS_OR_INAPPROPRIATE
+  SPAM
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  PROCESSING
+  RESOLVED
+}
+
 model User {
-  id                 String               @id
-  loginCode          String               @unique
+  id                 String                @id
+  loginCode          String?               @unique
+  authSubjectRef     String?               @unique
+  authProvider       String                @default("MOCK")
   plazaNickname      String
-  accountStatus      String               @default("ACTIVE")
+  accountStatus      String                @default("ACTIVE")
   deactivatedAt      DateTime?
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
   sessions           AuthSession[]
   notices            NoticeConfirmation[]
   posts              Post[]
   quotaUsages        QuotaUsage[]
   idempotencyRecords IdempotencyRecord[]
   moderationRecords  ModerationRecord[]
+  reports            Report[]              @relation("ReportReporter")
+  handledReports     Report[]              @relation("ReportHandler")
+  adminRoles         AdminRoleAssignment[]
+  auditLogs          AuditLog[]
+}
+
+model AdminRoleAssignment {
+  id        String    @id
+  userId    String
+  role      AdminRole
+  scope     String?
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, active, role])
+  @@index([role, active])
 }
 
 model AuthSession {
@@ -184,6 +232,7 @@ model ModerationRecord {
   contentVersion        Int
   reviewRound           Int                @default(1)
   priority              ModerationPriority @default(NORMAL)
+  priorityRank          Int                @default(1)
   status                String             @default("PENDING")
   hitRuleRefs           Json?
   moderationStatusAfter ModerationStatus?
@@ -195,6 +244,52 @@ model ModerationRecord {
   handler               User?              @relation(fields: [handledBy], references: [id])
 
   @@unique([targetType, targetId, contentVersion, reviewRound])
-  @@index([status, priority, createdAt])
+  @@index([status, priorityRank, createdAt, id])
   @@index([targetType, targetId, contentVersion])
+}
+
+model Report {
+  id               String             @id
+  reporterId       String
+  targetType       ReportTargetType
+  targetId         String
+  contentVersion   Int
+  reason           ReportReason
+  otherDescription String?
+  isMinorRelated   Boolean            @default(false)
+  priority         ModerationPriority @default(NORMAL)
+  priorityRank     Int                @default(1)
+  status           ReportStatus       @default(PENDING)
+  dedupeKey        String             @unique
+  submittedAt      DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  handledBy        String?
+  handledAt        DateTime?
+  reporter         User               @relation("ReportReporter", fields: [reporterId], references: [id])
+  handler          User?              @relation("ReportHandler", fields: [handledBy], references: [id])
+
+  @@index([status, priorityRank, submittedAt, id])
+  @@index([reporterId, submittedAt])
+  @@index([targetType, targetId, contentVersion])
+  @@index([isMinorRelated, priorityRank, status])
+}
+
+model AuditLog {
+  id             String   @id
+  actorId        String
+  actorRole      String
+  actionType     String
+  objectType     String
+  objectId       String
+  contentVersion Int?
+  stateBefore    Json?
+  stateAfter     Json?
+  reason         String?
+  requestId      String
+  occurredAt     DateTime @default(now())
+  actor          User     @relation(fields: [actorId], references: [id])
+
+  @@index([objectType, objectId, occurredAt])
+  @@index([actorId, occurredAt])
+  @@index([actionType, occurredAt])
 }

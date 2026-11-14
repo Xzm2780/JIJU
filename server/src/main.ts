@@ -4,8 +4,10 @@ import { AppModule } from './app.module';
 import { ApiError } from './common/api-error';
 import { ApiExceptionFilter } from './common/api-exception.filter';
 import { createUuidV7 } from './common/uuid-v7';
+import { validateWechatEnvironment } from './config/environment.validation';
 
 async function bootstrap(): Promise<void> {
+  validateWechatEnvironment(process.env);
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.use((request: any, response: any, next: () => void) => {
     const requestId = `req_${createUuidV7()}`;

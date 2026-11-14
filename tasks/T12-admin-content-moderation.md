@@ -14,8 +14,7 @@
 
 - 不由后台替代作者编辑或删除内容。
 - 不允许客户端修改审核状态。
-- 不在状态机未确认时启用 `HIDDEN -> PUBLISHED` 恢复。
-- 不新增待复核内容列表接口；该 API 缺口须另行确认。
+- 不实现统一复核队列；`GET /admin/review-queue` 由 T11 和治理公共查询承担。
 - 不实现账号限制或审计查询。
 
 ## 4. 前置任务（Dependencies）
@@ -43,7 +42,7 @@ Post、Comment、PostVersion、Report、ModerationRecord、AuditLog、Idempotenc
 1. 仅具备 CONTENT_MODERATOR 后台角色的用户可以处理，且必须校验当前内容版本。
 2. 复核 PASSED 只更新审核结论；REJECTED 必须立即把公开状态转为 HIDDEN。
 3. HIDE/TAKEDOWN 使内容不可公开，记录处理人员、时间、原因和状态前后值。
-4. RESTORE 在当前状态机确认前必须返回 `JIJU_CONFLICT_4091`，不得自行恢复公开。
+4. RESTORE 仅允许 CONTENT_MODERATOR 将 HIDDEN 恢复为 PUBLISHED，要求未到期、未删除、审核状态非 REJECTED；不得延长 expires_at。
 5. 每次复核或治理动作必须写 ModerationRecord 和 AuditLog，并保持 `admin.review`/`admin.content.action` 幂等。
 
 ## 10. 测试要求（Test requirements）
@@ -51,13 +50,13 @@ Post、Comment、PostVersion、Report、ModerationRecord、AuditLog、Idempotenc
 - `[AUTO]` 接口：PENDING 到 PASSED/REJECTED、明显违规隐藏、HIDE/TAKEDOWN 和版本冲突。
 - `[AUTO]` 越权：普通用户、作者和非审核角色不能复核或治理。
 - `[AUTO]` 并发：同版本并发复核只有一个结论生效，重复幂等键不重复审计。
-- `[AUTO]` 阻塞：状态机未批准前 RESTORE 稳定返回冲突。
+- `[AUTO]` 条件：RESTORE 的成功、已到期、已删除、REJECTED、版本冲突和非后台角色拒绝路径。
 - `[MANUAL]` UI：复核信息、内容版本、原因、状态前后值和审计记录可核验。
-- `[AUTO+MANUAL]` 前置：AC-06 的待复核内容查询 API 缺口必须在验收前关闭或给出正式替代方案。
+- `[AUTO]` 前置：AC-06 通过 `GET /admin/review-queue` 查询待复核内容与举报来源。
 
 ## 11. 完成定义（Definition of done）
 
 - 授权审核人员可对当前内容版本完成 PASSED/REJECTED 复核和隐藏/下架。
 - REJECTED 内容立即不可公开，复核与治理记录完整可审计。
-- RESTORE 只有状态机正式授权后才能启用，否则按契约返回冲突。
+- RESTORE 仅在批准条件下启用，且恢复不延长 expires_at，完整写入 ModerationRecord 与 AuditLog。
 - AC-06、AC-15、AC-19、AC-23、SUP-06 相关断言通过，或已记录明确的状态机/API 阻断项。

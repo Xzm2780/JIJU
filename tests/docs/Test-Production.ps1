@@ -16,6 +16,12 @@ $requiredFiles = @(
     'server\src\posts\posts.service.ts',
     'server\src\posts\publish-challenge.service.ts',
     'server\README.md',
+    'server\src\auth\providers\wechat-auth.provider.ts',
+    'server\src\auth\providers\wechat-code2session.provider.ts',
+    'server\src\auth\providers\mock-wechat-auth.provider.ts',
+    'server\src\config\environment.validation.ts',
+    'server\src\review-queue\review-queue.controller.ts',
+    'server\src\review-queue\review-queue.service.ts',
     'frontend\package.json',
     'frontend\package-lock.json',
     'frontend\project.config.json',
@@ -43,7 +49,10 @@ $requiredApiStatements = @(
     'operationId: listTags',
     'JIJU_MODERATION_4092',
     'risk_challenge_id',
-    'retention_hours is required'
+    'retention_hours is required',
+    '  /admin/review-queue:',
+    'operationId: listReviewQueue',
+    'RESTORE changes HIDDEN to PUBLISHED without changing expires_at'
 )
 foreach ($statement in $requiredApiStatements) {
     if (-not $api.Contains($statement)) {
@@ -104,10 +113,30 @@ if ($postsService -match '\[\[BLOCK\]\]|\[\[REVIEW\]\]') {
     throw 'Content rule literals must not be hardcoded in publish service.'
 }
 
+$wechatProvider = Get-Content -LiteralPath (Join-Path $Root 'server\src\auth\providers\wechat-code2session.provider.ts') -Raw -Encoding UTF8
+$wechatEnvironment = Get-Content -LiteralPath (Join-Path $Root 'server\src\config\environment.validation.ts') -Raw -Encoding UTF8
+if (-not $wechatProvider.Contains('createHmac') -or -not $wechatProvider.Contains('WECHAT')) {
+    throw 'Production WeChat provider must derive an internal subject reference and return provider WECHAT.'
+}
+if (-not $wechatEnvironment.Contains('MOCK_WECHAT_LOGIN is forbidden in production')) {
+    throw 'Production environment validation must reject mock WeChat login.'
+}
+
+$contractTest = Get-Content -LiteralPath (Join-Path $Root 'tests\acceptance\publish-contract.test.mjs') -Raw -Encoding UTF8
+if ($contractTest.Contains('createDemoApp') -or $contractTest.Contains('app.state')) {
+    throw 'Production acceptance contract tests must not depend on demo in-memory state.'
+}
+if (-not $contractTest.Contains('JIJU_CONTRACT_BASE_URL') -or -not $contractTest.Contains('skip')) {
+    throw 'Production acceptance contract tests must require a production API URL and mark missing environments unverified.'
+}
+
 $t03 = Get-Content -LiteralPath (Join-Path $Root 'tasks\T03-auth-session.md') -Raw -Encoding UTF8
 $t05 = Get-Content -LiteralPath (Join-Path $Root 'tasks\T05-publish-post.md') -Raw -Encoding UTF8
 if (-not $t03.Contains('T18') -or -not $t05.Contains('T18')) {
     throw 'Session and publish tasks must keep permanent account deletion out of scope.'
+}
+if (-not $t03.Contains('WechatAuthProvider') -or -not $t03.Contains('session_key')) {
+    throw 'T03 must document the production WeChat provider and secret handling.'
 }
 
 Push-Location (Join-Path $Root 'server')

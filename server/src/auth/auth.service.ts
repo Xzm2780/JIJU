@@ -1,9 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes } from 'node:crypto';
 import { ApiError } from '../common/api-error';
 import { createUuidV7 } from '../common/uuid-v7';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  WECHAT_AUTH_PROVIDER,
+  WechatAuthProvider
+} from './providers/wechat-auth.provider';
 
 function nicknameFor(code: string): string {
   const prefixes = ['晚风', '远山', '微光', '星野', '南岸', '晴川', '小岛', '清晨'];
@@ -18,29 +22,26 @@ function nicknameFor(code: string): string {
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly config: ConfigService
+    private readonly config: ConfigService,
+    @Inject(WECHAT_AUTH_PROVIDER)
+    private readonly wechatAuth: WechatAuthProvider
   ) {}
 
   async login(code: string) {
-    if (this.config.get<string>('MOCK_WECHAT_LOGIN') !== 'true') {
-      throw new ApiError(
-        'JIJU_SYSTEM_5031',
-        503,
-        '登录服务暂时不可用，请稍后重试'
-      );
-    }
     const normalizedCode = code.trim();
     if (!normalizedCode) {
       throw new ApiError('JIJU_VALIDATION_4221', 422, '登录凭证无效，请重试');
     }
+    const identity = await this.wechatAuth.exchangeCode(normalizedCode);
     const user = await this.prisma.user.upsert({
-      where: { loginCode: normalizedCode },
+      where: { authSubjectRef: identity.subjectRef },
       create: {
         id: `usr_${createUuidV7()}`,
-        loginCode: normalizedCode,
-        plazaNickname: nicknameFor(normalizedCode)
+        authSubjectRef: identity.subjectRef,
+        authProvider: identity.provider,
+        plazaNickname: nicknameFor(identity.nicknameSeed)
       },
-      update: {}
+      update: { authProvider: identity.provider }
     });
 
     const rawToken = `ses_${randomBytes(32).toString('base64url')}`;

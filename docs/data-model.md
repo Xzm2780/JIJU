@@ -58,7 +58,8 @@ erDiagram
 | 字段 | 逻辑类型 | 必填 | 约束与说明 |
 | --- | --- | --- | --- |
 | id | 不透明 ID | 是 | 服务端生成，唯一。 |
-| login_subject_ref | 内部敏感标识 | 是 | 微信登录主体引用，唯一，不对外返回，不进入日志或埋点。 |
+| auth_subject_ref | 内部敏感主体引用 | 是 | 正式微信由服务端对 openid 做不可逆摘要；唯一，不对外返回，不进入日志或埋点。 |
+| auth_provider | 枚举 | 是 | `WECHAT` 或 `MOCK`；正式环境只允许 WECHAT，MOCK 仅非生产。 |
 | plaza_nickname | 字符串 | 是 | 服务端生成；不要求唯一；不得以微信昵称或头像替代。 |
 | account_status | 枚举 | 是 | 至少支持正常和封禁；最终枚举待确认。 |
 | posting_restricted_until | UTC 时间 | 否 | 发帖限制解除时间。 |
@@ -66,7 +67,7 @@ erDiagram
 | reaction_restricted_until | UTC 时间 | 否 | 互动限制解除时间。 |
 | deactivated_at | UTC 时间 | 否 | 账号注销标记；保留和物理清理期限待确认。 |
 
-主要约束：`login_subject_ref` 唯一；公开 API 只能返回 `id` 和 `plaza_nickname` 的必要子集。
+主要约束：`auth_subject_ref` 唯一；公开 API 只能返回 `id` 和 `plaza_nickname` 的必要子集。openid、unionid、session_key 不落库。
 
 ### 4.2 AuthSession
 
@@ -88,7 +89,7 @@ erDiagram
 | --- | --- | --- | --- |
 | id | 不透明 ID | 是 | 唯一。 |
 | user_id | 用户 ID | 是 | 关联 User。 |
-| role | 枚举 | 是 | 建议值：REPORT_REVIEWER、CONTENT_MODERATOR、ACCOUNT_MODERATOR、AUDITOR、CONFIG_ADMIN；最终值待确认。 |
+| role | 枚举 | 是 | REPORT_REVIEWER、CONTENT_MODERATOR、ACCOUNT_MODERATOR、AUDITOR、CONFIG_ADMIN。 |
 | scope | 字符串或资源范围 | 否 | 限定后台可处理的数据范围。 |
 | active | 布尔 | 是 | 是否有效。 |
 | created_at | UTC 时间 | 是 | 授权时间。 |
@@ -198,11 +199,12 @@ PostVersion 是支撑编辑历史、举报版本和审核快照的内部实体�
 | other_description | 字符串 | 条件 | reason=OTHER 时必填；仅后台可见。 |
 | is_minor_related | 布尔 | 是 | reason=MINOR_INVOLVED 时为 true。 |
 | priority | 枚举 | 是 | PREEMPTIVE 或 NORMAL。 |
+| priority_rank | 整数 | 是 | 队列内部排序投影：PREEMPTIVE=0，NORMAL=1；不返回客户端。 |
 | status | 枚举 | 是 | PENDING、PROCESSING、RESOLVED。 |
 | dedupe_key | 字符串 | 是 | 唯一；覆盖同用户、同对象、同原因的 24 小时去重窗口。 |
 | submitted_at | UTC 时间 | 是 | 提交时间。 |
 
-主要索引：`(status, priority, submitted_at)`；`(target_type, target_id, content_version)`。
+主要索引：`(status, priority_rank, submitted_at, id)`；`(target_type, target_id, content_version)`；`(is_minor_related, priority_rank, status)`。
 
 ### 4.9 Tag
 
@@ -269,7 +271,8 @@ PostVersion 是支撑编辑历史、举报版本和审核快照的内部实体�
 | content_version | 整数 | 是 | 被处理内容版本。 |
 | review_round | 整数 | 是 | 内容版本内的复核轮次。 |
 | priority | 枚举 | 是 | PREEMPTIVE 或 NORMAL。 |
-| status | 枚举 | 是 | 待复核、处理中、已完成；最终枚举待确认。 |
+| priority_rank | 整数 | 是 | 队列内部排序投影：PREEMPTIVE=0，NORMAL=1；不返回客户端。 |
+| status | 枚举 | 是 | PENDING、PROCESSING、RESOLVED。 |
 | hit_rule_refs | 规则引用列表 | 否 | 命中规则引用，不复制规则正文。 |
 | action | 枚举 | 否 | HIDE、TAKEDOWN、RESTORE 或无动作。 |
 | public_status_before | 枚举 | 条件 | 有公开状态变更时必填。 |
@@ -283,7 +286,7 @@ PostVersion 是支撑编辑历史、举报版本和审核快照的内部实体�
 
 主要约束：`(target_type, target_id, content_version, review_round)` 唯一。
 
-主要索引：`(status, priority, created_at)`；`(target_type, target_id, content_version)`。
+主要索引：`(status, priority_rank, created_at, id)`；`(target_type, target_id, content_version)`。
 
 ### 4.13 AuditLog
 
@@ -303,6 +306,10 @@ PostVersion 是支撑编辑历史、举报版本和审核快照的内部实体�
 | occurred_at | UTC 时间 | 是 | 发生时间。 |
 
 主要约束：只追加，不修改已写审计记录；主要索引 `(object_type, object_id, occurred_at)`、`(actor_id, occurred_at)`。
+
+### 4.13.1 ReviewQueue 查询投影
+
+`GET /admin/review-queue` 只读投影 `Report` 与 `ModerationRecord` 两张事实表，不新增第三张联合事实表。投影按 `priority_rank`、入队时间、来源稳定顺序和 `item_id` 形成不透明游标；`source=all` 时不得因跨来源同时间戳而漏项或重复。响应只包含来源、队列项 ID、目标类型与 ID、内容版本、优先级、状态、原因代码/命中规则引用、未成年人标记和入队时间，不包含正文、举报说明、浏览量或浏览者身份。
 
 ### 4.14 ViewRecord
 
@@ -425,8 +432,8 @@ ModerationChallenge 是发布规则的短期确认挑战，保存在 Redis，不
 ## 10. 待确认事项
 
 1. 独立内容版本实体 `PostVersion` 的最终物理存储方案需要随数据库选型确认；逻辑模型不得退化为覆盖历史正文。
-2. `RESTORE` 已出现在 permissions.md 与本次 API 范围中，但 state-machine.md 当前禁止 `HIDDEN -> PUBLISHED`。实现前必须更新状态机并明确可恢复条件；在此之前 RESTORE 返回冲突错误。
+2. `RESTORE` 契约已批准为后台有条件动作：仅 `CONTENT_MODERATOR` 可将 `HIDDEN` 恢复为 `PUBLISHED`，要求服务端当前时间早于 `expires_at`、未删除、审核状态非 `REJECTED`，记录审计且不得延长 `expires_at`。动作实现属于 T12，不在 B0 实现。
 3. 账号注销、帖子到期、帖子删除、举报、审计、浏览记录和幂等记录的具体保留期限与物理清理策略仍未确认。
 4. 用户关于“只有作者帖子详情可返回浏览量”的当前 API 约束与 PRD 中“我的”列表展示浏览量的描述存在潜在差异；如需在列表展示，必须重新确认 API 暴露范围。
-5. 后台管理员角色最终枚举、角色组合与数据范围需要和运营权限方案共同确认。
+5. 后台角色枚举已冻结；具体人员授权、角色组合和数据范围仍需运营确认。
 6. `IDEMPOTENCY_TTL` 默认 24 小时、`RISK_CHALLENGE_TTL` 为短期工程配置；前者待 BLOCK-05 批准，不得视为正式数据保留承诺。

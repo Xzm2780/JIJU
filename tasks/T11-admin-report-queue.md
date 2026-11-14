@@ -7,7 +7,7 @@
 ## 2. 范围（Scope）
 
 - 页面：后台举报队列页，支持状态、优先级和原因筛选。
-- 接口：`GET /admin/reports`。
+- 接口：`GET /admin/reports`、`GET /admin/review-queue`。
 - 展示目标类型、目标 ID、内容版本、原因、优先标记和处理状态。
 
 ## 3. 非目标（Non-goals）
@@ -31,7 +31,7 @@ AC-06、AC-12、AC-19
 
 ## 7. 涉及接口（Interfaces）
 
-`GET /admin/reports`
+`GET /admin/reports`、`GET /admin/review-queue`
 
 ## 8. 涉及表（Tables）
 
@@ -40,9 +40,9 @@ Report、Post、Comment、PostVersion、AdminRoleAssignment、AuditLog
 ## 9. 实现要点（Implementation points / core rules）
 
 1. 只允许具备 REPORT_REVIEWER、CONTENT_MODERATOR 或 AUDITOR 范围的后台身份访问。
-2. 队列支持状态、优先级、原因筛选和服务端游标分页。
-3. 未成年人举报显示独立标记和 PREEMPTIVE 优先级，不能被普通优先级排序掩盖。
-4. 返回处理所需的内容版本和举报字段，不向普通用户公开举报人或处理细节。
+2. 举报专用队列支持状态、优先级、原因筛选；统一复核队列支持 `source=moderation|report|all`、优先级和服务端游标分页。
+3. 统一队列跨 Report、ModerationRecord 合并时不得漏项或重复；未成年人举报显示独立标记和 PREEMPTIVE 优先级，不能被普通优先级排序掩盖。
+4. 返回处理所需的结构化字段和内容版本；不返回正文、举报说明、浏览量或浏览者身份，举报说明不得进入常规日志。
 5. 查询只读；敏感后台查询可按审批后的安全策略写入访问审计。
 
 ## 10. 测试要求（Test requirements）
@@ -58,4 +58,4 @@ Report、Post、Comment、PostVersion、AdminRoleAssignment、AuditLog
 - 授权后台可按状态、优先级和原因浏览举报队列。
 - 未成年人举报优先标记可见，普通用户无法访问。
 - AC-06、AC-12、AC-19 中与队列查询相关的断言通过。
-- 本任务只使用 `GET /admin/reports`，未增加举报处理或内容治理接口。
+- 本任务只读取举报专用队列和统一复核队列，未增加举报处理或内容治理接口。

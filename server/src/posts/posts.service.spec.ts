@@ -10,7 +10,7 @@ import { PostsService } from './posts.service';
 
 const USER: AuthenticatedUser = {
   id: 'usr_00000000-0000-7000-8000-000000000001',
-  loginCode: 'test',
+  authProvider: 'MOCK',
   plazaNickname: '晚风 1024',
   accountStatus: 'ACTIVE'
 };

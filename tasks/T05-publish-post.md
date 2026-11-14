@@ -61,4 +61,5 @@ Post、PostVersion、Tag、QuotaUsage、ModerationRecord、IdempotencyRecord
 - 正文、标签、留存、风险复核、配额和幂等规则全部由服务端执行。
 - 发布页的公开确认和三个留存选项在常见窄屏尺寸下完整可见、可操作。
 - AC-03～AC-07、AC-20、AC-22、SUP-01、SUP-02 相关断言通过。
-- 本任务仅使用 `POST /posts`，未增加 PRD 外接口。
+- 本任务使用已批准的 `GET /tags` 与 `POST /posts`，未增加其他 PRD 外接口。
+- 发布成功返回详情数据并进入详情预览；AC-03 的广场可见性由 T01/T02 覆盖，本任务标记“AC-03 部分覆盖”。

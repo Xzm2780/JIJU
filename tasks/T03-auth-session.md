@@ -39,22 +39,24 @@ User、AuthSession、NoticeConfirmation
 
 ## 9. 实现要点（Implementation points / core rules）
 
-1. 服务端使用微信登录 code 换取内部账号，不返回任何微信公开身份或原始 openid。
+1. 服务端通过 `WechatAuthProvider` 使用微信登录 code 换取内部账号；生产适配器调用 code2Session，mock 只允许非生产，生产开启 mock 时启动失败。
 2. 为账号生成稳定广场昵称，并返回当前须知版本与确认状态。
 3. 登录成功后恢复原页面、操作意图和本地草稿；取消登录保留本地草稿。
 4. 明确区分未登录 `JIJU_AUTH_4011` 与登录失效 `JIJU_AUTH_4012`。
-5. 注销只撤销当前会话，重复注销保持幂等，不删除账号或业务数据。
+5. openid、unionid、session_key 不落库、不返回客户端、不进入日志；注销只撤销当前会话，重复注销保持幂等，不删除账号或业务数据。
 
 ## 10. 测试要求（Test requirements）
 
 - `[AUTO]` 接口：有效 code、无效 code、会话发放、过期会话和重复注销。
+- `[AUTO]` 安全：正式 provider 不泄漏 session_key；生产配置禁止 mock；缺少 appid/secret 时启动失败。
 - `[AUTO]` 越权：游客直接调用受限接口返回未登录错误且不产生数据。
 - `[AUTO+MANUAL]` UI：登录成功后恢复发布页和输入，取消登录保留草稿。
 - `[MANUAL]` 微信真机：授权、取消、网络中断和重新进入小程序的会话表现。
 
 ## 11. 完成定义（Definition of done）
 
-- 微信登录、会话恢复和会话注销流程可用。
+- 微信登录、会话恢复和会话注销流程可用；正式凭据未提供时真实微信链路明确标记“未联调”。
 - 未登录与登录失效可被客户端区分并正确处理。
 - AC-01、AC-02、AC-21 相关断言通过。
 - 本任务仅实现两个认证接口，未增加账号注销或其他 PRD 外接口。
+- BLOCK-09 仍负责微信平台合规审核；正式 appid/secret、真机授权和生产换码联调完成前不得宣称已上线。

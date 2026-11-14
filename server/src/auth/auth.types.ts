@@ -2,7 +2,7 @@ import { Request } from 'express';
 
 export interface AuthenticatedUser {
   id: string;
-  loginCode: string;
+  authProvider: string;
   plazaNickname: string;
   accountStatus: string;
 }

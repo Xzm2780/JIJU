@@ -1147,6 +1147,82 @@ paths:
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
+  /admin/review-queue:
+    get:
+      tags:
+        - Admin
+      operationId: listReviewQueue
+      summary: 查询统一复核队列
+      description: |
+        鉴权要求：独立后台身份，需 CONTENT_MODERATOR、REPORT_REVIEWER 或 AUDITOR 角色。
+        请求参数与校验：source 可选 moderation、report、all，默认 all；priority 可选 PREEMPTIVE、NORMAL；cursor 为服务端不透明游标；limit 为 1 至 50，默认 20。
+        响应结构：返回来源、队列项 ID、目标类型、目标 ID、内容版本、优先级、状态、原因或命中规则、未成年人标记和入队时间；不返回内容正文、举报说明、浏览量或浏览者身份。
+        错误码：未登录、后台权限不足、游标校验失败和系统错误，引用 docs/errors.md。
+        幂等要求：GET 只读，不需要 Idempotency-Key。
+        副作用：不改变 Report、ModerationRecord、内容或账号状态；可记录受控的后台查询审计。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: admin
+        roles: [CONTENT_MODERATOR, REPORT_REVIEWER, AUDITOR]
+      x-validation:
+        - source must be moderation, report or all
+        - priority must be PREEMPTIVE or NORMAL
+        - cursor must be an opaque server-issued review queue cursor
+        - limit must be an integer between 1 and 50
+        - only PENDING and PROCESSING queue items are returned
+        - PREEMPTIVE items sort before NORMAL items
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4031
+        - JIJU_VALIDATION_4221
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: read-only request
+      x-side-effects:
+        - read Report and ModerationRecord as separate sources
+        - no business state change
+        - optional controlled audit record for sensitive admin access
+      x-view-count:
+        returned: false
+        rule: review queue must not serialize view_count
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - name: source
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [moderation, report, all]
+            default: all
+        - name: priority
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ModerationPriority'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 统一复核队列
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewQueueResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
   /admin/content/{target_type}/{target_id}/reviews:
     post:
       tags:
@@ -1236,14 +1312,14 @@ paths:
       summary: 隐藏、下架或恢复内容
       description: |
         鉴权要求：独立后台身份，需 CONTENT_MODERATOR 角色。
-        请求参数与校验：action 为 HIDE、TAKEDOWN 或 RESTORE；expected_content_version 必须匹配；reason 非空；服务端重新校验状态机。
+        请求参数与校验：action 为 HIDE、TAKEDOWN 或 RESTORE；expected_content_version 必须匹配；reason 非空；RESTORE 要求后台角色、当前状态 HIDDEN、未到期、未删除、审核状态非 REJECTED。
         响应结构：返回治理动作结果、处理时间及公开/审核状态前后值。
         错误码：引用 docs/errors.md；权限不足、内容不可用、状态冲突和审核写入错误必须区分。
         幂等要求：必须携带 Idempotency-Key，值为 v1:admin.content.action:<uuid_v7>；同一治理意图重试复用同一键。
-        副作用：HIDE/TAKEDOWN 使内容不可公开；RESTORE 仅在状态机明确允许时恢复；写入 ModerationRecord 和 AuditLog。
+        副作用：HIDE/TAKEDOWN 使内容不可公开；RESTORE 将 HIDDEN 恢复为 PUBLISHED，但不延长 expires_at；写入 ModerationRecord 和 AuditLog。
         浏览量：不返回 view_count。
 
-        文档边界：permissions.md 和本次接口范围要求提供 RESTORE；当前 state-machine.md 基于其指定 PRD 范围将 HIDDEN->PUBLISHED 标为禁止。实现前必须更新并确认状态机；在确认前，RESTORE 请求由服务端返回 409 JIJU_CONFLICT_4091。
+        已到期、DELETED 或审核状态 REJECTED 的内容不得 RESTORE。恢复后仍按原 expires_at 执行公开过滤，禁止延长到期时间。
       x-auth:
         authentication: admin
         roles: [CONTENT_MODERATOR]
@@ -1251,7 +1327,7 @@ paths:
         - action must be HIDE, TAKEDOWN or RESTORE
         - expected_content_version must be positive and match the target
         - reason must be non-empty
-        - RESTORE must be rejected until state-machine.md explicitly authorizes the transition
+        - RESTORE requires operator role, HIDDEN public status, server_now < expires_at and moderation status other than REJECTED
       x-errors:
         - JIJU_AUTH_4011
         - JIJU_AUTH_4012
@@ -1273,7 +1349,7 @@ paths:
         rule: reuse the key for retries of the same action, target version and reason
       x-side-effects:
         - HIDE and TAKEDOWN make the target unavailable to ordinary users
-        - RESTORE is disabled until state-machine.md is updated
+        - RESTORE changes HIDDEN to PUBLISHED without changing expires_at
         - append ModerationRecord and AuditLog with before and after states
         - do not expose view_count
       x-view-count:
@@ -1679,6 +1755,64 @@ components:
     ReportPriority:
       type: string
       enum: [PREEMPTIVE, NORMAL]
+    ModerationPriority:
+      type: string
+      enum: [PREEMPTIVE, NORMAL]
+    ReviewQueueItem:
+      type: object
+      additionalProperties: false
+      required:
+        - source
+        - item_id
+        - target_type
+        - target_id
+        - content_version
+        - priority
+        - status
+        - is_minor_related
+        - queue_at
+      properties:
+        source:
+          type: string
+          enum: [moderation, report]
+        item_id:
+          $ref: '#/components/schemas/OpaqueId'
+        target_type:
+          $ref: '#/components/schemas/ContentTargetType'
+        target_id:
+          $ref: '#/components/schemas/OpaqueId'
+        content_version:
+          type: integer
+          minimum: 1
+        priority:
+          $ref: '#/components/schemas/ModerationPriority'
+        status:
+          type: string
+        reason_code:
+          type: string
+          nullable: true
+        hit_rule_refs:
+          type: array
+          nullable: true
+          items:
+            type: string
+        is_minor_related:
+          type: boolean
+        queue_at:
+          $ref: '#/components/schemas/UtcTimestamp'
+    ReviewQueueResponse:
+      type: object
+      additionalProperties: false
+      required: [data, page, request_id]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewQueueItem'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+        request_id:
+          type: string
     AuditObjectType:
       type: string
       enum:

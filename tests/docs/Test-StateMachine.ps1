@@ -48,6 +48,7 @@ $publicTransitions = @(
     'DRAFT --> PUBLISHED',
     'PUBLISHED --> PUBLISHED',
     'PUBLISHED --> HIDDEN',
+    'HIDDEN --> PUBLISHED',
     'PUBLISHED --> EXPIRED',
     'PUBLISHED --> DELETED',
     'HIDDEN --> DELETED',

@@ -28,6 +28,7 @@ Post 使用两个独立状态维度：
 | PUBLISHED | 作者安全编辑 | 作者本人；帖子仍有效；内容校验通过；不命中需重新复核的高风险规则 | PUBLISHED（保持） | 不改变 ID、`published_at`、`expires_at`；生成新内容版本并更新 `current_content_version`、`edited_at` | PRD 5.7；domain.md Post |
 | PUBLISHED | 作者高风险编辑 | 作者本人；帖子仍有效；内容校验通过；用户确认高风险提示 | PUBLISHED（保持） | 生成新内容版本；更新 `edited_at`；写入 `risk_confirmed_at`；审核状态转为 PENDING 并重新进入人工复核 | PRD 5.7；domain.md Post |
 | PUBLISHED | 治理下架 | 命中治理规则，或经授权的运营人员执行下架 | HIDDEN | 写入 `hidden_at`；广场和详情均不可见；作者在“我的”看到已下架；记录处理人员、时间、原因和前后状态 | PRD 5.6、7.6；domain.md Post、ModerationRecord |
+| HIDDEN | 后台恢复 | 后台运营角色；`server_now < expires_at`；未删除；审核状态不是 REJECTED；记录原因和操作者 | PUBLISHED | `public_status` 恢复为 PUBLISHED；不修改 `expires_at`；写入 ModerationRecord 和 AuditLog；之后仍按原到期时间失效 | B0 契约决策；MOD-06、MOD-08 |
 | PUBLISHED | 到期处理 | 服务端时间满足 `server_now >= expires_at` | EXPIRED | 从公开区域移除；禁止新增评论和轻互动；作者仍可查看历史内容；不改写 `expires_at` | PRD 5.6、7.6；domain.md Post |
 | PUBLISHED | 作者主动删除 | 请求者是作者；删除请求具备幂等标识 | DELETED | 立即从公开区域移除；写入 `deleted_at`；作者不可在“我的”查看；保留审计关联 | PRD 5.6、7.6；domain.md Post |
 | HIDDEN | 作者主动删除 | 请求者是作者；删除请求具备幂等标识 | DELETED | 写入 `deleted_at`；作者不可在“我的”查看 | PRD 5.6；domain.md Post |
@@ -41,7 +42,7 @@ Post 使用两个独立状态维度：
 | --- | --- | --- | --- | --- | --- |
 | DRAFT | 仅客户端编辑 | 允许 | 禁止 | 禁止 | 禁止服务端迁移 |
 | PUBLISHED | 禁止 | 编辑时保持 | 允许 | 到期时允许 | 作者删除时允许 |
-| HIDDEN | 禁止 | 禁止 | 重复下架时保持 | 禁止 | 作者删除时允许 |
+| HIDDEN | 禁止 | 条件恢复时允许 | 重复下架时保持 | 禁止 | 作者删除时允许 |
 | EXPIRED | 禁止 | 禁止 | 禁止 | 重复到期检查时保持 | 作者删除时允许 |
 | DELETED | 禁止 | 禁止 | 禁止 | 禁止 | 幂等重复删除，不迁移 |
 
@@ -110,7 +111,7 @@ Post 使用两个独立状态维度：
 | P-04 | DRAFT | 发布到 PUBLISHED 但内容校验失败 | 只有校验通过的本地草稿才可创建 Post | JIJU_VALIDATION_4221 |
 | P-05 | DRAFT | 发布到 PUBLISHED 但配额已满 | 每个账号每个北京时间自然日最多成功发布 5 篇 | JIJU_QUOTA_4291 |
 | P-06 | PUBLISHED、HIDDEN、EXPIRED、DELETED | 回退到 DRAFT | 服务端状态不得回退为客户端草稿 | JIJU_CONFLICT_4091 |
-| P-07 | HIDDEN | 迁移到 PUBLISHED | 指定 PRD 范围未授权恢复动作；不得自行恢复公开 | JIJU_CONTENT_4221 |
+| P-07 | HIDDEN | 非后台角色、已到期、已删除或 REJECTED 时迁移到 PUBLISHED | 恢复条件不满足；不得公开 | JIJU_ACCESS_4031 或 JIJU_CONTENT_4221 |
 | P-08 | HIDDEN | 迁移到 EXPIRED | 到期只由 PUBLISHED 触发；治理下架状态不得被到期覆盖 | JIJU_CONFLICT_4091 |
 | P-09 | EXPIRED | 迁移到 PUBLISHED | 到期后不可恢复公开 | JIJU_CONTENT_4221 |
 | P-10 | EXPIRED | 迁移到 HIDDEN | 指定 PRD 范围未定义到期后的治理迁移 | JIJU_CONTENT_4221 |
@@ -171,6 +172,7 @@ stateDiagram-v2
     DRAFT --> PUBLISHED: 发布成功
     PUBLISHED --> PUBLISHED: 作者编辑，状态不变
     PUBLISHED --> HIDDEN: 治理下架或明确违规
+    HIDDEN --> PUBLISHED: 后台条件恢复，不延长 expires_at
     PUBLISHED --> EXPIRED: server_now >= expires_at
     PUBLISHED --> DELETED: 作者主动删除
     HIDDEN --> DELETED: 作者主动删除

@@ -6,6 +6,7 @@ import { NoticesModule } from './notices/notices.module';
 import { PostsModule } from './posts/posts.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
+import { ReviewQueueModule } from './review-queue/review-queue.module';
 import { TagsModule } from './tags/tags.module';
 
 @Module({
@@ -17,7 +18,8 @@ import { TagsModule } from './tags/tags.module';
     NoticesModule,
     TagsModule,
     ContentModule,
-    PostsModule
+    PostsModule,
+    ReviewQueueModule
   ]
 })
 export class AppModule {}

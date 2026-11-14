@@ -18,8 +18,6 @@ for ($section = 1; $section -le 5; $section++) {
 }
 
 $requiredStatements = @(
-    'Taro',
-    'uni-app',
     'Native Mini Program + TypeScript',
     'Node.js + NestJS',
     'PostgreSQL',
@@ -38,6 +36,9 @@ $requiredStatements = @(
     '`<type>_<uuid_v7>`',
     'Idempotency-Key',
     'v1:<operation>:<uuid_v7>',
+    'WechatAuthProvider',
+    'GET /admin/review-queue',
+    'HIDDEN -> PUBLISHED',
     'PRD'
 )
 

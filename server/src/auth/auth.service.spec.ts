@@ -24,7 +24,7 @@ describe('AuthService', () => {
       user: {
         upsert: jest.fn().mockResolvedValue({
           id: 'usr_00000000-0000-7000-8000-000000000001',
-          loginCode: 'mock-code',
+          authProvider: 'MOCK',
           plazaNickname: '晚风 1024'
         })
       },
@@ -35,7 +35,14 @@ describe('AuthService', () => {
         findUnique: jest.fn().mockResolvedValue(null)
       }
     };
-    const service = new AuthService(prisma as any, config());
+    const wechatAuth = {
+      exchangeCode: jest.fn().mockResolvedValue({
+        subjectRef: 'mock_subject',
+        provider: 'MOCK',
+        nicknameSeed: 'mock-code'
+      })
+    };
+    const service = new AuthService(prisma as any, config(), wechatAuth);
 
     const result = await service.login(' mock-code ');
 
@@ -45,20 +52,30 @@ describe('AuthService', () => {
     expect(result.access_token).toMatch(/^ses_/);
     expect(result).not.toHaveProperty('openid');
     expect(result).not.toHaveProperty('unionid');
+    expect(result).not.toHaveProperty('session_key');
+    expect(prisma.user.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { authSubjectRef: 'mock_subject' }
+      })
+    );
   });
 
-  it('rejects login when the mock provider is not explicitly enabled', async () => {
+  it('rejects an empty login code before invoking the provider', async () => {
     const prisma = {
       user: { upsert: jest.fn() },
       authSession: { create: jest.fn() },
       noticeConfirmation: { findUnique: jest.fn() }
     };
-    const service = new AuthService(prisma as any, config('false'));
+    const wechatAuth = {
+      exchangeCode: jest.fn()
+    };
+    const service = new AuthService(prisma as any, config(), wechatAuth);
 
-    await expect(service.login('mock-code')).rejects.toMatchObject({
-      code: 'JIJU_SYSTEM_5031',
-      status: 503
+    await expect(service.login('   ')).rejects.toMatchObject({
+      code: 'JIJU_VALIDATION_4221',
+      status: 422
     });
     expect(prisma.user.upsert).not.toHaveBeenCalled();
+    expect(wechatAuth.exchangeCode).not.toHaveBeenCalled();
   });
 });
