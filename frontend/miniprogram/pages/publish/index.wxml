@@ -7,9 +7,6 @@
     <text class="counter {{charCount > 500 ? 'counter-error' : ''}}">{{charCount}} / 500</text>
   </view>
 
-  <view wx:if="{{noticeRestored}}" class="info-banner">
-    已恢复本机草稿。草稿最多保留 24 小时。
-  </view>
   <view wx:if="{{message}}" class="message {{messageType}}">{{message}}</view>
 
   <view class="card">
@@ -22,7 +19,7 @@
         placeholder="不用解释背景，只写下此刻的感受。"
         bindinput="onBodyInput"
       />
-      <text class="help">去除首尾空白后 1～500 个用户可见字符，组合 emoji 按一个字素簇计算。</text>
+      <text class="help">1～500 个可见字符</text>
     </view>
 
     <view class="grid">
@@ -61,7 +58,6 @@
     </view>
 
     <view class="footer">
-      <text class="draft-tip">草稿仅保存在本机 · {{sessionLabel}}</text>
       <button class="primary-button submit" loading="{{publishing}}" disabled="{{publishing || loadingTags}}" bindtap="onSubmit">
         发布到广场
       </button>
@@ -71,7 +67,7 @@
   <view wx:if="{{showLoginModal}}" class="modal-mask">
     <view class="modal">
       <text class="modal-title">先完成微信登录</text>
-      <text class="modal-copy">登录后会恢复当前正文、标签和留存时长。取消登录不会丢失本机草稿。</text>
+      <text class="modal-copy">登录后继续发布，当前草稿会自动保留。</text>
       <view class="modal-actions">
         <button class="secondary-button" bindtap="cancelLogin">取消登录</button>
         <button class="primary-button" bindtap="confirmLogin">微信登录</button>

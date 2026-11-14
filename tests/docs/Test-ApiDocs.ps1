@@ -25,6 +25,7 @@ $expectedPaths = @(
     '  /comments/{comment_id}:',
     '  /posts/{post_id}/reaction:',
     '  /me/posts:',
+    '  /me/profile:',
     '  /me/account:',
     '  /reports:',
     '  /admin/review-queue:',
@@ -50,13 +51,13 @@ if ($pathCount -ne $expectedPaths.Count) {
 }
 
 $operationIds = [regex]::Matches($api, '(?m)^      operationId: ([A-Za-z0-9_]+)$')
-if ($operationIds.Count -ne 23) {
-    throw "Expected exactly 23 operations, found $($operationIds.Count)."
+if ($operationIds.Count -ne 25) {
+    throw "Expected exactly 25 operations, found $($operationIds.Count)."
 }
 
 $uniqueOperationIds = @($operationIds | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
-if ($uniqueOperationIds.Count -ne 23) {
-    throw "Expected 23 unique operation IDs, found $($uniqueOperationIds.Count)."
+if ($uniqueOperationIds.Count -ne 25) {
+    throw "Expected 25 unique operation IDs, found $($uniqueOperationIds.Count)."
 }
 
 $requiredExtensions = @(
@@ -77,8 +78,8 @@ foreach ($extension in $requiredExtensions) {
     else {
         $count = [regex]::Matches($api, "(?m)^      ${escaped}:$").Count
     }
-    if ($count -ne 23) {
-        throw "Expected $extension on all 23 operations, found $count."
+    if ($count -ne 25) {
+        throw "Expected $extension on all 25 operations, found $count."
     }
 }
 
@@ -86,14 +87,14 @@ $idempotencyHeaderRefs = [regex]::Matches(
     $api,
     [regex]::Escape("#/components/parameters/IdempotencyKey")
 ).Count
-if ($idempotencyHeaderRefs -ne 13) {
-    throw "Expected 13 idempotent write operations, found $idempotencyHeaderRefs header references."
+if ($idempotencyHeaderRefs -ne 14) {
+    throw "Expected 14 idempotent write operations, found $idempotencyHeaderRefs header references."
 }
 
 $viewCountFalse = [regex]::Matches($api, '(?m)^        returned: false$').Count
 $viewCountConditional = [regex]::Matches($api, '(?m)^        returned: conditional$').Count
-if ($viewCountFalse -ne 22 -or $viewCountConditional -ne 1) {
-    throw "Expected 22 non-view-count responses and one conditional author-detail response, found $viewCountFalse and $viewCountConditional."
+if ($viewCountFalse -ne 24 -or $viewCountConditional -ne 1) {
+    throw "Expected 24 non-view-count responses and one conditional author-detail response, found $viewCountFalse and $viewCountConditional."
 }
 
 $viewCountSchemas = [regex]::Matches($api, '(?m)^\s+view_count:$').Count

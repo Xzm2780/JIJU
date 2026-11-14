@@ -1,0 +1,33 @@
+<view class="page">
+  <view class="card profile-form">
+    <view class="avatar-preview avatar-{{avatarColor}}">{{avatarInitial}}</view>
+
+    <view class="field">
+      <text class="label">头像配色</text>
+      <view class="color-grid">
+        <button
+          wx:for="{{colors}}"
+          wx:key="value"
+          class="color-option color-{{item.value}} {{avatarColor === item.value ? 'color-selected' : ''}}"
+          data-color="{{item.value}}"
+          bindtap="selectColor"
+        >
+          <text>{{item.label}}</text>
+        </button>
+      </view>
+    </view>
+
+    <view class="field">
+      <view class="label-row"><text class="label">广场昵称</text><text class="counter">{{nicknameCount}} / 20</text></view>
+      <input class="input" value="{{nickname}}" maxlength="-1" bindinput="onNicknameInput" />
+    </view>
+
+    <view class="field">
+      <view class="label-row"><text class="label">个人简介</text><text class="counter">{{bioCount}} / 80</text></view>
+      <textarea class="textarea" value="{{bio}}" maxlength="-1" placeholder="简单介绍一下自己" bindinput="onBioInput" />
+    </view>
+
+    <view wx:if="{{message}}" class="message error">{{message}}</view>
+    <button class="primary-button" loading="{{saving}}" disabled="{{saving || loading}}" bindtap="save">保存资料</button>
+  </view>
+</view>

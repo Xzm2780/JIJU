@@ -1,0 +1,109 @@
+.status-tabs {
+  display: flex;
+  margin-bottom: 20rpx;
+  padding: 6rpx;
+  border-radius: 22rpx;
+  background: #ece2df;
+  gap: 6rpx;
+}
+
+.status-tab {
+  min-width: 0;
+  margin: 0;
+  border-radius: 17rpx;
+  background: transparent;
+  color: #776768;
+  font-size: 25rpx;
+  flex: 1 1 0;
+  width: 0;
+}
+
+.status-tab-active {
+  background: #fffcfb;
+  color: #7c4c52;
+  font-weight: 700;
+  box-shadow: 0 6rpx 18rpx rgba(86, 62, 64, 0.1);
+}
+
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.post-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.post-main {
+  width: 100%;
+  margin: 0;
+  padding: 28rpx;
+  background: transparent;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.post-head,
+.post-counts,
+.post-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-badge {
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  background: #f1e0e2;
+  color: #7c4c52;
+  font-size: 21rpx;
+  font-weight: 700;
+}
+
+.post-time,
+.post-counts,
+.expiry,
+.list-status {
+  color: #978586;
+  font-size: 21rpx;
+}
+
+.post-body {
+  display: block;
+  margin: 20rpx 0;
+  color: #30292a;
+  font-size: 29rpx;
+  line-height: 1.7;
+}
+
+.expiry {
+  display: block;
+  margin-top: 14rpx;
+}
+
+.post-actions {
+  padding: 0 24rpx 24rpx;
+  justify-content: flex-end;
+  gap: 14rpx;
+}
+
+.compact {
+  width: auto;
+  margin: 0;
+  padding: 0 24rpx;
+  font-size: 23rpx;
+}
+
+.danger-button {
+  border-radius: 18rpx;
+  background: #f6e7e4;
+  color: #914f4f;
+  font-weight: 700;
+}
+
+.list-status {
+  padding: 22rpx;
+  text-align: center;
+}

@@ -1,0 +1,90 @@
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
+.avatar-preview {
+  display: flex;
+  width: 140rpx;
+  height: 140rpx;
+  margin: 8rpx auto;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #c28e91, #a5686c);
+  color: #fff;
+  font-size: 52rpx;
+  font-weight: 800;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-SAGE { background: linear-gradient(145deg, #a5ae9e, #7f8c78); }
+.avatar-SAND { background: linear-gradient(145deg, #c7aa84, #a78660); }
+.avatar-LAVENDER { background: linear-gradient(145deg, #afa1b7, #877691); }
+.avatar-SKY { background: linear-gradient(145deg, #94aab4, #6f8791); }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  color: #5f5354;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.counter {
+  color: #a18d8e;
+  font-size: 20rpx;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 22rpx;
+  border: 1rpx solid #e4d7d4;
+  border-radius: 20rpx;
+  box-sizing: border-box;
+  background: #fffdfc;
+  font-size: 27rpx;
+}
+
+.textarea {
+  min-height: 180rpx;
+  line-height: 1.6;
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10rpx;
+}
+
+.color-option {
+  min-width: 0;
+  margin: 0;
+  padding: 18rpx 4rpx;
+  border: 3rpx solid transparent;
+  border-radius: 18rpx;
+  color: #fff;
+  font-size: 20rpx;
+}
+
+.color-ROSE { background: #a5686c; }
+.color-SAGE { background: #7f8c78; }
+.color-SAND { background: #a78660; }
+.color-LAVENDER { background: #877691; }
+.color-SKY { background: #6f8791; }
+
+.color-selected {
+  border-color: #30292a;
+  box-shadow: 0 0 0 3rpx #fff inset;
+}

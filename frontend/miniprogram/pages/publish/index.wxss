@@ -1,6 +1,7 @@
 .page {
   max-width: 760rpx;
   margin: 0 auto;
+  padding-bottom: calc(150rpx + env(safe-area-inset-bottom));
 }
 
 .header-row {

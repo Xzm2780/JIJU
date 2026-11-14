@@ -7,7 +7,7 @@
 ## 2. 范围（Scope）
 
 - 页面：我的页面。
-- 接口：`GET /me/posts`。
+- 接口：`GET /me/posts`、`GET /me/profile`、`PUT /me/profile`。
 - 支持本人有效、到期和已下架帖子的状态筛选、编辑/删除入口和会话注销入口。
 
 ## 3. 非目标（Non-goals）

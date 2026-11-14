@@ -3,6 +3,9 @@
     "pages/feed/index",
     "pages/publish/index",
     "pages/my/index",
+    "pages/my-posts/index",
+    "pages/profile/index",
+    "pages/settings/index",
     "pages/notice/index",
     "pages/edit/index",
     "pages/report/index",
@@ -17,6 +20,7 @@
   },
   "style": "v2",
   "tabBar": {
+    "custom": true,
     "color": "#8f7e7f",
     "selectedColor": "#a5686c",
     "backgroundColor": "#fffcfb",

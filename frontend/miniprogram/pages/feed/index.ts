@@ -21,6 +21,13 @@ Page({
     void this.loadFirstPage();
   },
 
+  onShow() {
+    const tabBar = (this as unknown as {
+      getTabBar?: () => { setData: (value: { selected: number }) => void };
+    }).getTabBar?.();
+    tabBar?.setData({ selected: 0 });
+  },
+
   onPullDownRefresh() {
     void this.loadFirstPage(true);
   },

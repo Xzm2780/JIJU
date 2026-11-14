@@ -1,0 +1,72 @@
+.settings-group {
+  margin-bottom: 28rpx;
+}
+
+.group-title {
+  display: block;
+  margin: 0 8rpx 12rpx;
+  color: #8f7b7c;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.settings-list {
+  padding: 0 24rpx;
+}
+
+.setting-row {
+  display: flex;
+  width: 100%;
+  min-height: 94rpx;
+  margin: 0;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #f0e5e2;
+  border-radius: 0;
+  box-sizing: border-box;
+  background: transparent;
+  color: #30292a;
+  font-size: 26rpx;
+  text-align: left;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.setting-row:last-child {
+  border-bottom: 0;
+}
+
+.setting-value {
+  color: #8d7a7b;
+  font-size: 23rpx;
+}
+
+.setting-value.active {
+  color: #6f8a73;
+}
+
+.chevron {
+  color: #b39b9d;
+  font-size: 34rpx;
+}
+
+.danger-zone .group-title,
+.danger-zone .setting-row > text:first-child {
+  color: #914f4f;
+}
+
+.danger-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.danger-desc {
+  color: #a18484;
+  font-size: 21rpx;
+}
+
+.empty-card {
+  padding: 60rpx;
+  color: #8d7a7b;
+  text-align: center;
+}

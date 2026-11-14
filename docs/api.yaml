@@ -825,6 +825,118 @@ paths:
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
+  /me/profile:
+    get:
+      tags:
+        - Me
+      operationId: getMyProfile
+      summary: 获取个人资料与帖子看板
+      description: |
+        鉴权要求：必须登录，只能读取当前账号资料。
+        请求参数与校验：无业务参数。
+        响应结构：返回昵称、简介、头像配色和全部/有效/到期/下架帖子数量。
+        错误码：未登录、登录失效和系统错误，引用 docs/errors.md。
+        幂等要求：GET 只读，不需要 Idempotency-Key。
+        副作用：只读。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: user
+        roles: [AUTH_NON_AUTHOR, AUTHOR]
+      x-validation:
+        - caller identity determines the profile being read
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: read-only request
+      x-side-effects:
+        - none
+      x-view-count:
+        returned: false
+        rule: profile dashboard must never serialize view_count
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 当前用户资料和帖子看板
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    put:
+      tags:
+        - Me
+      operationId: updateMyProfile
+      summary: 修改个人资料
+      description: |
+        鉴权要求：必须登录，只能修改当前账号。
+        请求参数与校验：昵称 1 至 20 个扩展字素簇；简介最多 80 个扩展字素簇；头像配色使用固定枚举。
+        响应结构：返回更新后的昵称、简介和头像配色。
+        错误码：未登录、登录失效、校验失败、幂等冲突和系统错误，引用 docs/errors.md。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:profile.update:<uuid_v7>。
+        副作用：更新 User 资料，不修改帖子、评论、互动或治理数据。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: user
+        roles: [AUTH_NON_AUTHOR, AUTHOR]
+      x-validation:
+        - plaza_nickname must contain 1 to 20 extended grapheme clusters
+        - bio must contain at most 80 extended grapheme clusters
+        - avatar_color must be ROSE, SAGE, SAND, LAVENDER or SKY
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_VALIDATION_4221
+        - JIJU_CONFLICT_4091
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: profile.update
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: reuse the key for retries of the same profile payload
+      x-side-effects:
+        - update the current user's plaza nickname, bio and avatar color
+      x-view-count:
+        returned: false
+        rule: profile update must never serialize view_count
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMyProfileRequest'
+      responses:
+        '200':
+          description: 资料更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdatedProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
   /me/account:
     delete:
       tags:
@@ -2292,6 +2404,86 @@ components:
             $ref: '#/components/schemas/AuthorPostItem'
         page:
           $ref: '#/components/schemas/PageInfo'
+        request_id:
+          type: string
+    MyProfileStats:
+      type: object
+      additionalProperties: false
+      required: [total, active, expired, hidden]
+      properties:
+        total:
+          type: integer
+          minimum: 0
+        active:
+          type: integer
+          minimum: 0
+        expired:
+          type: integer
+          minimum: 0
+        hidden:
+          type: integer
+          minimum: 0
+    MyProfile:
+      type: object
+      additionalProperties: false
+      required: [id, plaza_nickname, bio, avatar_color, stats]
+      properties:
+        id:
+          $ref: '#/components/schemas/OpaqueId'
+        plaza_nickname:
+          type: string
+        bio:
+          type: string
+        avatar_color:
+          type: string
+          enum: [ROSE, SAGE, SAND, LAVENDER, SKY]
+        stats:
+          $ref: '#/components/schemas/MyProfileStats'
+    MyProfileResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          $ref: '#/components/schemas/MyProfile'
+        request_id:
+          type: string
+    UpdateMyProfileRequest:
+      type: object
+      additionalProperties: false
+      required: [plaza_nickname, bio, avatar_color]
+      properties:
+        plaza_nickname:
+          type: string
+          minLength: 1
+          maxLength: 20
+          description: 按 Unicode 扩展字素簇计数
+        bio:
+          type: string
+          maxLength: 80
+          description: 按 Unicode 扩展字素簇计数，可为空
+        avatar_color:
+          type: string
+          enum: [ROSE, SAGE, SAND, LAVENDER, SKY]
+    UpdatedProfileResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [id, plaza_nickname, bio, avatar_color]
+          properties:
+            id:
+              $ref: '#/components/schemas/OpaqueId'
+            plaza_nickname:
+              type: string
+            bio:
+              type: string
+            avatar_color:
+              type: string
+              enum: [ROSE, SAGE, SAND, LAVENDER, SKY]
         request_id:
           type: string
     CreateReportRequest:

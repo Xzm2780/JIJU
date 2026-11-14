@@ -16,7 +16,9 @@ import {
   ReportTargetType,
   PublishedPost,
   Session,
-  TagCatalog
+  TagCatalog,
+  UpdatedProfile,
+  UserProfile
 } from '../types';
 
 export class ApiRequestError extends Error {
@@ -435,6 +437,31 @@ export async function deleteAccount(
     accessToken: session.accessToken,
     idempotencyKey,
     data: { confirmation_text: '注销账号' }
+  });
+  return response.data;
+}
+
+export async function fetchProfile(session: Session): Promise<UserProfile> {
+  const response = await request<UserProfile>('/me/profile', {
+    accessToken: session.accessToken
+  });
+  return response.data;
+}
+
+export async function updateProfile(
+  session: Session,
+  payload: {
+    plaza_nickname: string;
+    bio: string;
+    avatar_color: UserProfile['avatar_color'];
+  },
+  idempotencyKey: string
+): Promise<UpdatedProfile> {
+  const response = await request<UpdatedProfile>('/me/profile', {
+    method: 'PUT',
+    accessToken: session.accessToken,
+    idempotencyKey,
+    data: payload
   });
   return response.data;
 }

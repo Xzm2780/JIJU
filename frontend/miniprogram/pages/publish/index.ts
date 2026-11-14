@@ -42,7 +42,6 @@ Page({
     contextIndex: 0,
     retentionHours: 168 as 24 | 72 | 168,
     publicAcknowledged: false,
-    noticeRestored: false,
     message: '',
     messageType: '' as '' | 'error' | 'warning' | 'info',
     publishing: false,
@@ -61,6 +60,13 @@ Page({
     });
     await this.loadTags();
     this.applyDraft(loadDraft());
+  },
+
+  onShow() {
+    const tabBar = (this as unknown as {
+      getTabBar?: () => { setData: (value: { selected: number }) => void };
+    }).getTabBar?.();
+    tabBar?.setData({ selected: 1 });
   },
 
   async loadTags() {
@@ -116,8 +122,7 @@ Page({
       emotionIndex,
       contextIndex,
       retentionHours: draft.retention_hours ?? 168,
-      publicAcknowledged: draft.public_acknowledged === true,
-      noticeRestored: true
+      publicAcknowledged: draft.public_acknowledged === true
     });
   },
 
@@ -220,7 +225,6 @@ Page({
         showLoginModal: false
       });
       this.applyDraft(loadDraft());
-      this.showMessage('登录成功，已恢复正文、标签和留存时长', 'info');
       if (!(await this.ensureNotice(session))) {
         return;
       }

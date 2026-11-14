@@ -29,6 +29,28 @@ export interface Session {
   noticeConfirmed: boolean;
 }
 
+export interface ProfileStats {
+  total: number;
+  active: number;
+  expired: number;
+  hidden: number;
+}
+
+export interface UserProfile {
+  id: string;
+  plaza_nickname: string;
+  bio: string;
+  avatar_color: 'ROSE' | 'SAGE' | 'SAND' | 'LAVENDER' | 'SKY';
+  stats: ProfileStats;
+}
+
+export interface UpdatedProfile {
+  id: string;
+  plaza_nickname: string;
+  bio: string;
+  avatar_color: UserProfile['avatar_color'];
+}
+
 export interface PublishDraft {
   body_text: string;
   emotion_tag_id: string;

@@ -2,7 +2,7 @@
   <view class="feed-header">
     <view>
       <text class="eyebrow">此刻的公共回声</text>
-      <text class="title">广场</text>
+      <text class="title">情绪广场</text>
     </view>
     <button class="publish-entry" size="mini" bindtap="goPublish">写一条</button>
   </view>

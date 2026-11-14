@@ -156,6 +156,8 @@ $requiredInterfaces = @(
     'PUT /posts/{post_id}/reaction',
     'DELETE /posts/{post_id}/reaction',
     'GET /me/posts',
+    'GET /me/profile',
+    'PUT /me/profile',
     'DELETE /me/account',
     'POST /reports',
     'POST /notices/{notice_version}/confirmations',
@@ -193,4 +195,4 @@ foreach ($row in $acRows) {
     }
 }
 
-Write-Host "Task package validation passed: 19 tasks, 23 covered interfaces, acyclic dependencies, and 31 AC task mappings."
+Write-Host "Task package validation passed: 19 tasks, 25 covered interfaces, acyclic dependencies, and 31 AC task mappings."

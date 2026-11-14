@@ -1,4 +1,10 @@
-import { PrismaClient, TagCategory } from '@prisma/client';
+import {
+  ModerationStatus,
+  PrismaClient,
+  PublicStatus,
+  ReactionType,
+  TagCategory
+} from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -51,6 +57,195 @@ async function main(): Promise<void> {
         catalogVersion: 'mvp-tags-v1'
       }
     });
+  }
+
+  const demoAuthor = await prisma.user.upsert({
+    where: { id: 'usr_demo_emotion_square' },
+    create: {
+      id: 'usr_demo_emotion_square',
+      authProvider: 'SEED',
+      plazaNickname: '晚风邮局',
+      bio: '收集城市里轻轻落下的情绪。',
+      avatarColor: 'ROSE'
+    },
+    update: {
+      plazaNickname: '晚风邮局',
+      bio: '收集城市里轻轻落下的情绪。',
+      avatarColor: 'ROSE'
+    }
+  });
+  const demoReaders = await Promise.all(
+    [
+      ['usr_demo_reader_1', '清晨 2046', 'SAGE'],
+      ['usr_demo_reader_2', '远山 0713', 'LAVENDER'],
+      ['usr_demo_reader_3', '南岸 1188', 'SAND']
+    ].map(([id, plazaNickname, avatarColor]) =>
+      prisma.user.upsert({
+        where: { id },
+        create: {
+          id,
+          authProvider: 'SEED',
+          plazaNickname,
+          avatarColor
+        },
+        update: { plazaNickname, avatarColor }
+      })
+    )
+  );
+
+  const now = Date.now();
+  const demoPosts = [
+    {
+      id: 'pst_demo_0001',
+      body: '今天下班走出写字楼，风刚好吹散了闷了一整天的那口气。',
+      emotion: ['tag_00000000-0000-4000-8000-000000000002', '平静'],
+      context: ['tag_00000000-0000-4000-8000-000000000104', '职场'],
+      hoursAgo: 1,
+      retention: 168
+    },
+    {
+      id: 'pst_demo_0002',
+      body: '有些委屈不是因为事情很大，只是那一刻发现自己一直没被认真听见。',
+      emotion: ['tag_00000000-0000-4000-8000-000000000005', '委屈'],
+      context: ['tag_00000000-0000-4000-8000-000000000103', '亲密关系'],
+      hoursAgo: 4,
+      retention: 72
+    },
+    {
+      id: 'pst_demo_0003',
+      body: '第一次一个人去看电影，散场时街上很亮，忽然觉得自己也挺勇敢。',
+      emotion: ['tag_00000000-0000-4000-8000-000000000001', '开心'],
+      context: ['tag_00000000-0000-4000-8000-000000000106', '自我与生活'],
+      hoursAgo: 8,
+      retention: 168
+    },
+    {
+      id: 'pst_demo_0004',
+      body: '最近总在想未来要去哪里，没有答案的时候，就先认真吃完今天这顿饭。',
+      emotion: ['tag_00000000-0000-4000-8000-000000000009', '迷茫'],
+      context: ['tag_00000000-0000-4000-8000-000000000106', '自我与生活'],
+      hoursAgo: 14,
+      retention: 168
+    },
+    {
+      id: 'pst_demo_0005',
+      body: '给很久没联系的朋友发了一句“最近好吗”，她回我一长串语音，突然就安心了。',
+      emotion: ['tag_00000000-0000-4000-8000-000000000001', '开心'],
+      context: ['tag_00000000-0000-4000-8000-000000000105', '朋友关系'],
+      hoursAgo: 22,
+      retention: 72
+    },
+    {
+      id: 'pst_demo_0006',
+      body: '允许自己今天什么都不完成。能好好呼吸，也算一件了不起的事。',
+      emotion: ['tag_00000000-0000-4000-8000-000000000003', '疲惫'],
+      context: ['tag_00000000-0000-4000-8000-000000000106', '自我与生活'],
+      hoursAgo: 30,
+      retention: 168
+    }
+  ];
+
+  for (const item of demoPosts) {
+    const publishedAt = new Date(now - item.hoursAgo * 60 * 60 * 1000);
+    const expiresAt = new Date(
+      publishedAt.getTime() + item.retention * 60 * 60 * 1000
+    );
+    await prisma.post.upsert({
+      where: { id: item.id },
+      create: {
+        id: item.id,
+        authorId: demoAuthor.id,
+        bodyText: item.body,
+        bodyGraphemeLength: Array.from(item.body).length,
+        emotionTagId: item.emotion[0],
+        emotionTagNameSnapshot: item.emotion[1],
+        contextTagId: item.context[0],
+        contextTagNameSnapshot: item.context[1],
+        retentionHours: item.retention,
+        publicStatus: PublicStatus.PUBLISHED,
+        moderationStatus: ModerationStatus.PASSED,
+        publishedAt,
+        expiresAt
+      },
+      update: {
+        bodyText: item.body,
+        bodyGraphemeLength: Array.from(item.body).length,
+        emotionTagId: item.emotion[0],
+        emotionTagNameSnapshot: item.emotion[1],
+        contextTagId: item.context[0],
+        contextTagNameSnapshot: item.context[1],
+        retentionHours: item.retention,
+        publicStatus: PublicStatus.PUBLISHED,
+        moderationStatus: ModerationStatus.PASSED,
+        publishedAt,
+        expiresAt,
+        deletedAt: null,
+        hiddenAt: null
+      }
+    });
+    await prisma.postVersion.upsert({
+      where: {
+        postId_versionNumber: {
+          postId: item.id,
+          versionNumber: 1
+        }
+      },
+      create: {
+        id: `pvr_demo_${item.id.slice(-4)}`,
+        postId: item.id,
+        versionNumber: 1,
+        bodyText: item.body,
+        bodyGraphemeLength: Array.from(item.body).length,
+        emotionTagId: item.emotion[0],
+        emotionTagNameSnapshot: item.emotion[1],
+        contextTagId: item.context[0],
+        contextTagNameSnapshot: item.context[1]
+      },
+      update: {
+        bodyText: item.body,
+        bodyGraphemeLength: Array.from(item.body).length
+      }
+    });
+
+    await prisma.comment.upsert({
+      where: { id: `cmt_demo_${item.id.slice(-4)}` },
+      create: {
+        id: `cmt_demo_${item.id.slice(-4)}`,
+        postId: item.id,
+        authorId: demoReaders[0]!.id,
+        bodyText: '看到这里，想轻轻给你一个回应。',
+        bodyGraphemeLength: 17,
+        publishedAt: new Date(publishedAt.getTime() + 10 * 60 * 1000)
+      },
+      update: { deletedAt: null }
+    });
+
+    for (let index = 0; index < demoReaders.length; index += 1) {
+      const reader = demoReaders[index]!;
+      await prisma.reaction.upsert({
+        where: {
+          userId_postId: {
+            userId: reader.id,
+            postId: item.id
+          }
+        },
+        create: {
+          id: `rxn_demo_${item.id.slice(-4)}_${index}`,
+          userId: reader.id,
+          postId: item.id,
+          type:
+            index === 0
+              ? ReactionType.HUG
+              : index === 1
+                ? ReactionType.HEAD_PAT
+                : ReactionType.CHEER,
+          active: true
+        },
+        update: {
+          active: true
+        }
+      });
+    }
   }
 }
 

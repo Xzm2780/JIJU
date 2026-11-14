@@ -3,135 +3,141 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>JIJU 运营后台</title>
+  <title>JIJU 情绪广场管理后台</title>
   <style>
-    :root{--bg:#f5f0ee;--card:#fffcfb;--ink:#30292a;--muted:#816f70;--accent:#a5686c;--line:#e5d8d5;--danger:#8e4d4d}
-    *{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#fbf7f4,#f5f0ee);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
-    header{position:sticky;top:0;z-index:2;padding:18px 24px;background:rgba(255,252,251,.96);border-bottom:1px solid var(--line)}
-    h1{margin:0;font-size:22px}.sub{color:var(--muted);font-size:12px}.auth{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-    input,select,textarea,button{font:inherit}input,select,textarea{min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fffdfc;color:var(--ink)}
-    input[type=password]{min-width:280px}button{padding:9px 14px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:650;cursor:pointer}
-    button.secondary{background:#f1e0e2;color:#7c4c52}button.danger{background:#f5e3e0;color:var(--danger)}
-    main{max-width:1180px;margin:0 auto;padding:24px}.tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}.tab{background:#ebe0dd;color:#6e5d5e}.tab.active{background:var(--accent);color:#fff}
-    .panel{display:none}.panel.active{display:block}.toolbar{display:flex;align-items:end;gap:10px;margin-bottom:14px;flex-wrap:wrap}.field{display:flex;flex-direction:column;gap:5px;min-width:150px;flex:1}.field label{color:var(--muted);font-size:12px}
-    .list{display:grid;gap:12px}.item{padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--card)}.item-head{display:flex;justify-content:space-between;gap:12px;align-items:start}
-    .item h3{margin:0;font-size:15px}.meta{color:var(--muted);font-size:12px;word-break:break-all}.badge{display:inline-block;margin:2px 4px 2px 0;padding:3px 8px;border-radius:999px;background:#f1e0e2;color:#7c4c52;font-size:11px}
-    .badge.urgent{background:#f5d8d4;color:#873f3f}.actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:16px;background:var(--card);border:1px solid var(--line);border-radius:14px}
-    .wide{grid-column:1/-1}textarea{min-height:78px;resize:vertical}.status{min-height:22px;color:var(--muted);margin:12px 0;white-space:pre-wrap}.error{color:var(--danger)}
-    code{font-size:11px}@media(max-width:640px){main{padding:14px}input[type=password]{min-width:0;width:100%}.auth{flex-direction:column}.auth input,.auth button{width:100%}}
+    :root{--bg:#f4efed;--panel:#fffdfc;--ink:#30292a;--muted:#8b797a;--line:#e8dcda;--accent:#a5686c;--accent-soft:#f1e0e2;--sidebar:#3d3233;--sidebar-muted:#b9a9aa;--danger:#914f4f;--ok:#708575}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+    button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+    .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 20% 20%,#ead7d8 0,transparent 34%),linear-gradient(145deg,#f9f4f1,#eee3e2)}
+    .login-card{width:min(420px,100%);padding:38px;border:1px solid rgba(165,104,108,.18);border-radius:24px;background:rgba(255,253,252,.96);box-shadow:0 24px 70px rgba(71,48,50,.16)}
+    .login-logo{width:58px;height:58px;border-radius:18px;background:linear-gradient(145deg,#c38c90,#a5686c);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;margin-bottom:18px}
+    .login-card h1{margin:0 0 8px;font-size:26px}.login-card p{margin:0 0 26px;color:var(--muted)}
+    .login-field{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}.login-field label{font-size:12px;color:var(--muted);font-weight:700}
+    input,select,textarea{min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);outline:none}input:focus,select:focus,textarea:focus{border-color:#b77d81;box-shadow:0 0 0 3px rgba(165,104,108,.12)}
+    .login-button,.primary{border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;padding:10px 16px}.login-button{width:100%;padding:12px}.secondary{background:var(--accent-soft);color:#7c4c52}.danger{background:#f6e6e3;color:var(--danger)}
+    .app-shell{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;padding:22px 16px;background:linear-gradient(180deg,#423637,#352c2d);color:#fff;display:flex;flex-direction:column}
+    .brand{display:flex;align-items:center;gap:12px;padding:4px 8px 24px;border-bottom:1px solid rgba(255,255,255,.1)}.brand-mark{width:42px;height:42px;border-radius:13px;background:#a5686c;display:flex;align-items:center;justify-content:center;font-weight:800}.brand-name{font-size:17px;font-weight:750}.brand-sub{font-size:11px;color:var(--sidebar-muted)}
+    .nav{display:flex;flex-direction:column;gap:7px;margin-top:22px}.nav-button{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:0;border-radius:11px;background:transparent;color:#d9cdcd;text-align:left;font-weight:600}.nav-button:hover{background:rgba(255,255,255,.07)}.nav-button.active{background:#a5686c;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.12)}.nav-icon{width:20px;text-align:center;font-size:18px}
+    .sidebar-footer{margin-top:auto;padding:14px 8px 0;border-top:1px solid rgba(255,255,255,.1);color:var(--sidebar-muted);font-size:11px}
+    .workspace{min-width:0}.topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;min-height:72px;padding:12px 28px;border-bottom:1px solid var(--line);background:rgba(255,253,252,.94);backdrop-filter:blur(12px)}.topbar h2{margin:0;font-size:20px}.topbar-sub{color:var(--muted);font-size:12px;margin-top:2px}.topbar-actions{display:flex;align-items:center;gap:12px}.operator{padding:7px 12px;border-radius:999px;background:#f5eeeb;color:#765d5f;font-size:12px}
+    main{padding:26px}.panel{display:none}.panel.active{display:block}.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}.page-head h3{margin:0 0 4px;font-size:19px}.page-head p{margin:0;color:var(--muted);font-size:13px}
+    .toolbar{display:flex;align-items:end;gap:10px;margin-bottom:16px;flex-wrap:wrap;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}.field{display:flex;flex-direction:column;gap:6px;min-width:150px;flex:1}.field label{font-size:12px;color:var(--muted);font-weight:700}.wide{grid-column:1/-1}
+    .summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.summary-card{padding:18px;border:1px solid var(--line);border-radius:15px;background:var(--panel)}.summary-value{font-size:27px;font-weight:800;color:#7c4c52}.summary-label{font-size:12px;color:var(--muted)}
+    .list{display:grid;gap:12px}.item{padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.item h4{margin:0;font-size:15px}.meta{margin-top:8px;color:var(--muted);font-size:12px;word-break:break-all}.badge{display:inline-block;margin:2px 4px 2px 0;padding:3px 8px;border-radius:999px;background:var(--accent-soft);color:#7c4c52;font-size:11px}.badge.urgent{background:#f4d6d2;color:#8c3f3f}.actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;padding:18px;border:1px solid var(--line);border-radius:15px;background:var(--panel)}textarea{min-height:88px;resize:vertical}.status{min-height:22px;margin:0 0 14px;color:var(--muted);white-space:pre-wrap}.status.error{color:var(--danger)}.empty{padding:34px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);text-align:center}
+    .system-note{margin-top:18px;padding:15px;border-radius:14px;background:#f8f1ed;color:#7d625e;font-size:12px;line-height:1.7}
+    @media(max-width:900px){.app-shell{grid-template-columns:1fr}.sidebar{position:static;height:auto}.nav{flex-direction:row;overflow:auto}.sidebar-footer{display:none}.summary-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){main{padding:14px}.topbar{padding:10px 14px}.topbar-sub,.operator{display:none}.login-card{padding:26px}.summary-grid{grid-template-columns:1fr 1fr}.nav-button{padding:10px}.nav-icon{display:none}}
   </style>
 </head>
 <body>
-<header>
-  <h1>JIJU 运营后台</h1>
-  <div class="sub">使用独立后台身份令牌。所有治理动作由服务端鉴权并留痕。</div>
-  <div class="auth">
-    <input id="base-url" value="/api/v1" aria-label="API 根路径">
-    <input id="token" type="password" placeholder="Admin bearer token" aria-label="后台令牌">
-    <button id="save-auth">保存连接</button>
+  <section id="login-screen" class="login-screen">
+    <form id="login-form" class="login-card">
+      <div class="login-logo">J</div>
+      <h1>情绪广场管理后台</h1>
+      <p>请输入运营后台身份令牌。所有治理动作会由服务端校验角色并写入审计。</p>
+      <div class="login-field"><label>API 地址</label><input id="login-base" value="/api/v1"></div>
+      <div class="login-field"><label>后台身份令牌</label><input id="login-token" type="password" placeholder="Bearer token" autocomplete="current-password"></div>
+      <button class="login-button" type="submit">登录后台</button>
+      <div id="login-error" class="status error"></div>
+    </form>
+  </section>
+
+  <div id="app-shell" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">J</div><div><div class="brand-name">JIJU</div><div class="brand-sub">情绪广场管理后台</div></div></div>
+      <nav class="nav" id="sidebar-nav">
+        <button class="nav-button active" data-panel="overview"><span class="nav-icon">▦</span><span>工作台</span></button>
+        <button class="nav-button" data-panel="reports"><span class="nav-icon">⚑</span><span>举报队列</span></button>
+        <button class="nav-button" data-panel="queue"><span class="nav-icon">≡</span><span>统一复核</span></button>
+        <button class="nav-button" data-panel="content"><span class="nav-icon">◇</span><span>内容治理</span></button>
+        <button class="nav-button" data-panel="accounts"><span class="nav-icon">◎</span><span>账号处置</span></button>
+        <button class="nav-button" data-panel="audit"><span class="nav-icon">⌕</span><span>审计日志</span></button>
+      </nav>
+      <div class="sidebar-footer">权限由 AdminRoleAssignment 控制<br>敏感数据不会进入通用日志</div>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar">
+        <div><h2 id="page-title">工作台</h2><div id="page-subtitle" class="topbar-sub">处理举报、内容复核和账号治理</div></div>
+        <div class="topbar-actions"><span class="operator">运营后台</span><button id="logout-button" class="secondary">退出登录</button></div>
+      </header>
+      <main>
+        <div id="status" class="status"></div>
+
+        <section class="panel active" id="panel-overview">
+          <div class="page-head"><div><h3>今日工作台</h3><p>快速进入最常用的治理流程。</p></div><button class="primary" data-jump="reports">处理举报</button></div>
+          <div class="summary-grid">
+            <div class="summary-card"><div class="summary-value" id="summary-reports">—</div><div class="summary-label">待处理举报</div></div>
+            <div class="summary-card"><div class="summary-value" id="summary-queue">—</div><div class="summary-label">待复核内容</div></div>
+            <div class="summary-card"><div class="summary-value" id="summary-minor">—</div><div class="summary-label">未成年人优先</div></div>
+            <div class="summary-card"><div class="summary-value">24h</div><div class="summary-label">幂等结果保留</div></div>
+          </div>
+          <div class="system-note">建议按“举报队列 → 统一复核 → 内容治理 → 审计”顺序处理。账号限制属于独立高风险操作，需二次确认。登录令牌与业务数据不会写入浏览器持久存储，关闭页面后需要重新登录。</div>
+        </section>
+
+        <section class="panel" id="panel-reports">
+          <div class="page-head"><div><h3>举报队列</h3><p>未成年人相关举报会以预抢占优先级排在前面。</p></div></div>
+          <div class="toolbar"><div class="field"><label>状态</label><select id="report-status"><option value="">待处理与处理中</option><option>PENDING</option><option>PROCESSING</option><option>RESOLVED</option></select></div><div class="field"><label>优先级</label><select id="report-priority"><option value="">全部</option><option>PREEMPTIVE</option><option>NORMAL</option></select></div><div class="field"><label>原因</label><select id="report-reason"><option value="">全部</option><option>ABUSE</option><option>PRIVACY</option><option>MINOR_INVOLVED</option><option>DANGEROUS_OR_INAPPROPRIATE</option><option>SPAM</option><option>OTHER</option></select></div><button id="load-reports" class="primary">查询</button></div>
+          <div class="list" id="report-list"></div>
+        </section>
+
+        <section class="panel" id="panel-queue">
+          <div class="page-head"><div><h3>统一复核队列</h3><p>合并举报和审核规则产生的待复核内容，不返回正文或举报说明。</p></div></div>
+          <div class="toolbar"><div class="field"><label>来源</label><select id="queue-source"><option>all</option><option>report</option><option>moderation</option></select></div><div class="field"><label>优先级</label><select id="queue-priority"><option value="">全部</option><option>PREEMPTIVE</option><option>NORMAL</option></select></div><button id="load-queue" class="primary">查询</button></div>
+          <div class="list" id="queue-list"></div>
+        </section>
+
+        <section class="panel" id="panel-content">
+          <div class="page-head"><div><h3>内容复核与治理</h3><p>复核需要当前内容版本；恢复只允许未到期、未删除且未被拒绝的隐藏内容。</p></div></div>
+          <form class="form-grid" id="content-form"><div class="field"><label>目标类型</label><select id="content-type"><option>POST</option><option>COMMENT</option></select></div><div class="field"><label>目标 ID</label><input id="content-id" required></div><div class="field"><label>内容版本</label><input id="content-version" type="number" min="1" required></div><div class="field"><label>复核结论</label><select id="review-decision"><option>PASSED</option><option>REJECTED</option></select></div><div class="field"><label>治理动作</label><select id="content-action"><option value="">不执行治理</option><option>HIDE</option><option>TAKEDOWN</option><option>RESTORE</option></select></div><div class="field wide"><label>原因</label><textarea id="content-reason" required></textarea></div><div class="actions wide"><button type="submit" class="primary">提交复核</button><button type="button" class="danger" id="submit-action">执行治理动作</button></div></form>
+        </section>
+
+        <section class="panel" id="panel-accounts">
+          <div class="page-head"><div><h3>账号处置</h3><p>账号处置不会删除用户内容；永久注销属于用户自助流程。</p></div></div>
+          <form class="form-grid" id="account-form"><div class="field"><label>账号 ID</label><input id="account-user-id" required></div><div class="field"><label>动作</label><select id="account-action"><option>WARNING</option><option>POST_LIMIT</option><option>COMMENT_LIMIT</option><option>REACTION_LIMIT</option><option>BAN</option></select></div><div class="field"><label>结束时间 UTC</label><input id="account-expires" placeholder="2026-11-20T00:00:00Z"></div><div class="field wide"><label>原因</label><textarea id="account-reason" required></textarea></div><div class="actions wide"><button type="submit" class="primary">提交账号处置</button></div></form>
+        </section>
+
+        <section class="panel" id="panel-audit">
+          <div class="page-head"><div><h3>审计日志</h3><p>审计记录只追加、不允许后台修改或删除。</p></div></div>
+          <div class="toolbar"><div class="field"><label>操作者 ID</label><input id="audit-actor"></div><div class="field"><label>动作</label><input id="audit-action"></div><div class="field"><label>对象类型</label><input id="audit-object-type"></div><div class="field"><label>对象 ID</label><input id="audit-object-id"></div><div class="field"><label>开始 UTC</label><input id="audit-from"></div><div class="field"><label>结束 UTC</label><input id="audit-to"></div><button id="load-audit" class="primary">查询</button></div>
+          <div class="list" id="audit-list"></div>
+        </section>
+      </main>
+    </section>
   </div>
-</header>
-<main>
-  <nav class="tabs" id="tabs">
-    <button class="tab active" data-panel="reports">举报队列</button>
-    <button class="tab" data-panel="queue">统一复核队列</button>
-    <button class="tab" data-panel="content">内容复核与治理</button>
-    <button class="tab" data-panel="accounts">账号限制</button>
-    <button class="tab" data-panel="audit">审计查询</button>
-  </nav>
-  <div id="status" class="status"></div>
 
-  <section class="panel active" id="panel-reports">
-    <div class="toolbar">
-      <div class="field"><label>状态</label><select id="report-status"><option value="">处理中队列</option><option>PENDING</option><option>PROCESSING</option><option>RESOLVED</option></select></div>
-      <div class="field"><label>优先级</label><select id="report-priority"><option value="">全部</option><option>PREEMPTIVE</option><option>NORMAL</option></select></div>
-      <div class="field"><label>原因</label><select id="report-reason"><option value="">全部</option><option>ABUSE</option><option>PRIVACY</option><option>MINOR_INVOLVED</option><option>DANGEROUS_OR_INAPPROPRIATE</option><option>SPAM</option><option>OTHER</option></select></div>
-      <button id="load-reports">查询</button>
-    </div>
-    <div class="list" id="report-list"></div>
-  </section>
-
-  <section class="panel" id="panel-queue">
-    <div class="toolbar">
-      <div class="field"><label>来源</label><select id="queue-source"><option>all</option><option>report</option><option>moderation</option></select></div>
-      <div class="field"><label>优先级</label><select id="queue-priority"><option value="">全部</option><option>PREEMPTIVE</option><option>NORMAL</option></select></div>
-      <button id="load-queue">查询</button>
-    </div>
-    <div class="list" id="queue-list"></div>
-  </section>
-
-  <section class="panel" id="panel-content">
-    <form class="form-grid" id="content-form">
-      <div class="field"><label>目标类型</label><select id="content-type"><option>POST</option><option>COMMENT</option></select></div>
-      <div class="field"><label>目标 ID</label><input id="content-id" required></div>
-      <div class="field"><label>内容版本</label><input id="content-version" type="number" min="1" required></div>
-      <div class="field"><label>复核结论</label><select id="review-decision"><option>PASSED</option><option>REJECTED</option></select></div>
-      <div class="field"><label>治理动作</label><select id="content-action"><option value="">不执行治理</option><option>HIDE</option><option>TAKEDOWN</option><option>RESTORE</option></select></div>
-      <div class="field wide"><label>原因</label><textarea id="content-reason" required></textarea></div>
-      <div class="actions wide"><button type="submit">提交复核</button><button type="button" class="danger" id="submit-action">执行治理动作</button></div>
-    </form>
-  </section>
-
-  <section class="panel" id="panel-accounts">
-    <form class="form-grid" id="account-form">
-      <div class="field"><label>账号 ID</label><input id="account-user-id" required></div>
-      <div class="field"><label>动作</label><select id="account-action"><option>WARNING</option><option>POST_LIMIT</option><option>COMMENT_LIMIT</option><option>REACTION_LIMIT</option><option>BAN</option></select></div>
-      <div class="field"><label>结束时间 UTC</label><input id="account-expires" placeholder="2026-11-20T00:00:00Z"></div>
-      <div class="field wide"><label>原因</label><textarea id="account-reason" required></textarea></div>
-      <div class="actions wide"><button type="submit">提交账号处置</button></div>
-    </form>
-  </section>
-
-  <section class="panel" id="panel-audit">
-    <div class="toolbar">
-      <div class="field"><label>账号 ID</label><input id="audit-actor"></div>
-      <div class="field"><label>动作</label><input id="audit-action"></div>
-      <div class="field"><label>对象类型</label><input id="audit-object-type"></div>
-      <div class="field"><label>对象 ID</label><input id="audit-object-id"></div>
-      <div class="field"><label>开始 UTC</label><input id="audit-from" placeholder="2026-11-01T00:00:00Z"></div>
-      <div class="field"><label>结束 UTC</label><input id="audit-to" placeholder="2026-12-01T00:00:00Z"></div>
-      <button id="load-audit">查询</button>
-    </div>
-    <div class="list" id="audit-list"></div>
-  </section>
-</main>
 <script>
 (() => {
-  const state = {token: sessionStorage.getItem('jiju.admin.token') || '', base: sessionStorage.getItem('jiju.admin.base') || '/api/v1'};
-  const q = (s) => document.querySelector(s);
-  const status = (text, error) => { const el=q('#status'); el.textContent=text || ''; el.className='status'+(error?' error':''); };
-  q('#base-url').value = state.base; q('#token').value = state.token;
-  q('#save-auth').onclick = () => { state.base=q('#base-url').value.trim().replace(/\/$/,''); state.token=q('#token').value.trim(); sessionStorage.setItem('jiju.admin.base',state.base); sessionStorage.setItem('jiju.admin.token',state.token); status('连接信息已保存'); };
-  async function api(path, options={}) {
-    if (!state.token) throw new Error('请先填写后台令牌');
-    const response = await fetch(state.base + path, {method:options.method||'GET', headers:{'accept':'application/json',...(options.body?{'content-type':'application/json'}:{}),authorization:'Bearer '+state.token,...(options.idempotencyKey?{'idempotency-key':options.idempotencyKey}:{})}, body:options.body?JSON.stringify(options.body):undefined});
-    const text = await response.text(); const body = text ? JSON.parse(text) : null;
-    if (!response.ok) throw new Error((body && body.code ? body.code+': ' : '') + (body && body.message ? body.message : response.status));
+  const state={base:sessionStorage.getItem('jiju.admin.base')||'/api/v1',token:''};
+  const $=(s)=>document.querySelector(s);
+  const titles={overview:['工作台','处理举报、内容复核和账号治理'],reports:['举报队列','举报优先级与处理状态'],queue:['统一复核','举报与审核规则的统一待办'],content:['内容治理','复核、隐藏、下架和条件恢复'],accounts:['账号处置','警告、能力限制与封禁'],audit:['审计日志','治理动作的可追溯记录']};
+  const setStatus=(text,error=false)=>{const el=$('#status');el.textContent=text||'';el.className='status'+(error?' error':'')};
+  const setLoginError=(text)=>{$('#login-error').textContent=text||''};
+  $('#login-base').value=state.base;
+  async function api(path,options={}){
+    const response=await fetch(state.base+path,{method:options.method||'GET',headers:{accept:'application/json',authorization:'Bearer '+state.token,...(options.body?{'content-type':'application/json'}:{}),...(options.idempotencyKey?{'idempotency-key':options.idempotencyKey}:{})},body:options.body?JSON.stringify(options.body):undefined});
+    const text=await response.text();const body=text?JSON.parse(text):null;
+    if(!response.ok)throw new Error((body&&body.code?body.code+': ':'')+(body&&body.message?body.message:response.status));
     return body;
   }
   function uuidV7(){const b=crypto.getRandomValues(new Uint8Array(16));let t=BigInt(Date.now());for(let i=5;i>=0;i--){b[i]=Number(t&255n);t>>=8n}b[6]=(b[6]&15)|112;b[8]=(b[8]&63)|128;const h=[...b].map(x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)}
-  const key = (operation) => 'v1:'+operation+':'+uuidV7();
-  function card(item, mode) {
-    const el=document.createElement('article');el.className='item';
-    const head=document.createElement('div');head.className='item-head';
-    const title=document.createElement('h3');title.textContent=(item.source||'report')+' · '+item.target_type+' · '+(item.id||item.item_id);
-    const badges=document.createElement('div');
-    [item.priority,item.status,item.is_minor_related?'未成年人优先':''].filter(Boolean).forEach(x=>{const b=document.createElement('span');b.className='badge'+(x==='未成年人优先'?' urgent':'');b.textContent=x;badges.appendChild(b)});
-    head.append(title,badges);
-    const meta=document.createElement('div');meta.className='meta';meta.textContent='目标 '+item.target_id+' · 版本 '+item.content_version+' · 入队 '+(item.submitted_at||item.queue_at||'')+(item.reason?' · '+item.reason:'')+(item.other_description?' · 说明：'+item.other_description:'');
-    el.append(head,meta);
-    if(mode==='review'){const actions=document.createElement('div');actions.className='actions';const use=document.createElement('button');use.className='secondary';use.textContent='带入复核表单';use.onclick=()=>{q('#content-type').value=item.target_type;q('#content-id').value=item.target_id;q('#content-version').value=item.content_version;switchPanel('content')};actions.appendChild(use);el.appendChild(actions)}
-    return el;
-  }
-  function list(id,items,mode){const box=q(id);box.textContent='';if(!items.length){box.textContent='没有符合条件的数据';return}items.forEach(x=>box.appendChild(card(x,mode)))}
-  function switchPanel(name){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id==='panel-'+name));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.panel===name))}
-  q('#tabs').onclick=(event)=>{const b=event.target.closest('.tab');if(b)switchPanel(b.dataset.panel)};
-  q('#load-reports').onclick=async()=>{try{status('查询举报队列…');const p=new URLSearchParams({limit:'20'});if(q('#report-status').value)p.set('status',q('#report-status').value);if(q('#report-priority').value)p.set('priority',q('#report-priority').value);if(q('#report-reason').value)p.set('reason',q('#report-reason').value);const r=await api('/admin/reports?'+p);list('#report-list',r.data,'reports');status('共 '+r.data.length+' 条')}catch(e){status(e.message,true)}};
-  q('#load-queue').onclick=async()=>{try{status('查询统一队列…');const p=new URLSearchParams({source:q('#queue-source').value,limit:'20'});if(q('#queue-priority').value)p.set('priority',q('#queue-priority').value);const r=await api('/admin/review-queue?'+p);list('#queue-list',r.data,'review');status('共 '+r.data.length+' 条')}catch(e){status(e.message,true)}};
-  q('#content-form').onsubmit=async(event)=>{event.preventDefault();try{const type=q('#content-type').value,id=encodeURIComponent(q('#content-id').value.trim());const body={expected_content_version:Number(q('#content-version').value),decision:q('#review-decision').value,reason:q('#content-reason').value.trim()};status('提交复核…');const r=await api('/admin/content/'+type+'/'+id+'/reviews',{method:'POST',idempotencyKey:key('admin.review'),body});status('复核完成：'+r.data.moderation_status+' / '+r.data.public_status)}catch(e){status(e.message,true)}};
-  q('#submit-action').onclick=async()=>{try{const action=q('#content-action').value;if(!action)throw new Error('请选择治理动作');const type=q('#content-type').value,id=encodeURIComponent(q('#content-id').value.trim());const body={action,expected_content_version:Number(q('#content-version').value),reason:q('#content-reason').value.trim()};status('执行治理动作…');const r=await api('/admin/content/'+type+'/'+id+'/actions',{method:'POST',idempotencyKey:key('admin.content.action'),body});status('治理完成：'+r.data.public_status_before+' → '+r.data.public_status_after+'，到期时间未延长')}catch(e){status(e.message,true)}};
-  q('#account-form').onsubmit=async(event)=>{event.preventDefault();try{const body={action:q('#account-action').value,reason:q('#account-reason').value.trim()};const expires=q('#account-expires').value.trim();if(expires)body.expires_at=expires;status('提交账号处置…');const id=encodeURIComponent(q('#account-user-id').value.trim());const r=await api('/admin/users/'+id+'/restrictions',{method:'POST',idempotencyKey:key('admin.user.restrict'),body});status('处置完成：'+r.data.action+'，生效 '+r.data.effective_at)}catch(e){status(e.message,true)}};
-  q('#load-audit').onclick=async()=>{try{status('查询审计…');const p=new URLSearchParams({limit:'20'});[['actor_id','#audit-actor'],['action_type','#audit-action'],['object_type','#audit-object-type'],['object_id','#audit-object-id'],['from','#audit-from'],['to','#audit-to']].forEach(([name,sel])=>{const v=q(sel).value.trim();if(v)p.set(name,v)});const r=await api('/admin/audit-logs?'+p);list('#audit-list',r.data.map(x=>({source:x.action_type,id:x.id,target_type:x.object_type,target_id:x.object_id,content_version:x.content_version,queue_at:x.occurred_at,status:x.actor_role,reason:x.reason})),'audit');status('共 '+r.data.length+' 条')}catch(e){status(e.message,true)}};
+  const key=(operation)=>'v1:'+operation+':'+uuidV7();
+  function switchPanel(name){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id==='panel-'+name));document.querySelectorAll('.nav-button').forEach(x=>x.classList.toggle('active',x.dataset.panel===name));$('#page-title').textContent=titles[name][0];$('#page-subtitle').textContent=titles[name][1];if(name==='overview')loadOverview();if(name==='reports')loadReports();if(name==='queue')loadQueue()}
+  function card(item,source){const el=document.createElement('article');el.className='item';const head=document.createElement('div');head.className='item-head';const title=document.createElement('h4');title.textContent=(source||'举报')+' · '+item.target_type+' · '+(item.target_id||item.item_id);const badges=document.createElement('div');[item.priority,item.status,item.is_minor_related?'未成年人优先':''].filter(Boolean).forEach(x=>{const b=document.createElement('span');b.className='badge'+(x==='未成年人优先'?' urgent':'');b.textContent=x;badges.appendChild(b)});head.append(title,badges);const meta=document.createElement('div');meta.className='meta';meta.textContent='对象 '+item.target_id+' · 版本 '+item.content_version+' · 时间 '+(item.submitted_at||item.queue_at||'')+(item.reason?' · '+item.reason:'')+(item.other_description?' · 举报说明：'+item.other_description:'');el.append(head,meta);if(source==='统一复核'){const actions=document.createElement('div');actions.className='actions';const use=document.createElement('button');use.className='secondary';use.textContent='带入内容治理';use.onclick=()=>{switchPanel('content');$('#content-type').value=item.target_type;$('#content-id').value=item.target_id;$('#content-version').value=item.content_version};actions.appendChild(use);el.appendChild(actions)}return el}
+  function renderList(id,items,source){const box=$(id);box.textContent='';if(!items.length){box.innerHTML='<div class="empty">暂无数据</div>';return}items.forEach(x=>box.appendChild(card(x,source)))}
+  async function loadOverview(){try{const [reports,queue]=await Promise.all([api('/admin/reports?limit=50'),api('/admin/review-queue?source=all&limit=50')]);$('#summary-reports').textContent=reports.data.length;$('#summary-queue').textContent=queue.data.length;$('#summary-minor').textContent=queue.data.filter(x=>x.is_minor_related||x.priority==='PREEMPTIVE').length}catch(e){setStatus(e.message,true)}}
+  async function loadReports(){try{setStatus('正在查询举报队列…');const p=new URLSearchParams({limit:'20'});if($('#report-status').value)p.set('status',$('#report-status').value);if($('#report-priority').value)p.set('priority',$('#report-priority').value);if($('#report-reason').value)p.set('reason',$('#report-reason').value);const r=await api('/admin/reports?'+p);renderList('#report-list',r.data,'举报');setStatus('共 '+r.data.length+' 条')}catch(e){setStatus(e.message,true)}}
+  async function loadQueue(){try{setStatus('正在查询统一复核队列…');const p=new URLSearchParams({source:$('#queue-source').value,limit:'20'});if($('#queue-priority').value)p.set('priority',$('#queue-priority').value);const r=await api('/admin/review-queue?'+p);renderList('#queue-list',r.data,'统一复核');setStatus('共 '+r.data.length+' 条')}catch(e){setStatus(e.message,true)}}
+  $('#login-form').onsubmit=async(event)=>{event.preventDefault();state.base=$('#login-base').value.trim().replace(/\/$/,'');state.token=$('#login-token').value.trim();if(!state.token){setLoginError('请输入后台身份令牌');return}try{setLoginError('');await api('/admin/reports?limit=1');sessionStorage.setItem('jiju.admin.base',state.base);$('#login-screen').classList.add('hidden');$('#app-shell').classList.remove('hidden');switchPanel('overview')}catch(e){setLoginError(e.message);state.token=''}};
+  $('#logout-button').onclick=()=>{state.token='';sessionStorage.removeItem('jiju.admin.base');$('#app-shell').classList.add('hidden');$('#login-screen').classList.remove('hidden');$('#login-token').value='';setStatus('')};
+  $('#sidebar-nav').onclick=(event)=>{const b=event.target.closest('.nav-button');if(b)switchPanel(b.dataset.panel)};
+  document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>switchPanel(b.dataset.jump));
+  $('#load-reports').onclick=loadReports;$('#load-queue').onclick=loadQueue;
+  $('#content-form').onsubmit=async(event)=>{event.preventDefault();try{setStatus('正在提交复核…');const type=$('#content-type').value,id=encodeURIComponent($('#content-id').value.trim());const r=await api('/admin/content/'+type+'/'+id+'/reviews',{method:'POST',idempotencyKey:key('admin.review'),body:{expected_content_version:Number($('#content-version').value),decision:$('#review-decision').value,reason:$('#content-reason').value.trim()}});setStatus('复核完成：'+r.data.moderation_status+' / '+r.data.public_status)}catch(e){setStatus(e.message,true)}};
+  $('#submit-action').onclick=async()=>{try{const action=$('#content-action').value;if(!action)throw new Error('请选择治理动作');setStatus('正在执行治理动作…');const type=$('#content-type').value,id=encodeURIComponent($('#content-id').value.trim());const r=await api('/admin/content/'+type+'/'+id+'/actions',{method:'POST',idempotencyKey:key('admin.content.action'),body:{action,expected_content_version:Number($('#content-version').value),reason:$('#content-reason').value.trim()}});setStatus('治理完成：'+r.data.public_status_before+' → '+r.data.public_status_after)}catch(e){setStatus(e.message,true)}};
+  $('#account-form').onsubmit=async(event)=>{event.preventDefault();try{setStatus('正在提交账号处置…');const body={action:$('#account-action').value,reason:$('#account-reason').value.trim()};const expires=$('#account-expires').value.trim();if(expires)body.expires_at=expires;const id=encodeURIComponent($('#account-user-id').value.trim());const r=await api('/admin/users/'+id+'/restrictions',{method:'POST',idempotencyKey:key('admin.user.restrict'),body});setStatus('处置完成：'+r.data.action)}catch(e){setStatus(e.message,true)}};
+  $('#load-audit').onclick=async()=>{try{setStatus('正在查询审计…');const p=new URLSearchParams({limit:'20'});[['actor_id','#audit-actor'],['action_type','#audit-action'],['object_type','#audit-object-type'],['object_id','#audit-object-id'],['from','#audit-from'],['to','#audit-to']].forEach(([name,sel])=>{const v=$(sel).value.trim();if(v)p.set(name,v)});const r=await api('/admin/audit-logs?'+p);renderList('#audit-list',r.data.map(x=>({source:'审计',id:x.id,target_type:x.object_type,target_id:x.object_id,content_version:x.content_version,status:x.actor_role,reason:x.reason,queue_at:x.occurred_at,action_type:x.action_type})),'审计');setStatus('共 '+r.data.length+' 条')}catch(e){setStatus(e.message,true)}};
 })();
 </script>
 </body>

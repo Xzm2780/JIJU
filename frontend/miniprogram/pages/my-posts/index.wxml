@@ -1,0 +1,49 @@
+<view class="page">
+  <view class="status-tabs">
+    <button class="status-tab {{status === 'ACTIVE' ? 'status-tab-active' : ''}}" data-status="ACTIVE" bindtap="selectStatus">有效</button>
+    <button class="status-tab {{status === 'EXPIRED' ? 'status-tab-active' : ''}}" data-status="EXPIRED" bindtap="selectStatus">已到期</button>
+    <button class="status-tab {{status === 'HIDDEN' ? 'status-tab-active' : ''}}" data-status="HIDDEN" bindtap="selectStatus">已下架</button>
+  </view>
+
+  <state-panel wx:if="{{loading}}" state="loading" title="正在整理帖子" />
+  <state-panel
+    wx:elif="{{error && !items.length}}"
+    state="error"
+    title="暂时无法加载"
+    message="{{error}}"
+    action-text="重试"
+    bind:action="retry"
+  />
+  <state-panel
+    wx:elif="{{!items.length}}"
+    state="empty"
+    title="还没有帖子"
+    message="当前分类下没有内容。"
+    action-text="去发布"
+    bind:action="goPublish"
+  />
+
+  <view wx:else class="post-list">
+    <view wx:for="{{items}}" wx:key="id" class="post-card card">
+      <button class="post-main" data-id="{{item.id}}" bindtap="openDetail">
+        <view class="post-head">
+          <text class="status-badge">{{item.statusLabel}}</text>
+          <text class="post-time">{{item.publishedLabel}}</text>
+        </view>
+        <text class="post-body">{{item.body_excerpt}}</text>
+        <view class="post-counts">
+          <text>{{item.comment_count}} 条回应</text>
+          <text>{{item.reaction_counts.total}} 个轻互动</text>
+        </view>
+        <text class="expiry">到期：{{item.expiresLabel}}</text>
+      </button>
+      <view wx:if="{{item.public_status === 'PUBLISHED'}}" class="post-actions">
+        <button class="secondary-button compact" data-id="{{item.id}}" bindtap="editPost">编辑</button>
+        <button class="danger-button compact" data-id="{{item.id}}" bindtap="removePost">删除</button>
+      </view>
+    </view>
+    <view wx:if="{{loadingMore}}" class="list-status">正在加载更多…</view>
+    <view wx:elif="{{error}}" class="list-status">{{error}}</view>
+    <view wx:elif="{{!hasMore}}" class="list-status">已经看到这里了</view>
+  </view>
+</view>
