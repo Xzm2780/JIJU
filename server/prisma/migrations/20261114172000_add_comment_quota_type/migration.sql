@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "QuotaType" ADD VALUE 'COMMENT_ROLLING_60M';

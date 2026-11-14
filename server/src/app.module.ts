@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { CommentsModule } from './comments/comments.module';
 import { ContentModule } from './content/content.module';
 import { NoticesModule } from './notices/notices.module';
 import { PostsModule } from './posts/posts.module';
@@ -15,6 +16,7 @@ import { TagsModule } from './tags/tags.module';
     PrismaModule,
     RedisModule,
     AuthModule,
+    CommentsModule,
     NoticesModule,
     TagsModule,
     ContentModule,

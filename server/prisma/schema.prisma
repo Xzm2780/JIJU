@@ -27,6 +27,7 @@ enum ModerationStatus {
 
 enum QuotaType {
   POST_DAILY
+  COMMENT_ROLLING_60M
 }
 
 enum IdempotencyStatus {
