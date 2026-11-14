@@ -101,6 +101,31 @@ export interface PostDetail {
   view_count?: number;
 }
 
+export type MyPostStatusFilter = 'ACTIVE' | 'EXPIRED' | 'HIDDEN';
+
+export interface MyPostItem {
+  id: string;
+  content_version: number;
+  body_excerpt: string;
+  emotion_tag: TagRef | null;
+  context_tag: TagRef | null;
+  public_status: 'PUBLISHED' | 'HIDDEN' | 'EXPIRED' | 'DELETED';
+  moderation_status: 'PASSED' | 'PENDING' | 'REJECTED';
+  published_at: string;
+  expires_at: string;
+  comment_count: number;
+  reaction_counts: ReactionCounts;
+}
+
+export interface MyPostPage {
+  data: MyPostItem[];
+  page: {
+    next_cursor: string | null;
+    has_more: boolean;
+  };
+  request_id: string;
+}
+
 export interface ApiEnvelope<T> {
   data: T;
   request_id: string;

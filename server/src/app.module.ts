@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { CommentsModule } from './comments/comments.module';
 import { ContentModule } from './content/content.module';
+import { MyPostsModule } from './me/my-posts.module';
 import { NoticesModule } from './notices/notices.module';
 import { PostsModule } from './posts/posts.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -21,6 +22,7 @@ import { TagsModule } from './tags/tags.module';
     NoticesModule,
     TagsModule,
     ContentModule,
+    MyPostsModule,
     PostsModule,
     ReactionsModule,
     ReviewQueueModule

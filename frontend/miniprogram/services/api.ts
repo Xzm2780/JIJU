@@ -3,6 +3,8 @@ import {
   ApiErrorPayload,
   AppRuntime,
   FeedPage,
+  MyPostPage,
+  MyPostStatusFilter,
   PostDetail,
   ReactionState,
   ReactionType,
@@ -195,6 +197,31 @@ export async function fetchPostDetail(
     }
   );
   return response.data;
+}
+
+export async function fetchMyPosts(
+  session: Session,
+  status: MyPostStatusFilter | undefined,
+  cursor?: string,
+  limit = 20
+): Promise<MyPostPage> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (status) {
+    params.set('status', status);
+  }
+  if (cursor) {
+    params.set('cursor', cursor);
+  }
+  return request<MyPostPage['data']>(`/me/posts?${params.toString()}`, {
+    accessToken: session.accessToken
+  }).then(
+    (response) =>
+      ({
+        data: response.data,
+        page: (response as unknown as MyPostPage).page,
+        request_id: response.request_id
+      }) satisfies MyPostPage
+  );
 }
 
 export async function confirmNotice(

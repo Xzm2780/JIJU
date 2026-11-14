@@ -1,41 +1,68 @@
-<view class="page">
-  <view class="card my-card">
-    <text class="my-title">我的</text>
-
-    <view wx:if="{{session}}" class="profile">
-      <text class="profile-name">{{session.user.plaza_nickname}}</text>
-      <text class="profile-meta">当前为已登录状态</text>
+<view class="page my-page">
+  <view class="my-header">
+    <view>
+      <text class="eyebrow">只在这里看到自己</text>
+      <text class="my-title">{{session ? session.user.plaza_nickname : '我的'}}</text>
     </view>
-    <view wx:else class="profile">
-      <text class="profile-name">还没有登录</text>
-      <text class="profile-meta">登录后可查看本人内容并继续发布。</text>
-    </view>
-
-    <view wx:if="{{message}}" class="message info">{{message}}</view>
-
-    <button
-      wx:if="{{!session}}"
-      class="primary-button action"
-      loading="{{busy}}"
-      disabled="{{busy}}"
-      bindtap="login"
-    >
-      微信登录
-    </button>
-
-    <view wx:else class="action-group">
-      <button class="primary-button action" bindtap="goPublish">去发布</button>
-      <button class="secondary-button action" bindtap="openNotice">使用须知</button>
-      <button
-        class="secondary-button action"
-        loading="{{busy}}"
-        disabled="{{busy}}"
-        bindtap="logout"
-      >
-        退出当前会话
-      </button>
-    </view>
-
-    <text class="privacy-note">账号永久注销需在数据保留规则确认后提供。</text>
+    <button wx:if="{{session}}" class="logout-link" size="mini" bindtap="logout">退出会话</button>
   </view>
+
+  <view wx:if="{{message}}" class="message info">{{message}}</view>
+
+  <view wx:if="{{!session}}" class="card guest-card">
+    <text class="guest-title">登录后查看本人帖子</text>
+    <text class="guest-copy">这里不提供陌生人主页，也不会展示其他账号的数据。</text>
+    <button class="primary-button" loading="{{busy}}" disabled="{{busy}}" bindtap="login">微信登录</button>
+    <button class="secondary-button" bindtap="goPublish">先去写一条</button>
+  </view>
+
+  <block wx:else>
+    <view class="status-tabs">
+      <button class="status-tab {{status === 'ACTIVE' ? 'status-tab-active' : ''}}" data-status="ACTIVE" bindtap="selectStatus">有效</button>
+      <button class="status-tab {{status === 'EXPIRED' ? 'status-tab-active' : ''}}" data-status="EXPIRED" bindtap="selectStatus">已到期</button>
+      <button class="status-tab {{status === 'HIDDEN' ? 'status-tab-active' : ''}}" data-status="HIDDEN" bindtap="selectStatus">已下架</button>
+    </view>
+
+    <state-panel wx:if="{{loading}}" state="loading" title="正在整理你的帖子" />
+    <state-panel
+      wx:elif="{{error && !items.length}}"
+      state="error"
+      title="暂时无法加载"
+      message="{{error}}"
+      action-text="重试"
+      bind:action="retry"
+    />
+    <state-panel
+      wx:elif="{{!items.length}}"
+      state="empty"
+      title="这里还没有内容"
+      message="当前筛选状态下没有本人帖子。"
+      action-text="去发布"
+      bind:action="goPublish"
+    />
+
+    <view wx:else class="my-list">
+      <view wx:for="{{items}}" wx:key="id" class="my-item card">
+        <button class="item-main" data-id="{{item.id}}" bindtap="openDetail">
+          <view class="item-title-row">
+            <text class="status-badge">{{item.statusLabel}}</text>
+            <text class="published">{{item.publishedLabel}}</text>
+          </view>
+          <text class="item-body">{{item.body_excerpt}}</text>
+          <view class="counts">
+            <text>{{item.comment_count}} 条回应</text>
+            <text>{{item.reaction_counts.total}} 个轻互动</text>
+          </view>
+        </button>
+        <view class="item-actions">
+          <button class="secondary-button compact" data-id="{{item.id}}" bindtap="editPost">编辑</button>
+          <button class="danger-button compact" data-id="{{item.id}}" bindtap="removePost">删除</button>
+        </view>
+      </view>
+
+      <view wx:if="{{loadingMore}}" class="list-status">正在加载更多…</view>
+      <view wx:elif="{{error}}" class="list-status">{{error}}</view>
+      <view wx:elif="{{!hasMore}}" class="list-status">已经看到这里了</view>
+    </view>
+  </block>
 </view>
