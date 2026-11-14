@@ -59,6 +59,13 @@ export interface ReactionCounts {
   total: number;
 }
 
+export type ReactionType = 'HUG' | 'HEAD_PAT' | 'CHEER';
+
+export interface ReactionState {
+  my_reaction: ReactionType | null;
+  counts: ReactionCounts;
+}
+
 export interface FeedItem {
   id: string;
   author_nickname: string;

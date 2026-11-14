@@ -1,10 +1,12 @@
 import {
   ApiRequestError,
+  cancelReaction,
   deletePost,
-  fetchPostDetail
+  fetchPostDetail,
+  setReaction
 } from '../../services/api';
 import { loadSession } from '../../services/session';
-import { PostDetail } from '../../types';
+import { PostDetail, ReactionType } from '../../types';
 import { formatBeijing } from '../../utils/time';
 import { createViewToken } from '../../utils/view-token';
 import { createIdempotencyKey } from '../../utils/idempotency';
@@ -17,7 +19,10 @@ Page({
     expiresAt: '',
     loading: true,
     unavailable: false,
-    error: ''
+    error: '',
+    myReaction: null as ReactionType | null,
+    reactionBusy: false,
+    reactionMessage: ''
   },
 
   viewToken: '',
@@ -61,6 +66,7 @@ Page({
       );
       this.setData({
         post,
+        myReaction: null,
         publishedAt: `${formatBeijing(post.published_at)}（北京时间）`,
         expiresAt: `${formatBeijing(post.expires_at)}（北京时间）`,
         loading: false
@@ -136,6 +142,73 @@ Page({
             ? error.payload.message
             : '删除失败，请稍后重试',
         icon: 'none'
+      });
+    }
+  },
+
+  async toggleReaction(event: WechatMiniprogram.BaseEvent) {
+    const type = event.currentTarget.dataset.type as ReactionType;
+    const post = this.data.post;
+    const session = loadSession();
+    if (!post || this.data.reactionBusy) {
+      return;
+    }
+    if (!session) {
+      wx.showModal({
+        title: '请先登录',
+        content: '登录后才能发送轻互动。',
+        confirmText: '去登录',
+        success: (result) => {
+          if (result.confirm) {
+            wx.switchTab({ url: '/pages/my/index' });
+          }
+        }
+      });
+      return;
+    }
+    this.setData({ reactionBusy: true, reactionMessage: '' });
+    try {
+      const next =
+        this.data.myReaction === type
+          ? await cancelReaction(
+              session,
+              post.id,
+              createIdempotencyKey('reaction.cancel')
+            )
+          : await setReaction(
+              session,
+              post.id,
+              type,
+              createIdempotencyKey('reaction.set')
+            );
+      this.setData({
+        myReaction: next.my_reaction,
+        'post.reaction_counts': next.counts,
+        reactionBusy: false
+      });
+    } catch (error) {
+      this.setData({ reactionBusy: false });
+      if (
+        error instanceof ApiRequestError &&
+        error.payload.code === 'JIJU_ACCESS_4032'
+      ) {
+        wx.showModal({
+          title: '需要确认使用须知',
+          content: '完成当前版本须知确认后即可继续互动。',
+          confirmText: '去确认',
+          success: (result) => {
+            if (result.confirm) {
+              wx.navigateTo({ url: '/pages/notice/index' });
+            }
+          }
+        });
+        return;
+      }
+      this.setData({
+        reactionMessage:
+          error instanceof ApiRequestError
+            ? error.payload.message
+            : '轻互动失败，请稍后重试'
       });
     }
   }

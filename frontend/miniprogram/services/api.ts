@@ -4,6 +4,8 @@ import {
   AppRuntime,
   FeedPage,
   PostDetail,
+  ReactionState,
+  ReactionType,
   PublishedPost,
   Session,
   TagCatalog
@@ -276,4 +278,38 @@ export async function deletePost(
     accessToken: session.accessToken,
     idempotencyKey
   });
+}
+
+export async function setReaction(
+  session: Session,
+  postId: string,
+  type: ReactionType,
+  idempotencyKey: string
+): Promise<ReactionState> {
+  const response = await request<ReactionState>(
+    `/posts/${encodeURIComponent(postId)}/reaction`,
+    {
+      method: 'PUT',
+      accessToken: session.accessToken,
+      idempotencyKey,
+      data: { type }
+    }
+  );
+  return response.data;
+}
+
+export async function cancelReaction(
+  session: Session,
+  postId: string,
+  idempotencyKey: string
+): Promise<ReactionState> {
+  const response = await request<ReactionState>(
+    `/posts/${encodeURIComponent(postId)}/reaction`,
+    {
+      method: 'DELETE',
+      accessToken: session.accessToken,
+      idempotencyKey
+    }
+  );
+  return response.data;
 }

@@ -6,6 +6,7 @@ import { ContentModule } from './content/content.module';
 import { NoticesModule } from './notices/notices.module';
 import { PostsModule } from './posts/posts.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ReactionsModule } from './reactions/reactions.module';
 import { RedisModule } from './redis/redis.module';
 import { ReviewQueueModule } from './review-queue/review-queue.module';
 import { TagsModule } from './tags/tags.module';
@@ -21,6 +22,7 @@ import { TagsModule } from './tags/tags.module';
     TagsModule,
     ContentModule,
     PostsModule,
+    ReactionsModule,
     ReviewQueueModule
   ]
 })

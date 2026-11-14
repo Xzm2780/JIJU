@@ -48,6 +48,37 @@
       <text>到期后不再接受新的回应</text>
     </view>
 
+    <view class="reactions" aria-label="轻互动">
+      <button
+        class="reaction-button {{myReaction === 'HUG' ? 'reaction-active' : ''}}"
+        data-type="HUG"
+        disabled="{{reactionBusy}}"
+        bindtap="toggleReaction"
+      >
+        <text>抱一抱</text>
+        <text>{{post.reaction_counts.hug}}</text>
+      </button>
+      <button
+        class="reaction-button {{myReaction === 'HEAD_PAT' ? 'reaction-active' : ''}}"
+        data-type="HEAD_PAT"
+        disabled="{{reactionBusy}}"
+        bindtap="toggleReaction"
+      >
+        <text>摸摸头</text>
+        <text>{{post.reaction_counts.head_pat}}</text>
+      </button>
+      <button
+        class="reaction-button {{myReaction === 'CHEER' ? 'reaction-active' : ''}}"
+        data-type="CHEER"
+        disabled="{{reactionBusy}}"
+        bindtap="toggleReaction"
+      >
+        <text>加油</text>
+        <text>{{post.reaction_counts.cheer}}</text>
+      </button>
+    </view>
+    <text wx:if="{{reactionMessage}}" class="reaction-message">{{reactionMessage}}</text>
+
     <view wx:if="{{post.is_author}}" class="author-actions">
       <button class="secondary-button" bindtap="editPost">编辑</button>
       <button class="danger-button" bindtap="removePost">删除</button>
