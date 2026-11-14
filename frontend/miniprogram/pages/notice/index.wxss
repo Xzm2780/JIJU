@@ -1,0 +1,29 @@
+.notice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.notice-title {
+  color: #30292a;
+  font-size: 38rpx;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.notice-version {
+  color: #9c898a;
+  font-size: 22rpx;
+}
+
+.notice-copy {
+  display: flex;
+  padding: 28rpx;
+  border-radius: 24rpx;
+  background: #f8f1ed;
+  color: #5f5354;
+  font-size: 27rpx;
+  line-height: 1.8;
+  flex-direction: column;
+  gap: 18rpx;
+}

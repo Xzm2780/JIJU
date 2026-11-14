@@ -78,4 +78,25 @@ describe('AuthService', () => {
     expect(prisma.user.upsert).not.toHaveBeenCalled();
     expect(wechatAuth.exchangeCode).not.toHaveBeenCalled();
   });
+
+  it('revokes only the current session and remains idempotent', async () => {
+    const prisma = {
+      authSession: {
+        updateMany: jest.fn().mockResolvedValue({ count: 0 })
+      }
+    };
+    const service = new AuthService(prisma as any, config(), {
+      exchangeCode: jest.fn()
+    });
+
+    await expect(service.logout('usr_1', 'ses_1')).resolves.toBeUndefined();
+    expect(prisma.authSession.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: 'ses_1',
+        userId: 'usr_1',
+        revokedAt: null
+      },
+      data: { revokedAt: expect.any(Date) }
+    });
+  });
 });

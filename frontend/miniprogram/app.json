@@ -3,6 +3,7 @@
     "pages/feed/index",
     "pages/publish/index",
     "pages/my/index",
+    "pages/notice/index",
     "pages/detail/index"
   ],
   "window": {

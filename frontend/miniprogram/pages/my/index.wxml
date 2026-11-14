@@ -1,7 +1,41 @@
 <view class="page">
-  <view class="card my-placeholder">
+  <view class="card my-card">
     <text class="my-title">我的</text>
-    <text class="my-copy">个人帖子列表将在后续任务接入。现在可以先写下一条公开感受。</text>
-    <button class="primary-button" bindtap="goPublish">去发布</button>
+
+    <view wx:if="{{session}}" class="profile">
+      <text class="profile-name">{{session.user.plaza_nickname}}</text>
+      <text class="profile-meta">当前为已登录状态</text>
+    </view>
+    <view wx:else class="profile">
+      <text class="profile-name">还没有登录</text>
+      <text class="profile-meta">登录后可查看本人内容并继续发布。</text>
+    </view>
+
+    <view wx:if="{{message}}" class="message info">{{message}}</view>
+
+    <button
+      wx:if="{{!session}}"
+      class="primary-button action"
+      loading="{{busy}}"
+      disabled="{{busy}}"
+      bindtap="login"
+    >
+      微信登录
+    </button>
+
+    <view wx:else class="action-group">
+      <button class="primary-button action" bindtap="goPublish">去发布</button>
+      <button class="secondary-button action" bindtap="openNotice">使用须知</button>
+      <button
+        class="secondary-button action"
+        loading="{{busy}}"
+        disabled="{{busy}}"
+        bindtap="logout"
+      >
+        退出当前会话
+      </button>
+    </view>
+
+    <text class="privacy-note">账号永久注销需在数据保留规则确认后提供。</text>
   </view>
 </view>

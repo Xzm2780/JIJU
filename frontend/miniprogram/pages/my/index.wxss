@@ -1,11 +1,9 @@
-.my-placeholder {
+.my-card {
   display: flex;
-  min-height: 420rpx;
-  align-items: center;
-  justify-content: center;
+  min-height: 520rpx;
+  align-items: stretch;
   flex-direction: column;
   gap: 28rpx;
-  text-align: center;
 }
 
 .my-title {
@@ -14,8 +12,42 @@
   font-weight: 800;
 }
 
-.my-copy {
-  max-width: 520rpx;
-  color: #776768;
-  line-height: 1.7;
+.profile {
+  display: flex;
+  min-height: 150rpx;
+  padding: 28rpx;
+  border-radius: 24rpx;
+  background: #f8f1ed;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.profile-name {
+  color: #7c4c52;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.profile-meta,
+.privacy-note {
+  color: #8d7c7d;
+  font-size: 23rpx;
+  line-height: 1.6;
+}
+
+.action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.action {
+  width: 100%;
+  margin: 0;
+}
+
+.privacy-note {
+  margin-top: auto;
+  text-align: center;
 }

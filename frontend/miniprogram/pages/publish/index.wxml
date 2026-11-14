@@ -70,11 +70,11 @@
 
   <view wx:if="{{showLoginModal}}" class="modal-mask">
     <view class="modal">
-      <text class="modal-title">先完成模拟登录</text>
-      <text class="modal-copy">Demo 不连接真实微信服务。取消登录后，正文、标签和留存时长仍保存在本机。</text>
+      <text class="modal-title">先完成微信登录</text>
+      <text class="modal-copy">登录后会恢复当前正文、标签和留存时长。取消登录不会丢失本机草稿。</text>
       <view class="modal-actions">
         <button class="secondary-button" bindtap="cancelLogin">取消登录</button>
-        <button class="primary-button" bindtap="confirmLogin">模拟登录</button>
+        <button class="primary-button" bindtap="confirmLogin">微信登录</button>
       </view>
     </view>
   </view>

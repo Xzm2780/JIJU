@@ -209,6 +209,13 @@ export async function confirmNotice(
   );
 }
 
+export async function logoutSession(session: Session): Promise<void> {
+  await request('/auth/logout', {
+    method: 'POST',
+    accessToken: session.accessToken
+  });
+}
+
 export async function fetchTags(): Promise<TagCatalog> {
   const response = await request<TagCatalog>('/tags');
   return response.data;

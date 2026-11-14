@@ -1,0 +1,26 @@
+<view class="page">
+  <view class="card notice-card">
+    <text class="notice-title">在 JIJU 写下和看见真实感受</text>
+    <text class="notice-version">版本：{{version || '加载中'}}</text>
+
+    <view class="notice-copy">
+      <text>1. 发布内容会进入公共广场，可能被其他用户查看或截图。</text>
+      <text>2. 请勿发布可识别个人身份的信息、骚扰、仇恨或危险内容。</text>
+      <text>3. JIJU 不提供心理咨询、诊断、治疗或危机干预服务。</text>
+      <text>4. 你可以随时删除本人帖子；到期内容将停止公开回应。</text>
+    </view>
+
+    <view wx:if="{{message}}" class="message info">{{message}}</view>
+
+    <button
+      wx:if="{{!confirmed}}"
+      class="primary-button"
+      loading="{{busy}}"
+      disabled="{{busy || !version}}"
+      bindtap="confirm"
+    >
+      我已阅读并同意
+    </button>
+    <button wx:else class="primary-button" bindtap="back">返回</button>
+  </view>
+</view>
