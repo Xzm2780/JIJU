@@ -16,6 +16,9 @@
 
 - 微信小程序：[frontend/README.md](frontend/README.md)
 - API 服务：[server/README.md](server/README.md)
+- 运营后台：API 启动后访问 `/api/v1/admin-console`
+
+MVP 已覆盖广场、帖子详情、发布、编辑删除、评论、轻互动、我的帖子、举报、登录、须知、账号注销及运营后台治理。
 
 ## 交互参考 Demo
 

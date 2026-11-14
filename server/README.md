@@ -1,6 +1,6 @@
 # JIJU API
 
-NestJS + PostgreSQL + Redis + Prisma 的 T05 发布服务实现。
+NestJS + PostgreSQL + Redis + Prisma 的 JIJU MVP API 与运营后台实现。
 
 ## 配置
 
@@ -86,8 +86,24 @@ node --test ..\tests\acceptance\publish-contract.test.mjs
 | DELETE | `/me/account` | 请求永久注销并进入 30 天冷静期 |
 | POST | `/notices/:noticeVersion/confirmations` | 确认当前使用须知 |
 | GET | `/tags` | 返回带版本的启用标签目录 |
+| GET | `/feed` | 广场稳定游标分页 |
+| GET | `/posts/:postId` | 帖子详情和作者浏览量视图 |
 | POST | `/posts` | 发布帖子 |
+| PATCH | `/posts/:postId` | 作者编辑帖子 |
+| DELETE | `/posts/:postId` | 作者删除帖子 |
+| GET | `/posts/:postId/comments` | 评论列表 |
+| POST | `/posts/:postId/comments` | 提交评论 |
+| DELETE | `/comments/:commentId` | 删除本人评论 |
+| PUT | `/posts/:postId/reaction` | 提交或切换轻互动 |
+| DELETE | `/posts/:postId/reaction` | 取消轻互动 |
+| GET | `/me/posts` | 本人帖子列表 |
+| POST | `/reports` | 提交举报 |
+| GET | `/admin/reports` | 举报专用队列 |
 | GET | `/admin/review-queue` | 统一查询举报与复核队列 |
+| POST | `/admin/content/:targetType/:targetId/reviews` | 内容复核 |
+| POST | `/admin/content/:targetType/:targetId/actions` | 隐藏、下架或恢复 |
+| POST | `/admin/users/:userId/restrictions` | 警告、限制或封禁账号 |
+| GET | `/admin/audit-logs` | 审计查询 |
 
 `POST /posts` 使用 `v1:post.publish:<uuid_v7>` 幂等键。规则结果为 `CONFIRM` 时首次返回 `409 JIJU_MODERATION_4092`、`challenge_id`、提示版本和资源；确认后用同一内容、新的幂等键、`risk_acknowledged=true` 和该 challenge 重试。
 
