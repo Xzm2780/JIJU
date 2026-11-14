@@ -51,6 +51,17 @@ npm run build
 
 单元测试使用模拟的 Prisma/Redis 边界，不要求本机数据库。真实 PostgreSQL/Redis 集成测试需先执行迁移，再设置 `JIJU_RUN_INTEGRATION=true` 和真实 `DATABASE_URL` 运行；未满足时 Jest 会标记为 skip，不能计为集成通过。
 
+隔离测试依赖：
+
+```powershell
+docker compose -f compose.test.yaml up -d
+$env:DATABASE_URL='postgresql://jiju:jiju@127.0.0.1:55432/jiju_test?schema=public'
+$env:REDIS_URL='redis://127.0.0.1:56379'
+$env:JIJU_RUN_INTEGRATION='true'
+npx prisma migrate deploy
+npm run test:integration
+```
+
 生产 API 契约测试：
 
 ```powershell

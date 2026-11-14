@@ -2,6 +2,7 @@ import {
   beijingDayWindow,
   formatBeijingDateTime
 } from './beijing-time';
+import { mapHttpException } from './api-error-mapping';
 import { parseDurationMilliseconds } from './duration';
 import {
   countGraphemes,
@@ -10,6 +11,12 @@ import {
 } from './graphemes';
 import { stableStringify } from './stable-stringify';
 import { createUuidV7 } from './uuid-v7';
+import {
+  isValidIdempotencyKey,
+  requireIdempotencyKey
+} from './idempotency-key';
+import { buildSafeLogEvent } from './safe-log';
+import { isValidViewToken } from './view-token';
 
 describe('common utilities', () => {
   it('counts Unicode extended grapheme clusters', () => {
@@ -41,5 +48,40 @@ describe('common utilities', () => {
     expect(stableStringify({ b: 2, a: 1 })).toBe(
       stableStringify({ a: 1, b: 2 })
     );
+  });
+
+  it('validates operation-scoped idempotency and view tokens', () => {
+    const uuid = createUuidV7(Date.parse('2026-11-13T10:00:00Z'));
+    expect(isValidIdempotencyKey(`v1:post.publish:${uuid}`, 'post.publish')).toBe(
+      true
+    );
+    expect(() =>
+      requireIdempotencyKey(`v1:post.edit:${uuid}`, 'post.publish')
+    ).toThrow('缺少或无效的幂等键');
+    expect(isValidViewToken(`v1:view:${uuid}`)).toBe(true);
+    expect(isValidViewToken(`v1:view:${uuid}`.replace('v1:view:', 'v1:'))).toBe(
+      false
+    );
+  });
+
+  it('maps framework errors and filters unsafe log fields', () => {
+    expect(mapHttpException(404)).toEqual({
+      code: 'JIJU_CONTENT_4041',
+      status: 404,
+      message: '内容已不可用'
+    });
+    expect(
+      buildSafeLogEvent({
+        request_id: 'req_1',
+        route_template: '/posts/:id',
+        status_code: 200,
+        body_text: 'must-not-be-logged',
+        openid: 'must-not-be-logged'
+      })
+    ).toEqual({
+      request_id: 'req_1',
+      route_template: '/posts/:id',
+      status_code: 200
+    });
   });
 });

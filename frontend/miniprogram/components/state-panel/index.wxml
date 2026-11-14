@@ -1,0 +1,13 @@
+<view class="state-panel state-panel--{{state}}" role="status">
+  <view wx:if="{{state === 'loading'}}" class="spinner" aria-hidden="true"></view>
+  <text wx:if="{{title}}" class="state-title">{{title}}</text>
+  <text wx:if="{{message}}" class="state-message">{{message}}</text>
+  <button
+    wx:if="{{actionText}}"
+    class="state-action"
+    size="mini"
+    bindtap="onAction"
+  >
+    {{actionText}}
+  </button>
+</view>

@@ -6,6 +6,7 @@ import {
   HttpStatus
 } from '@nestjs/common';
 import { ApiError } from './api-error';
+import { mapHttpException } from './api-error-mapping';
 
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {
@@ -26,22 +27,10 @@ export class ApiExceptionFilter implements ExceptionFilter {
     }
 
     if (exception instanceof HttpException) {
-      const status = exception.getStatus();
-      const reason = exception.getResponse();
-      const message =
-        typeof reason === 'string'
-          ? reason
-          : (reason as { message?: string | string[] }).message;
-      response.status(status).json({
-        code:
-          status === HttpStatus.UNAUTHORIZED
-            ? 'JIJU_AUTH_4011'
-            : status === HttpStatus.FORBIDDEN
-              ? 'JIJU_ACCESS_4031'
-              : status === HttpStatus.NOT_FOUND
-                ? 'JIJU_CONTENT_4041'
-                : 'JIJU_VALIDATION_4221',
-        message,
+      const mapped = mapHttpException(exception.getStatus());
+      response.status(mapped.status).json({
+        code: mapped.code,
+        message: mapped.message,
         request_id: requestId
       });
       return;

@@ -17,17 +17,66 @@ export class ApiRequestError extends Error {
 }
 
 interface RequestOptions {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   data?: WechatMiniprogram.IAnyObject;
   accessToken?: string;
   idempotencyKey?: string;
+  viewToken?: string;
 }
 
 function apiBaseUrl(): string {
   return getApp<AppRuntime>().globalData.apiBaseUrl.replace(/\/$/, '');
 }
 
-function request<T>(
+function safeErrorPayload(
+  statusCode: number,
+  data: unknown,
+  fallbackRequestId = ''
+): ApiErrorPayload {
+  const payload =
+    data && typeof data === 'object'
+      ? (data as Partial<ApiErrorPayload>)
+      : {};
+  if (payload.code && payload.message) {
+    return {
+      ...payload,
+      code: payload.code,
+      message: payload.message,
+      request_id: payload.request_id || fallbackRequestId || undefined
+    } as ApiErrorPayload;
+  }
+  if (statusCode === 401) {
+    return {
+      code: 'JIJU_AUTH_4012',
+      message: '登录状态已失效，请重新登录',
+      request_id: fallbackRequestId || undefined
+    };
+  }
+  if (statusCode === 403) {
+    return {
+      code: 'JIJU_ACCESS_4031',
+      message: '你无权执行此操作',
+      request_id: fallbackRequestId || undefined
+    };
+  }
+  if (statusCode === 404) {
+    return {
+      code: 'JIJU_CONTENT_4041',
+      message: '内容已不可用',
+      request_id: fallbackRequestId || undefined
+    };
+  }
+  return {
+    code: statusCode >= 500 ? 'JIJU_SYSTEM_5031' : 'JIJU_VALIDATION_4221',
+    message:
+      statusCode >= 500
+        ? '服务暂时不可用，请稍后重试'
+        : '内容不符合要求，请修改后重试',
+    request_id: fallbackRequestId || undefined
+  };
+}
+
+export function request<T>(
   path: string,
   options: RequestOptions = {}
 ): Promise<ApiEnvelope<T>> {
@@ -41,10 +90,13 @@ function request<T>(
     if (options.idempotencyKey) {
       header['idempotency-key'] = options.idempotencyKey;
     }
+    if (options.viewToken) {
+      header['x-view-token'] = options.viewToken;
+    }
 
     wx.request({
       url: `${apiBaseUrl()}${path}`,
-      method: options.method ?? 'GET',
+      method: (options.method ?? 'GET') as WechatMiniprogram.RequestOption['method'],
       data: options.data,
       header,
       success(response) {
@@ -55,7 +107,11 @@ function request<T>(
         reject(
           new ApiRequestError(
             response.statusCode,
-            response.data as ApiErrorPayload
+            safeErrorPayload(
+              response.statusCode,
+              response.data,
+              response.header?.['x-request-id']
+            )
           )
         );
       },

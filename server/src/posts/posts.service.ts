@@ -21,6 +21,7 @@ import {
   normalizeBody,
   sanitizeForRuleMatching
 } from '../common/graphemes';
+import { requireIdempotencyKey } from '../common/idempotency-key';
 import { stableStringify } from '../common/stable-stringify';
 import { createUuidV7 } from '../common/uuid-v7';
 import {
@@ -36,9 +37,6 @@ import {
 } from './publish-challenge.service';
 
 const RATE_LIMIT = 5;
-const IDEMPOTENCY_KEY_PATTERN =
-  /^v1:post\.publish:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-
 interface PublishArguments {
   user: AuthenticatedUser;
   idempotencyKey: string | undefined;
@@ -69,11 +67,10 @@ export class PostsService {
 
   async publish(arguments_: PublishArguments) {
     const { user, idempotencyKey, requestId, body } = arguments_;
-    if (!idempotencyKey || !IDEMPOTENCY_KEY_PATTERN.test(idempotencyKey)) {
-      throw new ApiError('JIJU_VALIDATION_4221', 422, '缺少或无效的幂等键', {
-        fields: { 'Idempotency-Key': '应为 v1:post.publish:<uuid_v7>' }
-      });
-    }
+    const normalizedIdempotencyKey = requireIdempotencyKey(
+      idempotencyKey,
+      'post.publish'
+    );
 
     const normalizedBody = normalizeBody(body.body_text);
     const bodyGraphemeLength = countGraphemes(normalizedBody);
@@ -104,7 +101,7 @@ export class PostsService {
       content_fingerprint: contentFingerprint,
       risk_acknowledged: riskAcknowledged
     });
-    const lockKey = `idempotency-lock:${user.id}:post.publish:${idempotencyKey}`;
+    const lockKey = `idempotency-lock:${user.id}:post.publish:${normalizedIdempotencyKey}`;
     const lockToken = `req_${createUuidV7()}`;
     const lock = await this.redis.client.set(
       lockKey,
@@ -127,7 +124,7 @@ export class PostsService {
           actorId_operation_idempotencyKey: {
             actorId: user.id,
             operation: 'post.publish',
-            idempotencyKey
+            idempotencyKey: normalizedIdempotencyKey
           }
         }
       });
@@ -282,7 +279,7 @@ export class PostsService {
             id: `qtu_${createUuidV7()}`,
             userId: user.id,
             quotaType: QuotaType.POST_DAILY,
-            requestId: idempotencyKey,
+            requestId: normalizedIdempotencyKey,
             sourceId: post.id,
             consumedAt: now
           }
@@ -321,7 +318,7 @@ export class PostsService {
             id: `idm_${createUuidV7()}`,
             actorId: user.id,
             operation: 'post.publish',
-            idempotencyKey,
+            idempotencyKey: normalizedIdempotencyKey,
             requestFingerprint: fingerprint,
             status: IdempotencyStatus.SUCCEEDED,
             responseStatus: 201,

@@ -1,0 +1,51 @@
+.state-panel {
+  display: flex;
+  min-height: 280rpx;
+  padding: 40rpx 28rpx;
+  border-radius: 28rpx;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 18rpx;
+  background: #fffcfb;
+  color: #6f6263;
+  text-align: center;
+}
+
+.state-title {
+  color: #30292a;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.state-message {
+  max-width: 560rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+
+.state-action {
+  margin: 8rpx 0 0;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
+  background: #f1e0e2;
+  color: #7c4c52;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.spinner {
+  width: 42rpx;
+  height: 42rpx;
+  border: 5rpx solid #ead8da;
+  border-top-color: #a5686c;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
