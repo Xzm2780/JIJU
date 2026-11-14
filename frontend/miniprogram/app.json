@@ -1,6 +1,8 @@
 {
   "pages": [
+    "pages/feed/index",
     "pages/publish/index",
+    "pages/my/index",
     "pages/detail/index"
   ],
   "window": {
@@ -11,6 +13,26 @@
     "backgroundTextStyle": "dark"
   },
   "style": "v2",
+  "tabBar": {
+    "color": "#8f7e7f",
+    "selectedColor": "#a5686c",
+    "backgroundColor": "#fffcfb",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/feed/index",
+        "text": "广场"
+      },
+      {
+        "pagePath": "pages/publish/index",
+        "text": "发布"
+      },
+      {
+        "pagePath": "pages/my/index",
+        "text": "我的"
+      }
+    ]
+  },
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"
 }

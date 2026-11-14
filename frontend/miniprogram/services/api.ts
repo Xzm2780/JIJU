@@ -2,6 +2,8 @@ import {
   ApiEnvelope,
   ApiErrorPayload,
   AppRuntime,
+  FeedPage,
+  PostDetail,
   PublishedPost,
   Session,
   TagCatalog
@@ -133,6 +135,12 @@ export async function loginWithWechat(): Promise<Session> {
       wx.login({ success: resolve, fail: reject });
     }
   );
+  if (!loginResult.code) {
+    throw new ApiRequestError(0, {
+      code: 'NETWORK_ERROR',
+      message: '无法获取微信登录凭证，请检查网络后重试'
+    });
+  }
   const response = await request<{
     access_token: string;
     token_type: 'Bearer';
@@ -142,7 +150,7 @@ export async function loginWithWechat(): Promise<Session> {
     notice_confirmed: boolean;
   }>('/auth/wechat/login', {
     method: 'POST',
-    data: { code: loginResult.code || `mock-${Date.now()}` }
+    data: { code: loginResult.code }
   });
 
   return {
@@ -152,6 +160,39 @@ export async function loginWithWechat(): Promise<Session> {
     currentNoticeVersion: response.data.current_notice_version,
     noticeConfirmed: response.data.notice_confirmed
   };
+}
+
+export async function fetchFeed(
+  cursor?: string,
+  limit = 20
+): Promise<FeedPage> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (cursor) {
+    params.set('cursor', cursor);
+  }
+  return request<FeedPage['data']>(`/feed?${params.toString()}`).then(
+    (response) =>
+      ({
+        data: response.data,
+        page: (response as unknown as FeedPage).page,
+        request_id: response.request_id
+      }) satisfies FeedPage
+  );
+}
+
+export async function fetchPostDetail(
+  postId: string,
+  viewToken: string,
+  accessToken?: string
+): Promise<PostDetail> {
+  const response = await request<PostDetail>(
+    `/posts/${encodeURIComponent(postId)}`,
+    {
+      accessToken,
+      viewToken
+    }
+  );
+  return response.data;
 }
 
 export async function confirmNotice(

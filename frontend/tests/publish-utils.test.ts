@@ -93,7 +93,7 @@ describe('publish client utilities', () => {
     const now = Date.parse('2026-11-13T10:00:00Z');
     const token = createViewToken(now);
     expect(isValidViewToken(token)).toBe(true);
-    expect(token.startsWith('v1:view:')).toBe(true);
+    expect(token.startsWith('v1:')).toBe(true);
     expect(token.includes('post.publish')).toBe(false);
   });
 

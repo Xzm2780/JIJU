@@ -1,0 +1,21 @@
+.my-placeholder {
+  display: flex;
+  min-height: 420rpx;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 28rpx;
+  text-align: center;
+}
+
+.my-title {
+  color: #30292a;
+  font-size: 42rpx;
+  font-weight: 800;
+}
+
+.my-copy {
+  max-width: 520rpx;
+  color: #776768;
+  line-height: 1.7;
+}

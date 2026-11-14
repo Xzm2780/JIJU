@@ -40,10 +40,56 @@ export interface PublishDraft {
 export interface PublishedPost {
   id: string;
   content_version: number;
-  public_status: 'PUBLISHED';
-  moderation_status: 'PASSED' | 'PENDING';
+  public_status: 'PUBLISHED' | 'HIDDEN' | 'EXPIRED' | 'DELETED';
+  moderation_status: 'PASSED' | 'PENDING' | 'REJECTED';
   published_at: string;
   expires_at: string;
+}
+
+export interface TagRef {
+  id: string;
+  name: string;
+}
+
+export interface ReactionCounts {
+  hug: number;
+  head_pat: number;
+  cheer: number;
+  total: number;
+}
+
+export interface FeedItem {
+  id: string;
+  author_nickname: string;
+  emotion_tag: TagRef | null;
+  context_tag: TagRef | null;
+  body_excerpt: string;
+  published_at: string;
+  comment_count: number;
+  reaction_counts: ReactionCounts;
+}
+
+export interface FeedPage {
+  data: FeedItem[];
+  page: {
+    next_cursor: string | null;
+    has_more: boolean;
+  };
+  request_id: string;
+}
+
+export interface PostDetail {
+  id: string;
+  author_nickname: string;
+  emotion_tag: TagRef | null;
+  context_tag: TagRef | null;
+  body_text: string;
+  published_at: string;
+  expires_at: string;
+  comment_count: number;
+  reaction_counts: ReactionCounts;
+  is_author: boolean;
+  view_count?: number;
 }
 
 export interface ApiEnvelope<T> {

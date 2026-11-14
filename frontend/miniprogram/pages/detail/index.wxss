@@ -1,84 +1,86 @@
-.title {
-  display: block;
-  margin-bottom: 24rpx;
-  font-family: "Songti SC", serif;
-  font-size: 44rpx;
-  font-weight: 650;
+.detail-page {
+  padding-top: 40rpx;
 }
 
-.success {
+.detail-card {
+  padding: 36rpx;
+}
+
+.meta-row,
+.stats {
   display: flex;
   align-items: center;
-  gap: 18rpx;
-  margin-bottom: 34rpx;
-  padding: 22rpx;
-  border-radius: 20rpx;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.nickname {
+  color: #7c4c52;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.author-badge {
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
   background: #f1e0e2;
   color: #7c4c52;
+  font-size: 20rpx;
 }
 
-.success-mark {
-  width: 52rpx;
-  height: 52rpx;
-  border-radius: 50%;
-  background: #a5686c;
-  color: #fff;
-  text-align: center;
-  line-height: 52rpx;
-  font-weight: 800;
-}
-
-.success-title,
-.success-copy {
+.published {
   display: block;
+  margin-top: 8rpx;
+  color: #9c898a;
+  font-size: 22rpx;
 }
 
-.success-copy {
-  margin-top: 4rpx;
-  font-size: 24rpx;
+.body {
+  display: block;
+  margin: 38rpx 0;
+  color: #30292a;
+  font-size: 34rpx;
+  line-height: 1.85;
+  white-space: pre-wrap;
 }
 
-.status-row {
+.tags {
   display: flex;
+  flex-wrap: wrap;
   gap: 12rpx;
   margin-bottom: 30rpx;
 }
 
-.chip {
-  padding: 8rpx 16rpx;
+.tag {
+  padding: 8rpx 18rpx;
   border-radius: 999rpx;
-  background: #f4ecea;
-  color: #766b6d;
-  font-size: 24rpx;
+  background: #f1e0e2;
+  color: #7c4c52;
+  font-size: 23rpx;
 }
 
-.meta-grid {
-  display: grid;
-  gap: 22rpx;
-  margin-bottom: 32rpx;
-  padding: 26rpx;
-  border-radius: 22rpx;
-  background: #f8f2f0;
+.tag-context {
+  background: #efe9df;
+  color: #796653;
 }
 
-.meta-label,
-.meta-value {
-  display: block;
+.stats {
+  padding: 24rpx 0;
+  border-top: 1rpx solid #eee2e0;
+  color: #776768;
+  font-size: 23rpx;
+  flex-wrap: wrap;
 }
 
-.meta-label {
-  color: #766b6d;
+.expiry {
+  display: flex;
+  margin-top: 26rpx;
+  padding: 22rpx;
+  border-radius: 20rpx;
+  background: #f7f0ec;
+  color: #8a6c56;
   font-size: 22rpx;
-}
-
-.meta-value {
-  margin-top: 8rpx;
-  font-size: 28rpx;
-}
-
-.missing-copy {
-  display: block;
-  margin-bottom: 28rpx;
-  color: #766b6d;
   line-height: 1.7;
+  flex-direction: column;
+  gap: 6rpx;
 }

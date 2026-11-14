@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { SessionAuthGuard } from './session-auth.guard';
+import { OptionalSessionAuthGuard } from './optional-session-auth.guard';
 import { ConfigService } from '@nestjs/config';
 import { MockWechatAuthProvider } from './providers/mock-wechat-auth.provider';
 import { WechatCode2SessionProvider } from './providers/wechat-code2session.provider';
@@ -14,6 +15,7 @@ import {
   providers: [
     AuthService,
     SessionAuthGuard,
+    OptionalSessionAuthGuard,
     {
       provide: WECHAT_AUTH_PROVIDER,
       inject: [ConfigService],
@@ -26,6 +28,6 @@ import {
             )
     }
   ],
-  exports: [SessionAuthGuard]
+  exports: [SessionAuthGuard, OptionalSessionAuthGuard]
 })
 export class AuthModule {}

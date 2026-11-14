@@ -1,36 +1,84 @@
-import { PublishedPost } from '../../types';
+import {
+  ApiRequestError,
+  fetchPostDetail
+} from '../../services/api';
+import { loadSession } from '../../services/session';
+import { PostDetail } from '../../types';
 import { formatBeijing } from '../../utils/time';
+import { createViewToken } from '../../utils/view-token';
 
 Page({
   data: {
-    post: null as PublishedPost | null,
+    postId: '',
+    post: null as PostDetail | null,
     publishedAt: '',
     expiresAt: '',
-    statusLabel: '',
-    missing: false
+    loading: true,
+    unavailable: false,
+    error: ''
   },
 
+  viewToken: '',
+
   onLoad(query: Record<string, string | undefined>) {
-    const post = wx.getStorageSync(
-      'jiju.last-published-post.v1'
-    ) as PublishedPost | '';
-    if (!post || post.id !== query.id) {
-      this.setData({ missing: true });
-      return;
-    }
-    this.setData({
-      post,
-      publishedAt: `${formatBeijing(post.published_at)}（北京时间）`,
-      expiresAt: `${formatBeijing(post.expires_at)}（北京时间）`,
-      statusLabel:
-        post.moderation_status === 'PENDING' ? '审核中' : '已发布',
-      missing: false
+    this.viewToken = createViewToken();
+    const postId = query.id ?? '';
+    this.setData({ postId });
+    void this.loadDetail(postId);
+  },
+
+  onPullDownRefresh() {
+    void this.loadDetail(this.data.postId).finally(() => {
+      wx.stopPullDownRefresh();
     });
   },
 
-  backToPublish() {
-    wx.navigateBack({
-      fail: () => wx.reLaunch({ url: '/pages/publish/index' })
+  async loadDetail(postId: string) {
+    if (!postId) {
+      this.setData({ loading: false, unavailable: true });
+      return;
+    }
+    this.setData({ loading: true, unavailable: false, error: '' });
+    try {
+      const session = loadSession();
+      const post = await fetchPostDetail(
+        postId,
+        this.viewToken,
+        session?.accessToken
+      );
+      this.setData({
+        post,
+        publishedAt: `${formatBeijing(post.published_at)}（北京时间）`,
+        expiresAt: `${formatBeijing(post.expires_at)}（北京时间）`,
+        loading: false
+      });
+    } catch (error) {
+      if (error instanceof ApiRequestError && error.statusCode === 404) {
+        this.setData({
+          loading: false,
+          unavailable: true,
+          post: null
+        });
+        return;
+      }
+      this.setData({
+        loading: false,
+        error:
+          error instanceof ApiRequestError
+            ? error.payload.message
+            : '网络连接失败，请稍后重试'
+      });
+    }
+  },
+
+  retry() {
+    void this.loadDetail(this.data.postId);
+  },
+
+  backToFeed() {
+    wx.switchTab({
+      url: '/pages/feed/index',
+      fail: () => wx.reLaunch({ url: '/pages/feed/index' })
     });
   }
 });

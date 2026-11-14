@@ -1,32 +1,51 @@
-<view class="page">
-  <view wx:if="{{!missing}}" class="card">
-    <view class="success">
-      <text class="success-mark">✓</text>
-      <view>
-        <text class="success-title">发布成功</text>
-        <text class="success-copy">已进入帖子详情预览。</text>
-      </view>
+<view class="page detail-page">
+  <state-panel
+    wx:if="{{loading}}"
+    state="loading"
+    title="正在打开这条内容"
+  />
+
+  <state-panel
+    wx:elif="{{unavailable}}"
+    state="unavailable"
+    title="内容已不可用"
+    message="这条内容可能已经到期、被隐藏或不存在。"
+    action-text="返回广场"
+    bind:action="backToFeed"
+  />
+
+  <state-panel
+    wx:elif="{{error}}"
+    state="error"
+    title="暂时无法读取"
+    message="{{error}}"
+    action-text="重试"
+    bind:action="retry"
+  />
+
+  <view wx:elif="{{post}}" class="detail-card card">
+    <view class="meta-row">
+      <text class="nickname">{{post.author_nickname}}</text>
+      <text wx:if="{{post.is_author}}" class="author-badge">作者视图</text>
     </view>
-    <text class="title">帖子详情</text>
-    <view class="status-row">
-      <text class="chip">{{statusLabel}}</text>
-      <text class="chip">{{post.content_version ? 'v' + post.content_version : ''}}</text>
+    <text class="published">{{publishedAt}}</text>
+
+    <text class="body">{{post.body_text}}</text>
+
+    <view wx:if="{{post.emotion_tag || post.context_tag}}" class="tags">
+      <text wx:if="{{post.emotion_tag}}" class="tag">{{post.emotion_tag.name}}</text>
+      <text wx:if="{{post.context_tag}}" class="tag tag-context">{{post.context_tag.name}}</text>
     </view>
-    <view class="meta-grid">
-      <view>
-        <text class="meta-label">发布时间</text>
-        <text class="meta-value">{{publishedAt}}</text>
-      </view>
-      <view>
-        <text class="meta-label">到期时间</text>
-        <text class="meta-value">{{expiresAt}}</text>
-      </view>
+
+    <view class="stats">
+      <text>{{post.comment_count}} 条回应</text>
+      <text>{{post.reaction_counts.total}} 个轻互动</text>
+      <text wx:if="{{post.is_author}}">{{post.view_count}} 次浏览</text>
     </view>
-    <button class="secondary-button" bindtap="backToPublish">再发布一条</button>
-  </view>
-  <view wx:else class="card">
-    <text class="title">详情预览不可用</text>
-    <text class="missing-copy">当前会话没有发布结果，请返回发布页重新发布。</text>
-    <button class="primary-button" bindtap="backToPublish">返回发布页</button>
+
+    <view class="expiry">
+      <text>公开至 {{expiresAt}}</text>
+      <text>到期后不再接受新的回应</text>
+    </view>
   </view>
 </view>

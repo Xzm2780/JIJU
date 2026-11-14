@@ -1,0 +1,64 @@
+<view class="page feed-page">
+  <view class="feed-header">
+    <view>
+      <text class="eyebrow">此刻的公共回声</text>
+      <text class="title">广场</text>
+    </view>
+    <button class="publish-entry" size="mini" bindtap="goPublish">写一条</button>
+  </view>
+
+  <state-panel
+    wx:if="{{loading}}"
+    state="loading"
+    title="正在听大家说话"
+  />
+
+  <state-panel
+    wx:elif="{{error && !items.length}}"
+    state="error"
+    title="广场暂时没有回应"
+    message="{{error}}"
+    action-text="重新加载"
+    bind:action="retry"
+  />
+
+  <state-panel
+    wx:elif="{{!items.length}}"
+    state="empty"
+    title="这里还很安静"
+    message="写下此刻的感受，成为第一条公开回声。"
+    action-text="去发布"
+    bind:action="goPublish"
+  />
+
+  <view wx:else class="feed-list">
+    <button
+      wx:for="{{items}}"
+      wx:key="id"
+      class="feed-card"
+      data-id="{{item.id}}"
+      bindtap="openDetail"
+    >
+      <view class="card-title-row">
+        <text class="nickname">{{item.author_nickname}}</text>
+        <text class="time">{{item.publishedLabel}}</text>
+      </view>
+      <text class="body">{{item.body_excerpt}}</text>
+      <view wx:if="{{item.emotion_tag || item.context_tag}}" class="tags">
+        <text wx:if="{{item.emotion_tag}}" class="tag">{{item.emotion_tag.name}}</text>
+        <text wx:if="{{item.context_tag}}" class="tag tag-context">{{item.context_tag.name}}</text>
+      </view>
+      <view class="counts">
+        <text>{{item.comment_count}} 条回应</text>
+        <text>{{item.reaction_counts.total}} 个轻互动</text>
+      </view>
+    </button>
+
+    <view wx:if="{{loadingMore}}" class="feed-status">正在加载更多…</view>
+    <view wx:elif="{{error}}" class="feed-status feed-status-error">
+      <text>{{error}}</text>
+      <button class="text-button" bindtap="retry">重试</button>
+    </view>
+    <view wx:elif="{{!hasMore}}" class="feed-status">已经看到这里了</view>
+  </view>
+</view>

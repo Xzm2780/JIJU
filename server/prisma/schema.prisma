@@ -67,6 +67,12 @@ enum ReportStatus {
   RESOLVED
 }
 
+enum ReactionType {
+  HUG
+  HEAD_PAT
+  CHEER
+}
+
 model User {
   id                 String                @id
   loginCode          String?               @unique
@@ -83,6 +89,9 @@ model User {
   quotaUsages        QuotaUsage[]
   idempotencyRecords IdempotencyRecord[]
   moderationRecords  ModerationRecord[]
+  comments           Comment[]
+  reactions          Reaction[]
+  viewRecords        ViewRecord[]
   reports            Report[]              @relation("ReportReporter")
   handledReports     Report[]              @relation("ReportHandler")
   adminRoles         AdminRoleAssignment[]
@@ -171,6 +180,9 @@ model Post {
   updatedAt              DateTime         @updatedAt
   author                 User             @relation(fields: [authorId], references: [id])
   versions               PostVersion[]
+  comments               Comment[]
+  reactions              Reaction[]
+  viewRecords            ViewRecord[]
 
   @@index([publicStatus, moderationStatus, publishedAt, id])
   @@index([authorId, publicStatus, publishedAt, id])
@@ -191,6 +203,53 @@ model PostVersion {
   post                   Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([postId, versionNumber])
+}
+
+model Comment {
+  id                     String           @id
+  postId                 String
+  authorId               String
+  bodyText               String
+  bodyGraphemeLength     Int
+  contentVersion         Int              @default(1)
+  moderationStatus       ModerationStatus @default(PASSED)
+  publishedAt            DateTime         @default(now())
+  deletedAt              DateTime?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  post                   Post             @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author                 User             @relation(fields: [authorId], references: [id])
+
+  @@index([postId, publishedAt, id])
+  @@index([authorId, publishedAt, id])
+}
+
+model Reaction {
+  id        String       @id
+  userId    String
+  postId    String
+  type      ReactionType
+  active    Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  user      User         @relation(fields: [userId], references: [id])
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId, type, active])
+}
+
+model ViewRecord {
+  id        String   @id
+  postId    String
+  viewerId  String?
+  viewToken String
+  viewedAt  DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  viewer    User?    @relation(fields: [viewerId], references: [id], onDelete: SetNull)
+
+  @@unique([postId, viewToken])
+  @@index([postId, viewedAt])
 }
 
 model QuotaUsage {

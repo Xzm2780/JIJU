@@ -58,10 +58,8 @@ describe('common utilities', () => {
     expect(() =>
       requireIdempotencyKey(`v1:post.edit:${uuid}`, 'post.publish')
     ).toThrow('缺少或无效的幂等键');
-    expect(isValidViewToken(`v1:view:${uuid}`)).toBe(true);
-    expect(isValidViewToken(`v1:view:${uuid}`.replace('v1:view:', 'v1:'))).toBe(
-      false
-    );
+    expect(isValidViewToken(`v1:${uuid}`)).toBe(true);
+    expect(isValidViewToken(`v1:view:${uuid}`)).toBe(false);
   });
 
   it('maps framework errors and filters unsafe log fields', () => {
