@@ -119,12 +119,6 @@
   margin-top: 24rpx;
 }
 
-.dashboard-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .section-title {
   color: #443a3b;
   font-size: 27rpx;
@@ -163,11 +157,14 @@
   display: block;
   margin-top: 28rpx;
   width: 100%;
+  min-width: 0;
+  align-self: stretch;
 }
 
 .menu-card {
   display: block;
   width: 100%;
+  min-width: 0;
   margin-top: 14rpx;
   padding: 0 24rpx;
   box-sizing: border-box;
@@ -179,6 +176,8 @@
 .menu-item {
   display: flex;
   width: 100%;
+  min-width: 0;
+  align-self: stretch;
   min-height: 104rpx;
   margin: 0;
   padding: 18rpx 0;
@@ -190,6 +189,10 @@
   text-align: left;
   align-items: center;
   gap: 18rpx;
+}
+
+.menu-item-hover {
+  background: #faf3f0;
 }
 
 .menu-item:last-child {
