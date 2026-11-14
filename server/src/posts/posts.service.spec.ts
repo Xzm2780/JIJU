@@ -438,14 +438,25 @@ describe('PostsService', () => {
     expect(harness.tx.quotaUsage.create).toHaveBeenCalledTimes(1);
   });
 
-  it('rejects a concurrent request while the same idempotency key is locked', async () => {
-    const harness = createHarness();
-    harness.redis.client.set.mockResolvedValueOnce(null);
-    await expect(harness.service.publish(request())).rejects.toMatchObject({
-      code: 'JIJU_CONFLICT_4091',
-      status: 409
+  it('replays the stored result when a concurrent request sees the same lock', async () => {
+    const firstHarness = createHarness();
+    const sameRequest = request();
+    const first = await firstHarness.service.publish(sameRequest);
+
+    const replayHarness = createHarness();
+    replayHarness.redis.client.set.mockResolvedValueOnce(null);
+    replayHarness.prisma.idempotencyRecord.findUnique.mockResolvedValue({
+      id: 'idm_concurrent',
+      requestFingerprint:
+        firstHarness.idempotencyRecord.requestFingerprint,
+      expiresAt: new Date('2026-11-14T10:00:00.000Z'),
+      responseJson: first
     });
-    expect(harness.postRecord).toBeNull();
+
+    const replayPromise = replayHarness.service.publish(sameRequest);
+    await jest.advanceTimersByTimeAsync(30);
+    await expect(replayPromise).resolves.toEqual(first);
+    expect(replayHarness.postRecord).toBeNull();
   });
 
   it('rejects same key with a different payload', async () => {

@@ -111,6 +111,14 @@ export class PostsService {
       'NX'
     );
     if (lock !== 'OK') {
+      const replay = await this.waitForIdempotentResponse(
+        user.id,
+        normalizedIdempotencyKey,
+        fingerprint
+      );
+      if (replay) {
+        return replay;
+      }
       throw new ApiError(
         'JIJU_CONFLICT_4091',
         409,
@@ -382,6 +390,43 @@ export class PostsService {
         resources: challenge.resources
       }
     );
+  }
+
+  private async waitForIdempotentResponse(
+    userId: string,
+    idempotencyKey: string,
+    fingerprint: string
+  ): Promise<{
+    data: Record<string, unknown>;
+    request_id: string;
+  } | null> {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      const existing = await this.prisma.idempotencyRecord.findUnique({
+        where: {
+          actorId_operation_idempotencyKey: {
+            actorId: userId,
+            operation: 'post.publish',
+            idempotencyKey
+          }
+        }
+      });
+      if (!existing || existing.expiresAt.getTime() <= Date.now()) {
+        continue;
+      }
+      if (existing.requestFingerprint !== fingerprint) {
+        throw new ApiError(
+          'JIJU_CONFLICT_4091',
+          409,
+          '同一幂等键不能提交不同内容，请刷新后重试'
+        );
+      }
+      return existing.responseJson as unknown as {
+        data: Record<string, unknown>;
+        request_id: string;
+      };
+    }
+    return null;
   }
 
   private async runSerializable<T>(
