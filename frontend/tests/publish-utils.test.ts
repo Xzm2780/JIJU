@@ -20,7 +20,11 @@ import {
   createViewToken,
   isValidViewToken
 } from '../miniprogram/utils/view-token';
-import { request, ApiRequestError } from '../miniprogram/services/api';
+import {
+  ApiRequestError,
+  buildQuery,
+  request
+} from '../miniprogram/services/api';
 
 const storage = new Map<string, unknown>();
 
@@ -122,5 +126,14 @@ describe('publish client utilities', () => {
         request_id: 'req_safe'
       }
     } satisfies Partial<ApiRequestError>);
+  });
+
+  it('builds mini-program query strings without URLSearchParams', () => {
+    expect(buildQuery({ limit: 20, cursor: undefined, status: '' })).toBe(
+      'limit=20'
+    );
+    expect(buildQuery({ cursor: 'a+b/c=', status: 'ACTIVE' })).toBe(
+      'cursor=a%2Bb%2Fc%3D&status=ACTIVE'
+    );
   });
 });

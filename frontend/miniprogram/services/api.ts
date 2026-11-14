@@ -40,6 +40,18 @@ function apiBaseUrl(): string {
   return getApp<AppRuntime>().globalData.apiBaseUrl.replace(/\/$/, '');
 }
 
+export function buildQuery(
+  params: Record<string, string | number | undefined>
+): string {
+  return Object.keys(params)
+    .filter((key) => params[key] !== undefined && params[key] !== '')
+    .map(
+      (key) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(String(params[key]))}`
+    )
+    .join('&');
+}
+
 function safeErrorPayload(
   statusCode: number,
   data: unknown,
@@ -183,11 +195,8 @@ export async function fetchFeed(
   cursor?: string,
   limit = 20
 ): Promise<FeedPage> {
-  const params = new URLSearchParams({ limit: String(limit) });
-  if (cursor) {
-    params.set('cursor', cursor);
-  }
-  return request<FeedPage['data']>(`/feed?${params.toString()}`).then(
+  const query = buildQuery({ limit, cursor });
+  return request<FeedPage['data']>(`/feed?${query}`).then(
     (response) =>
       ({
         data: response.data,
@@ -218,14 +227,8 @@ export async function fetchMyPosts(
   cursor?: string,
   limit = 20
 ): Promise<MyPostPage> {
-  const params = new URLSearchParams({ limit: String(limit) });
-  if (status) {
-    params.set('status', status);
-  }
-  if (cursor) {
-    params.set('cursor', cursor);
-  }
-  return request<MyPostPage['data']>(`/me/posts?${params.toString()}`, {
+  const query = buildQuery({ limit, status, cursor });
+  return request<MyPostPage['data']>(`/me/posts?${query}`, {
     accessToken: session.accessToken
   }).then(
     (response) =>
@@ -379,12 +382,9 @@ export async function fetchComments(
   cursor?: string,
   limit = 20
 ): Promise<CommentPage> {
-  const params = new URLSearchParams({ limit: String(limit) });
-  if (cursor) {
-    params.set('cursor', cursor);
-  }
+  const query = buildQuery({ limit, cursor });
   return request<CommentPage['data']>(
-    `/posts/${encodeURIComponent(postId)}/comments?${params.toString()}`,
+    `/posts/${encodeURIComponent(postId)}/comments?${query}`,
     { accessToken }
   ).then(
     (response) =>
