@@ -192,6 +192,16 @@ export class PostQueryService {
 
     const counts = await this.countsForPosts([post.id]);
     const postCounts = counts.get(post.id);
+    const myReaction = arguments_.user
+      ? await this.prisma.reaction.findUnique({
+          where: {
+            userId_postId: {
+              userId: arguments_.user.id,
+              postId: post.id
+            }
+          }
+        })
+      : null;
     const viewCount = isAuthor
       ? await this.prisma.viewRecord.count({ where: { postId: post.id } })
       : undefined;
@@ -215,6 +225,7 @@ export class PostQueryService {
       reaction_counts:
         postCounts?.reactionCounts ?? emptyReactionCounts(),
       is_author: isAuthor,
+      my_reaction: myReaction?.active ? myReaction.type : null,
       ...(isAuthor ? { view_count: viewCount } : {})
     };
   }

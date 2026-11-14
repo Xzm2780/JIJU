@@ -429,7 +429,7 @@ paths:
       operationId: listComments
       summary: 获取帖子评论
       description: |
-        鉴权要求：无需登录；仅可读取有效可见帖子的评论。
+        鉴权要求：可选登录；游客可读取，登录用户会收到服务端计算的本条评论删除权限提示。
         请求参数与校验：post_id 合法；cursor 为服务端签发游标；limit 为 1 至 50。
         响应结构：按 published_at 正序的游标分页，包含评论 ID、评论者广场昵称、正文和发布时间。
         错误码：帖子到期、隐藏、删除或不存在时返回 JIJU_CONTENT_4041；其他错误引用 docs/errors.md。
@@ -437,7 +437,7 @@ paths:
         副作用：只读，不改变任何计数、配额、状态或审计。
         浏览量：不返回 view_count。
       x-auth:
-        authentication: none
+        authentication: optional
         roles: [GUEST, AUTH_NON_AUTHOR, AUTHOR, OPERATOR]
       x-validation:
         - post_id must be valid and publicly available
@@ -457,7 +457,9 @@ paths:
       x-view-count:
         returned: false
         rule: comment responses must never serialize view_count
-      security: []
+      security:
+        - {}
+        - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PostId'
         - $ref: '#/components/parameters/Cursor'
@@ -820,6 +822,77 @@ paths:
                 $ref: '#/components/schemas/AuthorPostPageResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /me/account:
+    delete:
+      tags:
+        - Me
+      operationId: deleteAccount
+      summary: 请求永久注销账号
+      description: |
+        鉴权要求：必须登录且只能注销当前账号。
+        请求参数与校验：confirmation_text 必须精确等于“注销账号”；请求立即停用账号、撤销全部会话并隐藏本人内容，进入配置的冷静期。
+        响应结构：返回计划清理时间和恢复截止时间。
+        错误码：引用 docs/errors.md；未登录、登录失效、校验失败和系统错误必须区分。
+        幂等要求：必须携带 Idempotency-Key，值为 v1:account.delete:<uuid_v7>；同一注销意图重试复用同一键。
+        副作用：账号改为 DEACTIVATED、撤销全部会话、隐藏帖子、软删除评论、停用互动并写审计；冷静期到期后由保留任务清除正文和身份关联。
+        浏览量：不返回 view_count。
+        恢复：冷静期截止前，同一微信身份可显式使用 restore_deleted_account=true 登录恢复；截止后不可恢复。
+      x-auth:
+        authentication: user
+        roles: [AUTH_NON_AUTHOR, AUTHOR]
+        ordinary_account_only: true
+      x-validation:
+        - confirmation_text must equal 注销账号
+        - account deletion grace period is server configured
+        - only the authenticated user's account may be deleted
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_VALIDATION_4221
+        - JIJU_CONFLICT_4091
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: true
+        header: Idempotency-Key
+        operation: account.delete
+        format: 'v1:<operation>:<uuid_v7>'
+        rule: reuse the key for retries of the same account deletion intent
+      x-side-effects:
+        - set account status to DEACTIVATED and revoke every session
+        - hide posts, soft-delete comments and deactivate reactions immediately
+        - append AuditLog with scheduled purge time
+        - retention job clears business bodies and identity references after grace period
+      x-view-count:
+        returned: false
+        rule: account deletion response must never serialize view_count
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteAccountRequest'
+      responses:
+        '202':
+          description: 注销已登记，账号已停用
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteAccountResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
@@ -1942,6 +2015,7 @@ components:
         - comment_count
         - reaction_counts
         - is_author
+        - my_reaction
       properties:
         id:
           $ref: '#/components/schemas/OpaqueId'
@@ -1968,6 +2042,10 @@ components:
           $ref: '#/components/schemas/ReactionCounts'
         is_author:
           type: boolean
+        my_reaction:
+          allOf:
+            - $ref: '#/components/schemas/ReactionType'
+          nullable: true
     PostDetailPublicResponse:
       type: object
       additionalProperties: false
@@ -2102,7 +2180,7 @@ components:
     CommentItem:
       type: object
       additionalProperties: false
-      required: [id, post_id, author_nickname, body_text, published_at]
+      required: [id, post_id, author_nickname, body_text, published_at, can_delete]
       properties:
         id:
           $ref: '#/components/schemas/OpaqueId'
@@ -2114,6 +2192,9 @@ components:
           type: string
         published_at:
           $ref: '#/components/schemas/UtcTimestamp'
+        can_delete:
+          type: boolean
+          description: 服务端根据当前登录用户计算；不是客户端授权依据
     CommentResponse:
       type: object
       additionalProperties: false
@@ -2244,6 +2325,32 @@ components:
               $ref: '#/components/schemas/UtcTimestamp'
         request_id:
           type: string
+    DeleteAccountRequest:
+      type: object
+      additionalProperties: false
+      required: [confirmation_text]
+      properties:
+        confirmation_text:
+          type: string
+          enum: [注销账号]
+    DeleteAccountResponse:
+      type: object
+      additionalProperties: false
+      required: [data, request_id]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [deletion_scheduled_at, recovery_deadline, message]
+          properties:
+            deletion_scheduled_at:
+              $ref: '#/components/schemas/UtcTimestamp'
+            recovery_deadline:
+              $ref: '#/components/schemas/UtcTimestamp'
+            message:
+              type: string
+        request_id:
+          type: string
     WechatLoginRequest:
       type: object
       additionalProperties: false
@@ -2253,6 +2360,10 @@ components:
           type: string
           minLength: 1
           description: 微信小程序临时登录 code
+        restore_deleted_account:
+          type: boolean
+          default: false
+          description: 显式要求恢复仍处于冷静期的原账号；不会自动恢复
     LoginResponse:
       type: object
       additionalProperties: false

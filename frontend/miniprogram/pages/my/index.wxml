@@ -65,4 +65,9 @@
       <view wx:elif="{{!hasMore}}" class="list-status">已经看到这里了</view>
     </view>
   </block>
+
+  <view wx:if="{{session}}" class="account-danger-zone">
+    <text class="privacy-note">永久注销会立即停用账号，并提供 30 天冷静期。</text>
+    <button class="delete-account-link" disabled="{{busy}}" bindtap="requestAccountDeletion">永久注销账号</button>
+  </view>
 </view>

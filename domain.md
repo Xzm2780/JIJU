@@ -42,13 +42,15 @@
 | commenting_restricted_until | 时间戳（UTC） | 否 | 空 | 否 | 与账号状态联合筛选 | MOD-07 |
 | reaction_restricted_until | 时间戳（UTC） | 否 | 空 | 否 | 与账号状态联合筛选 | MOD-07 |
 | deactivated_at | 时间戳（UTC） | 否 | 空 | 否 | 按注销状态检索时使用 | AUTH-06 |
+| account_deletion_scheduled_at | 时间戳（UTC） | 否 | 空；注销请求后为 30 天冷静期结束时间 | 否 | `(account_deletion_scheduled_at, account_status)` | AUTH-06 |
 
-**软删除：** 是。账号注销以 `deactivated_at` 标记；是否及何时物理删除、如何处置关联内容不由第 5、8 节决定，必须按隐私政策确认。（来源：AUTH-06）
+**软删除：** 是。账号注销后立即以 `deactivated_at` 和 `DEACTIVATED` 停用，30 天冷静期结束后清理正文和身份关联，并保留匿名化账号行及必要审计关联。（来源：AUTH-06）
 
 **实体规则：**
 
 - 不得设置公开的微信头像或微信昵称字段，广场昵称不得作为唯一身份或主页入口。（来源：AUTH-04）
 - 正式微信登录不得保存或对外返回 openid、unionid、session_key；只保存服务端生成的 `auth_subject_ref` 和 provider。（来源：AUTH-01、NFR-SEC-01）
+- 注销请求必须撤销全部会话、立即隐藏本人内容和停用互动；冷静期内只允许同一内部账号经微信重新验证后显式恢复。（来源：AUTH-06）
 - 警告不单独改变账号状态，应通过 AuditLog 留痕；发帖、评论、互动限制和封禁分别落到 User 的限制字段或账号状态。（来源：MOD-07、MOD-08）
 
 ## Post

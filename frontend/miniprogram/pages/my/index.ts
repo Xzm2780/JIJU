@@ -1,5 +1,6 @@
 import {
   ApiRequestError,
+  deleteAccount,
   deletePost,
   fetchMyPosts,
   loginWithWechat,
@@ -79,12 +80,51 @@ Page({
       this.setData({ session, busy: false });
       await this.loadFirstPage();
     } catch (error) {
+      if (
+        error instanceof ApiRequestError &&
+        error.payload.details?.account_recovery_available
+      ) {
+        this.setData({ busy: false });
+        const restore = await new Promise<boolean>((resolve) => {
+          wx.showModal({
+            title: '恢复账号',
+            content: `账号仍处于注销冷静期。是否恢复？截止时间：${formatBeijing(
+              error.payload.details?.recovery_deadline ?? ''
+            )}（北京时间）`,
+            confirmText: '恢复账号',
+            success: (result) => resolve(result.confirm),
+            fail: () => resolve(false)
+          });
+        });
+        if (restore) {
+          await this.loginWithRecovery(true);
+        }
+        return;
+      }
       this.setData({
         busy: false,
         message:
           error instanceof ApiRequestError
             ? error.payload.message
             : '登录失败，请检查网络后重试'
+      });
+    }
+  },
+
+  async loginWithRecovery(restore: boolean) {
+    this.setData({ busy: true, message: '' });
+    try {
+      const session = await loginWithWechat(restore);
+      saveSession(session);
+      this.setData({ session, busy: false });
+      await this.loadFirstPage();
+    } catch (error) {
+      this.setData({
+        busy: false,
+        message:
+          error instanceof ApiRequestError
+            ? error.payload.message
+            : '登录失败，请稍后重试'
       });
     }
   },
@@ -262,6 +302,67 @@ Page({
       busy: false,
       message: '已退出当前会话'
     });
+  },
+
+  async requestAccountDeletion() {
+    const session = this.data.session;
+    if (!session || this.data.busy) {
+      return;
+    }
+    const first = await new Promise<boolean>((resolve) => {
+      wx.showModal({
+        title: '永久注销账号',
+        content:
+          '提交后账号立即失去访问权限，本人内容会从公域隐藏或删除，并进入 30 天冷静期。冷静期结束后正文和身份关联将被清理。',
+        confirmText: '继续',
+        confirmColor: '#914f4f',
+        success: (result) => resolve(result.confirm),
+        fail: () => resolve(false)
+      });
+    });
+    if (!first) {
+      return;
+    }
+    const confirmed = await new Promise<boolean>((resolve) => {
+      wx.showModal({
+        title: '确认注销',
+        content: '请再次确认。冷静期结束前可以重新微信登录并选择恢复账号。',
+        confirmText: '确认注销',
+        confirmColor: '#914f4f',
+        success: (result) => resolve(result.confirm),
+        fail: () => resolve(false)
+      });
+    });
+    if (!confirmed) {
+      return;
+    }
+    this.setData({ busy: true });
+    try {
+      const result = await deleteAccount(
+        session,
+        createIdempotencyKey('account.delete')
+      );
+      clearSession();
+      this.setData({
+        session: null,
+        items: [],
+        busy: false,
+        message: result.message
+      });
+      wx.showModal({
+        title: '账号已停用',
+        content: `计划清理时间：${formatBeijing(result.deletion_scheduled_at)}（北京时间）`,
+        showCancel: false
+      });
+    } catch (error) {
+      this.setData({
+        busy: false,
+        message:
+          error instanceof ApiRequestError
+            ? error.payload.message
+            : '注销请求失败，请稍后重试'
+      });
+    }
   },
 
   goPublish() {

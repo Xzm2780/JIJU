@@ -16,9 +16,13 @@ Copy-Item .env.example .env
 - `REDIS_URL`：Redis 连接串。
 - `NOTICE_VERSION`：当前使用须知版本。
 - `CONTENT_RULES_FILE`：外部内容规则配置路径。
-- `IDEMPOTENCY_TTL`：幂等记录默认 24 小时，待 BLOCK-05 数据保留规则确认。
+- `IDEMPOTENCY_TTL`：幂等记录确认的工程默认 24 小时。
 - `IDEMPOTENCY_LOCK_TTL`：并发请求短期锁，默认 30 秒。
 - `RISK_CHALLENGE_TTL`：风险确认 challenge 的短期工程 TTL，默认 10 分钟。
+- `ACCOUNT_DELETION_GRACE_HOURS`：注销冷静期，默认 720 小时。
+- `EXPIRED_POST_BODY_RETENTION_DAYS`：到期内容正文清理延迟，默认 30 天。
+- `VIEW_RECORD_RETENTION_DAYS`：浏览记录保留期，默认 30 天。
+- `AUDIT_LOG_RETENTION_DAYS`：审计保留期，默认 180 天。
 - `MOCK_WECHAT_LOGIN`：开发环境设为 `true` 才允许模拟登录。
 - `WECHAT_APP_ID`、`WECHAT_APP_SECRET`：关闭 mock 时必须配置；生产环境禁止 mock，正式凭据未提供时微信链路标为“未联调”。
 
@@ -79,6 +83,7 @@ node --test ..\tests\acceptance\publish-contract.test.mjs
 | --- | --- | --- |
 | POST | `/auth/wechat/login` | 微信登录；非生产可显式启用 mock |
 | POST | `/auth/logout` | 撤销当前会话 |
+| DELETE | `/me/account` | 请求永久注销并进入 30 天冷静期 |
 | POST | `/notices/:noticeVersion/confirmations` | 确认当前使用须知 |
 | GET | `/tags` | 返回带版本的启用标签目录 |
 | POST | `/posts` | 发布帖子 |
@@ -93,4 +98,4 @@ node --test ..\tests\acceptance\publish-contract.test.mjs
 - 内容是服务端最终校验对象；客户端校验只改善体验。
 - 规则词表与阈值外置，`config/content-rules.json` 中的示例不能作为正式规则上线。
 - 日志不得记录正文、评论、举报说明、微信身份或会话令牌。
-- 账号永久注销不在本服务中实现，由 T18 在 BLOCK-05 关闭后处理。
+- 账号永久注销提供 30 天冷静期；每日执行 `npm run retention:run` 处理到期清理和保留规则。

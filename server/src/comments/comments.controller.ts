@@ -12,6 +12,7 @@ import {
   UseGuards
 } from '@nestjs/common';
 import { AuthenticatedRequest } from '../auth/auth.types';
+import { OptionalSessionAuthGuard } from '../auth/optional-session-auth.guard';
 import { SessionAuthGuard } from '../auth/session-auth.guard';
 import { RequestId } from '../common/request-id.decorator';
 import { CommentsService } from './comments.service';
@@ -23,13 +24,15 @@ export class CommentsController {
   constructor(private readonly comments: CommentsService) {}
 
   @Get('posts/:postId/comments')
+  @UseGuards(OptionalSessionAuthGuard)
   async list(
     @Param('postId') postId: string,
     @Query() query: ListCommentsQueryDto,
+    @Req() request: Partial<AuthenticatedRequest>,
     @RequestId() requestId: string
   ) {
     return {
-      ...(await this.comments.list(postId, query)),
+      ...(await this.comments.list(postId, query, request.user?.id)),
       request_id: requestId
     };
   }

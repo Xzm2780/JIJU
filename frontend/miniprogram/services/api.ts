@@ -2,6 +2,9 @@ import {
   ApiEnvelope,
   ApiErrorPayload,
   AppRuntime,
+  CommentPage,
+  CommentItem,
+  DeleteAccountResult,
   FeedPage,
   MyPostPage,
   MyPostStatusFilter,
@@ -136,7 +139,9 @@ export function request<T>(
   });
 }
 
-export async function loginWithWechat(): Promise<Session> {
+export async function loginWithWechat(
+  restoreDeletedAccount = false
+): Promise<Session> {
   const loginResult = await new Promise<WechatMiniprogram.LoginSuccessCallbackResult>(
     (resolve, reject) => {
       wx.login({ success: resolve, fail: reject });
@@ -157,7 +162,12 @@ export async function loginWithWechat(): Promise<Session> {
     notice_confirmed: boolean;
   }>('/auth/wechat/login', {
     method: 'POST',
-    data: { code: loginResult.code }
+    data: {
+      code: loginResult.code,
+      ...(restoreDeletedAccount
+        ? { restore_deleted_account: true }
+        : {})
+    }
   });
 
   return {
@@ -359,6 +369,72 @@ export async function createReport(
     accessToken: session.accessToken,
     idempotencyKey,
     data: payload
+  });
+  return response.data;
+}
+
+export async function fetchComments(
+  postId: string,
+  accessToken?: string,
+  cursor?: string,
+  limit = 20
+): Promise<CommentPage> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (cursor) {
+    params.set('cursor', cursor);
+  }
+  return request<CommentPage['data']>(
+    `/posts/${encodeURIComponent(postId)}/comments?${params.toString()}`,
+    { accessToken }
+  ).then(
+    (response) =>
+      ({
+        data: response.data,
+        page: (response as unknown as CommentPage).page,
+        request_id: response.request_id
+      }) satisfies CommentPage
+  );
+}
+
+export async function createComment(
+  session: Session,
+  postId: string,
+  bodyText: string,
+  idempotencyKey: string
+): Promise<CommentItem> {
+  const response = await request<CommentItem>(
+    `/posts/${encodeURIComponent(postId)}/comments`,
+    {
+      method: 'POST',
+      accessToken: session.accessToken,
+      idempotencyKey,
+      data: { body_text: bodyText }
+    }
+  );
+  return response.data;
+}
+
+export async function deleteComment(
+  session: Session,
+  commentId: string,
+  idempotencyKey: string
+): Promise<void> {
+  await request(`/comments/${encodeURIComponent(commentId)}`, {
+    method: 'DELETE',
+    accessToken: session.accessToken,
+    idempotencyKey
+  });
+}
+
+export async function deleteAccount(
+  session: Session,
+  idempotencyKey: string
+): Promise<DeleteAccountResult> {
+  const response = await request<DeleteAccountResult>('/me/account', {
+    method: 'DELETE',
+    accessToken: session.accessToken,
+    idempotencyKey,
+    data: { confirmation_text: '注销账号' }
   });
   return response.data;
 }

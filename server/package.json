@@ -11,7 +11,8 @@
     "test:contract": "node --test ../tests/acceptance/publish-contract.test.mjs",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
-    "prisma:seed": "ts-node prisma/seed.ts"
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "retention:run": "ts-node prisma/retention.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",

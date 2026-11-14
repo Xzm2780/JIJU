@@ -152,3 +152,22 @@
   font-size: 23rpx;
   text-align: center;
 }
+
+.account-danger-zone {
+  display: flex;
+  margin-top: 34rpx;
+  padding: 26rpx;
+  border: 1rpx solid #ead8d4;
+  border-radius: 24rpx;
+  background: #fbf3f0;
+  align-items: center;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.delete-account-link {
+  margin: 0;
+  background: transparent;
+  color: #914f4f;
+  font-size: 23rpx;
+}

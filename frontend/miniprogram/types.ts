@@ -98,6 +98,7 @@ export interface PostDetail {
   comment_count: number;
   reaction_counts: ReactionCounts;
   is_author: boolean;
+  my_reaction: ReactionType | null;
   view_count?: number;
 }
 
@@ -140,6 +141,24 @@ export interface ReportReceipt {
   submitted_at: string;
 }
 
+export interface CommentItem {
+  id: string;
+  post_id: string;
+  author_nickname: string;
+  body_text: string;
+  published_at: string;
+  can_delete: boolean;
+}
+
+export interface CommentPage {
+  data: CommentItem[];
+  page: {
+    next_cursor: string | null;
+    has_more: boolean;
+  };
+  request_id: string;
+}
+
 export interface ApiEnvelope<T> {
   data: T;
   request_id: string;
@@ -156,6 +175,14 @@ export interface ApiErrorPayload {
     resources?: Array<{ name: string; scope: string; url: string }>;
     next_available_bj?: string;
     risk_confirmation_required?: boolean;
+    account_recovery_available?: boolean;
+    recovery_deadline?: string;
     fields?: Record<string, string>;
   };
+}
+
+export interface DeleteAccountResult {
+  deletion_scheduled_at: string;
+  recovery_deadline: string;
+  message: string;
 }

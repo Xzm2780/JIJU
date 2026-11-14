@@ -4,6 +4,7 @@ export interface PageCursor {
   version: 1;
   timestamp: string;
   id: string;
+  priorityRank?: number;
 }
 
 export function encodePageCursor(cursor: PageCursor): string {
@@ -22,7 +23,9 @@ export function decodePageCursor(value: string | undefined): PageCursor | null {
       parsed.version !== 1 ||
       typeof parsed.id !== 'string' ||
       !parsed.id ||
-      Number.isNaN(Date.parse(parsed.timestamp))
+      Number.isNaN(Date.parse(parsed.timestamp)) ||
+      (parsed.priorityRank !== undefined &&
+        !Number.isInteger(parsed.priorityRank))
     ) {
       throw new Error('invalid cursor');
     }

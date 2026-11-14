@@ -27,12 +27,41 @@ export class AuthService {
     private readonly wechatAuth: WechatAuthProvider
   ) {}
 
-  async login(code: string) {
+  async login(code: string, restoreDeletedAccount = false) {
     const normalizedCode = code.trim();
     if (!normalizedCode) {
       throw new ApiError('JIJU_VALIDATION_4221', 422, '登录凭证无效，请重试');
     }
     const identity = await this.wechatAuth.exchangeCode(normalizedCode);
+    const existingUser = await this.prisma.user.findUnique({
+      where: { authSubjectRef: identity.subjectRef }
+    });
+    let shouldRestore = false;
+    if (
+      existingUser?.deactivatedAt ||
+      existingUser?.accountStatus === 'DEACTIVATED'
+    ) {
+      const deadline = existingUser.accountDeletionScheduledAt;
+      if (!deadline || deadline.getTime() <= Date.now()) {
+        throw new ApiError(
+          'JIJU_AUTH_4012',
+          401,
+          '账号已注销，无法恢复'
+        );
+      }
+      if (!restoreDeletedAccount) {
+        throw new ApiError(
+          'JIJU_AUTH_4012',
+          401,
+          '账号处于注销冷静期，可选择恢复',
+          {
+            account_recovery_available: true,
+            recovery_deadline: deadline.toISOString()
+          }
+        );
+      }
+      shouldRestore = true;
+    }
     const user = await this.prisma.user.upsert({
       where: { authSubjectRef: identity.subjectRef },
       create: {
@@ -41,7 +70,16 @@ export class AuthService {
         authProvider: identity.provider,
         plazaNickname: nicknameFor(identity.nicknameSeed)
       },
-      update: { authProvider: identity.provider }
+      update: {
+        authProvider: identity.provider,
+        ...(shouldRestore
+          ? {
+              accountStatus: 'ACTIVE',
+              deactivatedAt: null,
+              accountDeletionScheduledAt: null
+            }
+          : {})
+      }
     });
 
     const rawToken = `ses_${randomBytes(32).toString('base64url')}`;

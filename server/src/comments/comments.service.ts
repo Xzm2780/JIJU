@@ -42,7 +42,11 @@ export class CommentsService {
     private readonly ruleEngine: ContentRuleEngine
   ) {}
 
-  async list(postId: string, query: ListCommentsQueryDto) {
+  async list(
+    postId: string,
+    query: ListCommentsQueryDto,
+    currentUserId?: string
+  ) {
     await this.requirePublicPost(postId);
     const cursor = decodeCommentCursor(query.cursor);
     const comments = await this.prisma.comment.findMany({
@@ -80,7 +84,8 @@ export class CommentsService {
         post_id: comment.postId,
         author_nickname: comment.author.plazaNickname,
         body_text: comment.bodyText,
-        published_at: comment.publishedAt.toISOString()
+        published_at: comment.publishedAt.toISOString(),
+        can_delete: comment.authorId === currentUserId
       })),
       page: {
         has_more: comments.length > query.limit,
@@ -241,7 +246,8 @@ export class CommentsService {
             post_id: comment.postId,
             author_nickname: comment.author.plazaNickname,
             body_text: comment.bodyText,
-            published_at: comment.publishedAt.toISOString()
+            published_at: comment.publishedAt.toISOString(),
+            can_delete: true
           },
           request_id: arguments_.requestId
         };

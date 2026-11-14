@@ -79,6 +79,47 @@
     </view>
     <text wx:if="{{reactionMessage}}" class="reaction-message">{{reactionMessage}}</text>
 
+    <view class="comments">
+      <text class="comments-title">回应（{{post.comment_count}}）</text>
+      <view class="comment-form">
+        <textarea
+          class="comment-input"
+          value="{{commentText}}"
+          maxlength="-1"
+          placeholder="写下一点回应，最多 200 个可见字符"
+          bindinput="onCommentInput"
+        />
+        <view class="comment-submit-row">
+          <text class="comment-counter">{{commentCount}} / 200</text>
+          <button
+            class="primary-button comment-submit"
+            loading="{{commentSubmitting}}"
+            disabled="{{commentSubmitting}}"
+            bindtap="submitComment"
+          >
+            发送回应
+          </button>
+        </view>
+      </view>
+
+      <view wx:if="{{commentMessage}}" class="comment-message">{{commentMessage}}</view>
+      <view wx:if="{{!comments.length && !commentsLoading}}" class="comment-empty">还没有回应，留下一点温柔。</view>
+
+      <view wx:for="{{comments}}" wx:key="id" class="comment-item">
+        <view class="comment-head">
+          <text class="comment-author">{{item.author_nickname}}</text>
+          <text class="comment-time">{{item.publishedLabel}}</text>
+        </view>
+        <text class="comment-body">{{item.body_text}}</text>
+        <view class="comment-actions">
+          <button class="text-link" data-id="{{item.id}}" bindtap="reportComment">举报</button>
+          <button wx:if="{{item.can_delete}}" class="text-link danger-text" data-id="{{item.id}}" bindtap="removeComment">删除</button>
+        </view>
+      </view>
+      <view wx:if="{{commentsLoading}}" class="comment-loading">正在加载回应…</view>
+      <view wx:elif="{{!commentsHasMore && comments.length}}" class="comment-loading">已经看到全部回应</view>
+    </view>
+
     <view wx:if="{{post.is_author}}" class="author-actions">
       <button class="secondary-button" bindtap="editPost">编辑</button>
       <button class="danger-button" bindtap="removePost">删除</button>

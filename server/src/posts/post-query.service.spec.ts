@@ -42,6 +42,7 @@ function createPrisma(overrides: Record<string, unknown> = {}) {
       ])
     },
     reaction: {
+      findUnique: jest.fn().mockResolvedValue(null),
       groupBy: jest.fn().mockResolvedValue([
         { postId: post.id, type: ReactionType.HUG, _count: { _all: 1 } }
       ])
@@ -89,6 +90,7 @@ describe('PostQueryService', () => {
 
     expect(result.is_author).toBe(false);
     expect(result.content_version).toBe(1);
+    expect(result.my_reaction).toBeNull();
     expect(result).not.toHaveProperty('view_count');
     expect(prisma.viewRecord.createMany).toHaveBeenCalledWith(
       expect.objectContaining({ skipDuplicates: true })

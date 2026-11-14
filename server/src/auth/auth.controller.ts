@@ -22,7 +22,10 @@ export class AuthController {
     @RequestId() requestId: string
   ) {
     return {
-      data: await this.authService.login(body.code),
+      data: await this.authService.login(
+        body.code,
+        body.restore_deleted_account === true
+      ),
       request_id: requestId
     };
   }

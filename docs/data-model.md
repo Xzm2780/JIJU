@@ -66,6 +66,7 @@ erDiagram
 | commenting_restricted_until | UTC 时间 | 否 | 评论限制解除时间。 |
 | reaction_restricted_until | UTC 时间 | 否 | 互动限制解除时间。 |
 | deactivated_at | UTC 时间 | 否 | 账号注销标记；保留和物理清理期限待确认。 |
+| account_deletion_scheduled_at | UTC 时间 | 否 | 注销冷静期结束和计划清理时间；默认请求后 30 天。 |
 
 主要约束：`auth_subject_ref` 唯一；公开 API 只能返回 `id` 和 `plaza_nickname` 的必要子集。openid、unionid、session_key 不落库。
 
@@ -421,14 +422,24 @@ ModerationChallenge 是发布规则的短期确认挑战，保存在 Redis，不
 
 | 实体 | 删除方式 | 当前可见性 |
 | --- | --- | --- |
-| User | deactivated_at 标记 | 是否物理删除待确认 |
+| User | deactivated_at + account_deletion_scheduled_at | 立即停用；30 天后匿名化身份并清空业务正文，保留匿名账号行支撑审计关联 |
 | Post | public_status=DELETED 且 deleted_at | 所有用户端不可见 |
 | Comment | deleted_at | 所有用户端列表不展示 |
 | Reaction | active=false | 不计入任何互动数量 |
-| Report | 不提供用户删除 | 后台处理状态变化；最终保留期限待确认 |
+| Report | 不提供用户删除 | 后台处理状态变化；按已批准的保留任务和数据规则处置 |
 | Tag | enabled=false | 历史快照继续展示 |
-| ViewRecord | 不提供用户删除 | 保留期限待确认 |
-| ModerationRecord、AuditLog | 不删除 | 审计链保留，期限待确认 |
+| ViewRecord | 保留任务按 viewed_at 清理 | 默认保留 30 天 |
+| ModerationRecord、AuditLog | 不提供用户删除 | 默认保留 180 天；审计只追加 |
+
+已确认的配置默认：
+
+- `IDEMPOTENCY_TTL`：24 小时。
+- `ACCOUNT_DELETION_GRACE_HOURS`：720 小时（30 天）。
+- `EXPIRED_POST_BODY_RETENTION_DAYS`：到期后 30 天清理正文标签快照。
+- `VIEW_RECORD_RETENTION_DAYS`：30 天。
+- `AUDIT_LOG_RETENTION_DAYS`：180 天。
+
+保留任务由外部每日调度执行 `npm run retention:run`；查询时业务过滤仍是强一致规则，不依赖定时任务。
 
 ## 10. 待确认事项
 
@@ -437,4 +448,4 @@ ModerationChallenge 是发布规则的短期确认挑战，保存在 Redis，不
 3. 账号注销、帖子到期、帖子删除、举报、审计、浏览记录和幂等记录的具体保留期限与物理清理策略仍未确认。
 4. 用户关于“只有作者帖子详情可返回浏览量”的当前 API 约束与 PRD 中“我的”列表展示浏览量的描述存在潜在差异；如需在列表展示，必须重新确认 API 暴露范围。
 5. 后台角色枚举已冻结；具体人员授权、角色组合和数据范围仍需运营确认。
-6. `IDEMPOTENCY_TTL` 默认 24 小时、`RISK_CHALLENGE_TTL` 为短期工程配置；前者待 BLOCK-05 批准，不得视为正式数据保留承诺。
+6. `IDEMPOTENCY_TTL` 和账号注销期限已按项目负责人授权的配置默认实现；正式上线前仍须完成隐私政策文本复核。

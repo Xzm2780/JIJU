@@ -125,11 +125,12 @@ describe('CommentsService', () => {
 
   it('lists visible comments in ascending stable order without view_count', async () => {
     const h = harness();
-    const result = await h.service.list(POST_ID, { limit: 20 });
+    const result = await h.service.list(POST_ID, { limit: 20 }, USER.id);
     expect(result.data[0]).toMatchObject({
       id: COMMENT_ID,
       post_id: POST_ID,
-      body_text: '抱抱你'
+      body_text: '抱抱你',
+      can_delete: true
     });
     expect(result.data[0]).not.toHaveProperty('view_count');
     expect(h.prisma.comment.findMany).toHaveBeenCalledWith(
@@ -150,6 +151,7 @@ describe('CommentsService', () => {
     });
 
     expect(result.data.body_text).toBe('抱抱你');
+    expect(result.data.can_delete).toBe(true);
     expect(result.data).not.toHaveProperty('view_count');
     expect(h.tx.quotaUsage.create).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -85,6 +85,7 @@ model User {
   commentingRestrictedUntil DateTime?
   reactionRestrictedUntil   DateTime?
   deactivatedAt      DateTime?
+  accountDeletionScheduledAt DateTime?
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
   sessions           AuthSession[]
@@ -100,6 +101,8 @@ model User {
   handledReports     Report[]              @relation("ReportHandler")
   adminRoles         AdminRoleAssignment[]
   auditLogs          AuditLog[]
+
+  @@index([accountDeletionScheduledAt])
 }
 
 model AdminRoleAssignment {
