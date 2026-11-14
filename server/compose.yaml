@@ -43,6 +43,8 @@ services:
       MOCK_WECHAT_LOGIN: "true"
       WECHAT_APP_ID: ""
       WECHAT_APP_SECRET: ""
+      SEED_DEMO_DATA: "true"
+      SEED_ADMIN_TOKEN: jiju-admin-demo-token
     ports:
       - "3001:3001"
     depends_on:

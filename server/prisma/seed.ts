@@ -5,6 +5,7 @@ import {
   ReactionType,
   TagCategory
 } from '@prisma/client';
+import { createHash } from 'node:crypto';
 
 const prisma = new PrismaClient();
 
@@ -59,6 +60,59 @@ async function main(): Promise<void> {
     });
   }
 
+  const now = Date.now();
+  const seedDemoData =
+    process.env.SEED_DEMO_DATA === 'true' ||
+    process.env.NODE_ENV !== 'production';
+  if (!seedDemoData) {
+    return;
+  }
+
+  const demoAdmin = await prisma.user.upsert({
+    where: { id: 'usr_demo_admin' },
+    create: {
+      id: 'usr_demo_admin',
+      authProvider: 'SEED',
+      plazaNickname: '演示运营'
+    },
+    update: { plazaNickname: '演示运营' }
+  });
+  const adminRoles = [
+    'REPORT_REVIEWER',
+    'CONTENT_MODERATOR',
+    'ACCOUNT_MODERATOR',
+    'AUDITOR'
+  ] as const;
+  for (const role of adminRoles) {
+    await prisma.adminRoleAssignment.upsert({
+      where: { id: `adr_demo_${role.toLowerCase()}` },
+      create: {
+        id: `adr_demo_${role.toLowerCase()}`,
+        userId: demoAdmin.id,
+        role,
+        active: true
+      },
+      update: { userId: demoAdmin.id, role, active: true, revokedAt: null }
+    });
+  }
+  const adminToken =
+    process.env.SEED_ADMIN_TOKEN ?? 'jiju-admin-demo-token';
+  const adminExpiresAt = new Date(now + 7 * 24 * 60 * 60 * 1000);
+  await prisma.authSession.upsert({
+    where: { id: 'ses_demo_admin' },
+    create: {
+      id: 'ses_demo_admin',
+      tokenHash: createHash('sha256').update(adminToken).digest('hex'),
+      userId: demoAdmin.id,
+      expiresAt: adminExpiresAt
+    },
+    update: {
+      tokenHash: createHash('sha256').update(adminToken).digest('hex'),
+      expiresAt: adminExpiresAt,
+      revokedAt: null
+    }
+  });
+
   const demoAuthor = await prisma.user.upsert({
     where: { id: 'usr_demo_emotion_square' },
     create: {
@@ -93,7 +147,6 @@ async function main(): Promise<void> {
     )
   );
 
-  const now = Date.now();
   const demoPosts = [
     {
       id: 'pst_demo_0001',
