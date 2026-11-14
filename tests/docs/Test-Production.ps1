@@ -53,6 +53,7 @@ foreach ($statement in $requiredApiStatements) {
 
 $publishWxml = Get-Content -LiteralPath (Join-Path $Root 'frontend\miniprogram\pages\publish\index.wxml') -Raw -Encoding UTF8
 $publishWxss = Get-Content -LiteralPath (Join-Path $Root 'frontend\miniprogram\pages\publish\index.wxss') -Raw -Encoding UTF8
+$appWxss = Get-Content -LiteralPath (Join-Path $Root 'frontend\miniprogram\app.wxss') -Raw -Encoding UTF8
 if (-not $publishWxml.Contains('<checkbox-group') -or -not $publishWxml.Contains('value="acknowledged"')) {
     throw 'Mini-program public acknowledgement must use a checkbox confirmation.'
 }
@@ -65,16 +66,18 @@ if (-not $publishWxss.Contains('flex: 1 1 0;') -or -not $publishWxss.Contains('w
 if (-not $publishWxss.Contains('@media (max-width: 360px)')) {
     throw 'Mini-program retention choices need a narrow-screen rule.'
 }
-$appWxss = Get-Content -LiteralPath (Join-Path $Root 'frontend\miniprogram\app.wxss') -Raw -Encoding UTF8
-$appJson = Get-Content -LiteralPath (Join-Path $Root 'frontend\miniprogram\app.json') -Raw -Encoding UTF8
-if (-not $appWxss.Contains('background: #b85b43;') -or -not $appWxss.Contains('#f7efe4')) {
-    throw 'Mini-program must use the warm cream and terracotta palette.'
+if (-not $appWxss.Contains('#a5686c') -or -not $publishWxss.Contains('#a5686c')) {
+    throw 'Mini-program warm palette must use the approved smoky-rose accent.'
 }
+if ($appWxss.Contains('#b85b43') -or $publishWxss.Contains('#b85b43')) {
+    throw 'Mini-program must not retain the previous orange accent.'
+}
+$appJson = Get-Content -LiteralPath (Join-Path $Root 'frontend\miniprogram\app.json') -Raw -Encoding UTF8
 if ($appWxss.Contains('#2e6b55') -or $publishWxss.Contains('#2e6b55')) {
     throw 'Mini-program still contains the previous cool green primary color.'
 }
-if (-not $appJson.Contains('#f7efe4')) {
-    throw 'Mini-program navigation background must use the warm cream color.'
+if (-not $appJson.Contains('#f5f0ee')) {
+    throw 'Mini-program navigation background must use the warm ivory color.'
 }
 
 $postsService = Get-Content -LiteralPath (Join-Path $Root 'server\src\posts\posts.service.ts') -Raw -Encoding UTF8

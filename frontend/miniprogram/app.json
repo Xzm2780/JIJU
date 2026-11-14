@@ -5,9 +5,9 @@
   ],
   "window": {
     "navigationBarTitleText": "JIJU",
-    "navigationBarBackgroundColor": "#f7efe4",
+    "navigationBarBackgroundColor": "#f5f0ee",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#f7efe4",
+    "backgroundColor": "#f5f0ee",
     "backgroundTextStyle": "dark"
   },
   "style": "v2",

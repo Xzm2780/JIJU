@@ -1,20 +1,20 @@
 :root {
-  --bg: #f7efe4;
-  --surface: #fffaf3;
-  --surface-strong: #fffdf9;
-  --ink: #382d27;
-  --muted: #7b6a5f;
-  --line: #e6d7c7;
-  --accent: #b85b43;
-  --accent-dark: #8f4332;
-  --accent-soft: #f4ddd3;
-  --positive: #6f7a56;
-  --positive-soft: #e9eddf;
-  --danger: #a4463d;
-  --danger-soft: #f7e2de;
-  --warning: #a66a20;
-  --warning-soft: #faead2;
-  --shadow: 0 24px 70px rgba(84, 56, 40, 0.12);
+  --bg: #f5f0ee;
+  --surface: #fffcfb;
+  --surface-strong: #fffdfc;
+  --ink: #30292a;
+  --muted: #766b6d;
+  --line: #e0d4d2;
+  --accent: #a5686c;
+  --accent-dark: #7c4c52;
+  --accent-soft: #f1e0e2;
+  --positive: #7c4c52;
+  --positive-soft: #f1e0e2;
+  --danger: #9f4b49;
+  --danger-soft: #f6e3e1;
+  --warning: #926435;
+  --warning-soft: #f7ebdc;
+  --shadow: 0 24px 70px rgba(74, 52, 54, 0.12);
   font-family:
     "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
@@ -30,8 +30,8 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 15% 10%, rgba(226, 177, 144, 0.3), transparent 32rem),
-    radial-gradient(circle at 90% 85%, rgba(237, 203, 139, 0.24), transparent 30rem),
+    radial-gradient(circle at 15% 10%, rgba(187, 143, 149, 0.26), transparent 32rem),
+    radial-gradient(circle at 90% 85%, rgba(220, 178, 151, 0.22), transparent 30rem),
     var(--bg);
 }
 
@@ -74,7 +74,7 @@ button {
   background: var(--accent);
   font-family: Georgia, serif;
   font-size: 24px;
-  box-shadow: 0 8px 20px rgba(184, 91, 67, 0.24);
+  box-shadow: 0 8px 20px rgba(165, 104, 108, 0.24);
 }
 
 .brand strong,
@@ -240,7 +240,7 @@ textarea:focus,
 select:focus,
 input[type="text"]:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(184, 91, 67, 0.13);
+  box-shadow: 0 0 0 3px rgba(165, 104, 108, 0.14);
 }
 
 .field-help,
@@ -310,13 +310,13 @@ input[type="text"]:focus {
 .public-notice {
   margin: 22px 0 18px;
   padding: 14px 16px;
-  border: 1px solid #e4c58e;
+  border: 1px solid #dfc7b9;
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  background: #fff4df;
+  background: #fbf2ec;
 }
 
 .public-notice-copy {
@@ -325,7 +325,7 @@ input[type="text"]:focus {
 
 .public-notice p {
   margin: 0;
-  color: #6d573b;
+  color: #685149;
   font-size: 13px;
   line-height: 1.55;
 }
@@ -361,7 +361,7 @@ input[type="text"]:focus {
   flex: none;
   position: relative;
   padding: 8px 10px;
-  border: 1px solid #e4c58e;
+  border: 1px solid #dfc7b9;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.66);
   cursor: pointer;
@@ -376,7 +376,7 @@ input[type="text"]:focus {
   flex: none;
   display: grid;
   place-items: center;
-  border: 1.5px solid #c7a35f;
+  border: 1.5px solid #c4a2a2;
   border-radius: 5px;
   background: #fff;
   color: transparent;
@@ -400,7 +400,7 @@ input[type="text"]:focus {
 }
 
 .acknowledgement input:focus-visible + .acknowledgement-box {
-  outline: 3px solid rgba(184, 91, 67, 0.18);
+  outline: 3px solid rgba(165, 104, 108, 0.18);
   outline-offset: 2px;
 }
 
@@ -422,7 +422,7 @@ input[type="text"]:focus {
 code {
   padding: 2px 5px;
   border-radius: 5px;
-  background: #f2e8dd;
+  background: #f4ecea;
   color: var(--ink);
 }
 
@@ -450,7 +450,7 @@ code {
   border: 1px solid var(--accent);
   background: var(--accent);
   color: #fff;
-  box-shadow: 0 10px 24px rgba(184, 91, 67, 0.23);
+  box-shadow: 0 10px 24px rgba(165, 104, 108, 0.23);
 }
 
 .primary-button:hover {
@@ -480,7 +480,7 @@ code {
 }
 
 .dialog::backdrop {
-  background: rgba(58, 43, 34, 0.5);
+  background: rgba(50, 38, 40, 0.5);
   backdrop-filter: blur(3px);
 }
 
@@ -508,7 +508,7 @@ code {
   gap: 12px;
   align-items: center;
   background: var(--positive-soft);
-  color: #566246;
+  color: var(--positive);
 }
 
 .success-banner p {
@@ -550,7 +550,7 @@ code {
 .tag-list span {
   padding: 6px 10px;
   border-radius: 999px;
-  background: #f3ece3;
+  background: #f4ecea;
   color: var(--muted);
   font-size: 13px;
 }
@@ -567,7 +567,7 @@ code {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-  background: #f8f1e8;
+  background: #f8f2f0;
 }
 
 .detail-grid dt {
