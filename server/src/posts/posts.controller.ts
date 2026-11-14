@@ -1,9 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
+  HttpCode,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards
@@ -13,6 +16,8 @@ import { SessionAuthGuard } from '../auth/session-auth.guard';
 import { OptionalSessionAuthGuard } from '../auth/optional-session-auth.guard';
 import { RequestId } from '../common/request-id.decorator';
 import { PublishPostDto } from './dto/publish-post.dto';
+import { EditPostDto } from './dto/edit-post.dto';
+import { PostMutationService } from './post-mutation.service';
 import { PostQueryService } from './post-query.service';
 import { PostsService } from './posts.service';
 
@@ -20,7 +25,8 @@ import { PostsService } from './posts.service';
 export class PostsController {
   constructor(
     private readonly postsService: PostsService,
-    private readonly postQuery: PostQueryService
+    private readonly postQuery: PostQueryService,
+    private readonly postMutation: PostMutationService
   ) {}
 
   @Get(':postId')
@@ -54,6 +60,41 @@ export class PostsController {
       idempotencyKey,
       requestId,
       body
+    });
+  }
+
+  @Patch(':postId')
+  @UseGuards(SessionAuthGuard)
+  async edit(
+    @Param('postId') postId: string,
+    @Body() body: EditPostDto,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
+    @Req() request: AuthenticatedRequest,
+    @RequestId() requestId: string
+  ) {
+    return this.postMutation.edit({
+      postId,
+      user: request.user,
+      idempotencyKey,
+      requestId,
+      body
+    });
+  }
+
+  @Delete(':postId')
+  @HttpCode(204)
+  @UseGuards(SessionAuthGuard)
+  async remove(
+    @Param('postId') postId: string,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
+    @Req() request: AuthenticatedRequest,
+    @RequestId() requestId: string
+  ): Promise<void> {
+    await this.postMutation.delete({
+      postId,
+      user: request.user,
+      idempotencyKey,
+      requestId
     });
   }
 }

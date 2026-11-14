@@ -241,3 +241,39 @@ export async function publishPost(
   });
   return response.data;
 }
+
+export async function editPost(
+  session: Session,
+  postId: string,
+  idempotencyKey: string,
+  payload: {
+    expected_content_version: number;
+    body_text?: string;
+    emotion_tag_id?: string | null;
+    context_tag_id?: string | null;
+    risk_acknowledged: boolean;
+  }
+): Promise<PublishedPost> {
+  const response = await request<PublishedPost>(
+    `/posts/${encodeURIComponent(postId)}`,
+    {
+      method: 'PATCH',
+      accessToken: session.accessToken,
+      idempotencyKey,
+      data: payload
+    }
+  );
+  return response.data;
+}
+
+export async function deletePost(
+  session: Session,
+  postId: string,
+  idempotencyKey: string
+): Promise<void> {
+  await request(`/posts/${encodeURIComponent(postId)}`, {
+    method: 'DELETE',
+    accessToken: session.accessToken,
+    idempotencyKey
+  });
+}

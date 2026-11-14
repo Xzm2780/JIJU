@@ -1886,6 +1886,7 @@ components:
       additionalProperties: false
       required:
         - id
+        - content_version
         - author_nickname
         - body_excerpt
         - published_at
@@ -1894,6 +1895,10 @@ components:
       properties:
         id:
           $ref: '#/components/schemas/OpaqueId'
+        content_version:
+          type: integer
+          minimum: 1
+          description: 当前内容版本，供作者编辑时提交 expected_content_version
         author_nickname:
           type: string
         emotion_tag:
@@ -2161,6 +2166,7 @@ components:
       additionalProperties: false
       required:
         - id
+            - content_version
         - body_excerpt
         - public_status
         - moderation_status
@@ -2386,6 +2392,10 @@ components:
           properties:
             id:
               $ref: '#/components/schemas/OpaqueId'
+            content_version:
+              type: integer
+              minimum: 1
+              description: 当前内容版本，供作者编辑时提交 expected_content_version
             target_type:
               $ref: '#/components/schemas/ContentTargetType'
             target_id:

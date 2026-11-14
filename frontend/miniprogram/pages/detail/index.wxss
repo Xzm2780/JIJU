@@ -84,3 +84,23 @@
   flex-direction: column;
   gap: 6rpx;
 }
+
+.author-actions {
+  display: flex;
+  margin-top: 28rpx;
+  gap: 16rpx;
+}
+
+.author-actions button {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  margin: 0;
+}
+
+.danger-button {
+  border-radius: 20rpx;
+  background: #f6e7e4;
+  color: #914f4f;
+  font-weight: 700;
+}

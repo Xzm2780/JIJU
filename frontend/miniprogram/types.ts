@@ -44,6 +44,7 @@ export interface PublishedPost {
   moderation_status: 'PASSED' | 'PENDING' | 'REJECTED';
   published_at: string;
   expires_at: string;
+  edited_at?: string;
 }
 
 export interface TagRef {
@@ -80,6 +81,7 @@ export interface FeedPage {
 
 export interface PostDetail {
   id: string;
+  content_version: number;
   author_nickname: string;
   emotion_tag: TagRef | null;
   context_tag: TagRef | null;

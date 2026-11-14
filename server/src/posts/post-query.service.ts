@@ -198,6 +198,7 @@ export class PostQueryService {
 
     return {
       id: post.id,
+      content_version: post.currentContentVersion,
       author_nickname: post.author.plazaNickname,
       emotion_tag: tagSnapshot(
         post.emotionTagId,

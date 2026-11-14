@@ -40,7 +40,7 @@ Post、PostVersion、Report、ModerationRecord、IdempotencyRecord
 
 ## 9. 实现要点（Implementation points / core rules）
 
-1. 编辑和删除均由服务端验证作者身份、公开状态、当前版本和规则允许性。
+1. 编辑和删除均由服务端验证作者身份、公开状态、当前版本和规则允许性；详情返回 `content_version`，编辑时作为必填 `expected_content_version` 回传。
 2. 成功编辑先执行服务端校验，再追加不可变 PostVersion 并更新 `current_content_version` 和 `edited_at`。
 3. 编辑不得改变 `id`、`published_at` 或 `expires_at`；校验失败时旧公开版本保持有效。
 4. 高风险编辑写新的风险确认并进入 PENDING 复核；旧举报和复核继续关联原内容版本。

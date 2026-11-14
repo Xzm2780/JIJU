@@ -1,0 +1,37 @@
+<view class="page">
+  <view class="card edit-card">
+    <view class="header-row">
+      <text class="title">编辑内容</text>
+      <text class="counter {{charCount > 500 ? 'counter-error' : ''}}">{{charCount}} / 500</text>
+    </view>
+
+    <textarea
+      class="textarea"
+      value="{{bodyText}}"
+      maxlength="-1"
+      disabled="{{loading || saving}}"
+      bindinput="onBodyInput"
+    />
+
+    <view class="grid">
+      <picker range="{{emotionTags}}" range-key="name" value="{{emotionIndex}}" bindchange="onEmotionChange">
+        <view class="picker">{{emotionTags[emotionIndex] ? emotionTags[emotionIndex].name : '情绪标签'}}</view>
+      </picker>
+      <picker range="{{contextTags}}" range-key="name" value="{{contextIndex}}" bindchange="onContextChange">
+        <view class="picker">{{contextTags[contextIndex] ? contextTags[contextIndex].name : '情境标签'}}</view>
+      </picker>
+    </view>
+
+    <view class="fixed-expiry">编辑不会延长到期时间。保存后将在原到期时间停止公开。</view>
+    <view wx:if="{{message}}" class="message error">{{message}}</view>
+
+    <button
+      class="primary-button"
+      loading="{{saving}}"
+      disabled="{{loading || saving || !post}}"
+      bindtap="submit"
+    >
+      保存修改
+    </button>
+  </view>
+</view>

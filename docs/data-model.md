@@ -126,6 +126,7 @@ erDiagram
 - 作者列表：`(author_id, public_status, published_at DESC, id DESC)`。
 - 到期：`(expires_at, public_status)`。
 - 内容版本并发：以 `id + current_content_version` 作为更新条件。
+- 帖子详情和作者帖子列表必须向作者返回 `content_version`，供编辑请求携带 `expected_content_version`；广场列表不返回。
 
 ### 4.5 PostVersion
 

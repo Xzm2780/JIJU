@@ -1,0 +1,70 @@
+.edit-card {
+  display: flex;
+  flex-direction: column;
+  gap: 26rpx;
+}
+
+.header-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 38rpx;
+  font-weight: 800;
+}
+
+.counter {
+  color: #8f7e7f;
+  font-size: 23rpx;
+}
+
+.counter-error {
+  color: #914f4f;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 360rpx;
+  padding: 24rpx;
+  border: 1rpx solid #e4d7d4;
+  border-radius: 22rpx;
+  box-sizing: border-box;
+  background: #fffdfc;
+  font-size: 30rpx;
+  line-height: 1.7;
+}
+
+.grid {
+  display: flex;
+  gap: 16rpx;
+}
+
+.picker {
+  min-height: 80rpx;
+  padding: 0 20rpx;
+  border: 1rpx solid #e4d7d4;
+  border-radius: 18rpx;
+  box-sizing: border-box;
+  background: #fffdfc;
+  color: #5f5354;
+  font-size: 26rpx;
+  line-height: 80rpx;
+  text-align: center;
+}
+
+.grid picker {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+}
+
+.fixed-expiry {
+  padding: 20rpx;
+  border-radius: 18rpx;
+  background: #f8f1ed;
+  color: #876d58;
+  font-size: 23rpx;
+  line-height: 1.6;
+}

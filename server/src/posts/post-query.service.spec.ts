@@ -88,6 +88,7 @@ describe('PostQueryService', () => {
     });
 
     expect(result.is_author).toBe(false);
+    expect(result.content_version).toBe(1);
     expect(result).not.toHaveProperty('view_count');
     expect(prisma.viewRecord.createMany).toHaveBeenCalledWith(
       expect.objectContaining({ skipDuplicates: true })

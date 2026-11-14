@@ -47,5 +47,10 @@
       <text>公开至 {{expiresAt}}</text>
       <text>到期后不再接受新的回应</text>
     </view>
+
+    <view wx:if="{{post.is_author}}" class="author-actions">
+      <button class="secondary-button" bindtap="editPost">编辑</button>
+      <button class="danger-button" bindtap="removePost">删除</button>
+    </view>
   </view>
 </view>
