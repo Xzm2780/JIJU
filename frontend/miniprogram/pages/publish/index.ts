@@ -162,8 +162,10 @@ Page({
     this.saveCurrentDraft();
   },
 
-  onPublicAcknowledgedChange(event: WechatMiniprogram.SwitchChange) {
-    this.setData({ publicAcknowledged: event.detail.value });
+  onPublicAcknowledgedChange(event: WechatMiniprogram.CheckboxGroupChange) {
+    this.setData({
+      publicAcknowledged: event.detail.value.includes('acknowledged')
+    });
     this.saveCurrentDraft();
   },
 

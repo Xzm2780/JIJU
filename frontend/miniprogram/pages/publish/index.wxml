@@ -52,10 +52,12 @@
     <view class="public-notice">
       <text class="notice-title">这是一条公开内容</text>
       <text class="notice-copy">帖子会进入公共广场，可能被其他用户查看或截图。不要填写可识别个人身份的信息。</text>
-      <view class="switch-row">
-        <text>我已了解公开属性</text>
-        <switch checked="{{publicAcknowledged}}" color="#2e6b55" bindchange="onPublicAcknowledgedChange" />
-      </view>
+      <checkbox-group class="acknowledgement-group" bindchange="onPublicAcknowledgedChange">
+        <label class="acknowledgement">
+          <checkbox value="acknowledged" checked="{{publicAcknowledged}}" color="#2e6b55" />
+          <text>我已了解公开属性</text>
+        </label>
+      </checkbox-group>
     </view>
 
     <view class="footer">

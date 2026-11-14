@@ -51,6 +51,21 @@ foreach ($statement in $requiredApiStatements) {
     }
 }
 
+$publishWxml = Get-Content -LiteralPath (Join-Path $Root 'frontend\miniprogram\pages\publish\index.wxml') -Raw -Encoding UTF8
+$publishWxss = Get-Content -LiteralPath (Join-Path $Root 'frontend\miniprogram\pages\publish\index.wxss') -Raw -Encoding UTF8
+if (-not $publishWxml.Contains('<checkbox-group') -or -not $publishWxml.Contains('value="acknowledged"')) {
+    throw 'Mini-program public acknowledgement must use a checkbox confirmation.'
+}
+if ($publishWxml.Contains('<switch')) {
+    throw 'Mini-program public acknowledgement must not use a switch.'
+}
+if (-not $publishWxss.Contains('repeat(3, minmax(0, 1fr))')) {
+    throw 'Mini-program retention choices must use shrinkable three-column layout.'
+}
+if (-not $publishWxss.Contains('@media (max-width: 360px)')) {
+    throw 'Mini-program retention choices need a narrow-screen rule.'
+}
+
 $postsService = Get-Content -LiteralPath (Join-Path $Root 'server\src\posts\posts.service.ts') -Raw -Encoding UTF8
 $challengeService = Get-Content -LiteralPath (Join-Path $Root 'server\src\posts\publish-challenge.service.ts') -Raw -Encoding UTF8
 $publishSources = "$postsService`n$challengeService"

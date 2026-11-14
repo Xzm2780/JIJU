@@ -106,16 +106,27 @@
 
 .segmented {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12rpx;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  min-width: 0;
+  gap: 8rpx;
 }
 
 .segment {
-  padding: 18rpx 8rpx;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 16rpx 4rpx;
   border: 1rpx solid #d9ddd7;
   border-radius: 18rpx;
   background: #fff;
-  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .segment-active {
@@ -126,10 +137,10 @@
 }
 
 .public-notice {
-  margin-top: 12rpx;
-  padding: 26rpx;
+  margin-top: 8rpx;
+  padding: 18rpx 22rpx;
   border: 1rpx solid #d7c79e;
-  border-radius: 22rpx;
+  border-radius: 18rpx;
   background: #fbf5e8;
 }
 
@@ -139,24 +150,37 @@
 }
 
 .notice-title {
-  margin-bottom: 10rpx;
-  font-size: 30rpx;
+  margin-bottom: 6rpx;
+  font-size: 28rpx;
   font-weight: 650;
 }
 
 .notice-copy {
   color: #66583c;
-  font-size: 24rpx;
-  line-height: 1.6;
+  font-size: 22rpx;
+  line-height: 1.5;
 }
 
-.switch-row {
-  display: flex;
-  justify-content: space-between;
+.acknowledgement-group {
+  margin-top: 12rpx;
+}
+
+.acknowledgement {
+  display: inline-flex;
   align-items: center;
-  margin-top: 18rpx;
-  font-size: 26rpx;
+  max-width: 100%;
+  gap: 10rpx;
+  padding: 10rpx 14rpx;
+  border: 1rpx solid #d7c79e;
+  border-radius: 14rpx;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 24rpx;
   font-weight: 650;
+}
+
+.acknowledgement checkbox {
+  transform: scale(0.86);
+  transform-origin: center;
 }
 
 .footer {
@@ -218,4 +242,11 @@
 
 .modal-actions button {
   flex: 1;
+}
+
+@media (max-width: 360px) {
+  .segment {
+    padding: 14rpx 2rpx;
+    font-size: 20rpx;
+  }
 }
