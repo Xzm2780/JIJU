@@ -89,6 +89,9 @@ if (-not $css.Contains('grid-template-columns: repeat(3, minmax(0, 1fr));')) {
 if (-not $css.Contains('@media (max-width: 420px)')) {
     throw 'Retention controls must have a narrow-screen responsive rule.'
 }
+if (-not $css.Contains('--accent: #b85b43;') -or $css.Contains('#2e6b55')) {
+    throw 'Demo must use the warm terracotta accent and remove the cool green accent.'
+}
 
 $coverage = Get-Content -LiteralPath (Join-Path $demoRoot 'AC-COVERAGE.md') -Raw -Encoding UTF8
 $requiredAcs = @('AUTH-02', 'AC-03', 'AC-04', 'AC-05', 'AC-07', 'AC-20')

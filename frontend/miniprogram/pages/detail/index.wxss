@@ -13,15 +13,15 @@
   margin-bottom: 34rpx;
   padding: 22rpx;
   border-radius: 20rpx;
-  background: #dcebe4;
-  color: #214f40;
+  background: #e9eddf;
+  color: #566246;
 }
 
 .success-mark {
   width: 52rpx;
   height: 52rpx;
   border-radius: 50%;
-  background: #2e6b55;
+  background: #6f7a56;
   color: #fff;
   text-align: center;
   line-height: 52rpx;
@@ -47,8 +47,8 @@
 .chip {
   padding: 8rpx 16rpx;
   border-radius: 999rpx;
-  background: #eef0ec;
-  color: #69736c;
+  background: #f3ece3;
+  color: #7b6a5f;
   font-size: 24rpx;
 }
 
@@ -58,7 +58,7 @@
   margin-bottom: 32rpx;
   padding: 26rpx;
   border-radius: 22rpx;
-  background: #f5f4ef;
+  background: #f8f1e8;
 }
 
 .meta-label,
@@ -67,7 +67,7 @@
 }
 
 .meta-label {
-  color: #69736c;
+  color: #7b6a5f;
   font-size: 22rpx;
 }
 
@@ -79,6 +79,6 @@
 .missing-copy {
   display: block;
   margin-bottom: 28rpx;
-  color: #69736c;
+  color: #7b6a5f;
   line-height: 1.7;
 }

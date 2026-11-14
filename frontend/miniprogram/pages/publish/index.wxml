@@ -54,7 +54,7 @@
       <text class="notice-copy">帖子会进入公共广场，可能被其他用户查看或截图。不要填写可识别个人身份的信息。</text>
       <checkbox-group class="acknowledgement-group" bindchange="onPublicAcknowledgedChange">
         <label class="acknowledgement">
-          <checkbox value="acknowledged" checked="{{publicAcknowledged}}" color="#2e6b55" />
+          <checkbox value="acknowledged" checked="{{publicAcknowledged}}" color="#b85b43" />
           <text>我已了解公开属性</text>
         </label>
       </checkbox-group>

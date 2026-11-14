@@ -65,6 +65,17 @@ if (-not $publishWxss.Contains('flex: 1 1 0;') -or -not $publishWxss.Contains('w
 if (-not $publishWxss.Contains('@media (max-width: 360px)')) {
     throw 'Mini-program retention choices need a narrow-screen rule.'
 }
+$appWxss = Get-Content -LiteralPath (Join-Path $Root 'frontend\miniprogram\app.wxss') -Raw -Encoding UTF8
+$appJson = Get-Content -LiteralPath (Join-Path $Root 'frontend\miniprogram\app.json') -Raw -Encoding UTF8
+if (-not $appWxss.Contains('background: #b85b43;') -or -not $appWxss.Contains('#f7efe4')) {
+    throw 'Mini-program must use the warm cream and terracotta palette.'
+}
+if ($appWxss.Contains('#2e6b55') -or $publishWxss.Contains('#2e6b55')) {
+    throw 'Mini-program still contains the previous cool green primary color.'
+}
+if (-not $appJson.Contains('#f7efe4')) {
+    throw 'Mini-program navigation background must use the warm cream color.'
+}
 
 $postsService = Get-Content -LiteralPath (Join-Path $Root 'server\src\posts\posts.service.ts') -Raw -Encoding UTF8
 $challengeService = Get-Content -LiteralPath (Join-Path $Root 'server\src\posts\publish-challenge.service.ts') -Raw -Encoding UTF8

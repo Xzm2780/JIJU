@@ -1,7 +1,7 @@
 page {
   min-height: 100%;
-  background: #f3f1eb;
-  color: #202521;
+  background: linear-gradient(160deg, #fbf6ed 0%, #f7efe4 48%, #f2e4d3 100%);
+  color: #382d27;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
 }
 
@@ -18,20 +18,21 @@ button::after {
 .card {
   border-radius: 32rpx;
   padding: 32rpx;
-  background: #fffdf8;
-  box-shadow: 0 20rpx 60rpx rgba(43, 55, 46, 0.12);
+  background: #fffaf3;
+  box-shadow: 0 20rpx 60rpx rgba(84, 56, 40, 0.12);
 }
 
 .primary-button {
   border-radius: 20rpx;
-  background: #2e6b55;
+  background: #b85b43;
   color: #fff;
   font-weight: 700;
+  box-shadow: 0 12rpx 28rpx rgba(184, 91, 67, 0.2);
 }
 
 .secondary-button {
   border-radius: 20rpx;
-  background: #fff;
-  color: #202521;
-  border: 1rpx solid #d9ddd7;
+  background: #fffdf9;
+  color: #382d27;
+  border: 1rpx solid #e6d7c7;
 }

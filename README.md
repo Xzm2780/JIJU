@@ -10,6 +10,7 @@
 - [接口契约](docs/api.yaml)
 - [验收矩阵](docs/ac-matrix.md)
 - [T05 生产实现说明](docs/T05-production.md)
+- [视觉配色规范](docs/ui-design.md)
 
 ## 生产实现
 

@@ -18,7 +18,7 @@
 
 .eyebrow {
   margin-bottom: 8rpx;
-  color: #2e6b55;
+  color: #b85b43;
   font-size: 22rpx;
   font-weight: 700;
   letter-spacing: 4rpx;
@@ -32,12 +32,12 @@
 
 .counter {
   margin-top: 16rpx;
-  color: #69736c;
+  color: #7b6a5f;
   font-size: 24rpx;
 }
 
 .counter-error {
-  color: #9c3e36;
+  color: #a4463d;
 }
 
 .info-banner,
@@ -45,19 +45,19 @@
   margin-bottom: 20rpx;
   padding: 20rpx 24rpx;
   border-radius: 18rpx;
-  background: #dcebe4;
-  color: #214f40;
+  background: #f4ddd3;
+  color: #8f4332;
   font-size: 26rpx;
 }
 
 .message.error {
-  background: #f8e8e5;
-  color: #9c3e36;
+  background: #f7e2de;
+  color: #a4463d;
 }
 
 .message.warning {
-  background: #f8eed8;
-  color: #8a5a16;
+  background: #faead2;
+  color: #a66a20;
 }
 
 .field {
@@ -75,9 +75,9 @@
 .picker {
   box-sizing: border-box;
   width: 100%;
-  border: 1rpx solid #d9ddd7;
+  border: 1rpx solid #e6d7c7;
   border-radius: 20rpx;
-  background: #fff;
+  background: #fffdf9;
 }
 
 .textarea {
@@ -94,7 +94,7 @@
 .help {
   display: block;
   margin-top: 10rpx;
-  color: #69736c;
+  color: #7b6a5f;
   font-size: 22rpx;
 }
 
@@ -120,9 +120,9 @@
   margin: 0;
   padding: 16rpx 4rpx;
   overflow: hidden;
-  border: 1rpx solid #d9ddd7;
+  border: 1rpx solid #e6d7c7;
   border-radius: 18rpx;
-  background: #fff;
+  background: #fffdf9;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -132,18 +132,18 @@
 }
 
 .segment-active {
-  border-color: #2e6b55;
-  background: #dcebe4;
-  color: #214f40;
+  border-color: #b85b43;
+  background: #f4ddd3;
+  color: #8f4332;
   font-weight: 700;
 }
 
 .public-notice {
   margin-top: 8rpx;
   padding: 18rpx 22rpx;
-  border: 1rpx solid #d7c79e;
+  border: 1rpx solid #e4c58e;
   border-radius: 18rpx;
-  background: #fbf5e8;
+  background: #fff4df;
 }
 
 .notice-title,
@@ -158,7 +158,7 @@
 }
 
 .notice-copy {
-  color: #66583c;
+  color: #6d573b;
   font-size: 22rpx;
   line-height: 1.5;
 }
@@ -173,7 +173,7 @@
   max-width: 100%;
   gap: 10rpx;
   padding: 10rpx 14rpx;
-  border: 1rpx solid #d7c79e;
+  border: 1rpx solid #e4c58e;
   border-radius: 14rpx;
   background: rgba(255, 255, 255, 0.7);
   font-size: 24rpx;
@@ -194,7 +194,7 @@
 }
 
 .draft-tip {
-  color: #69736c;
+  color: #7b6a5f;
   font-size: 22rpx;
 }
 
@@ -211,14 +211,14 @@
   align-items: center;
   justify-content: center;
   padding: 40rpx;
-  background: rgba(29, 37, 31, 0.48);
+  background: rgba(58, 43, 34, 0.5);
 }
 
 .modal {
   width: 100%;
   padding: 34rpx;
   border-radius: 28rpx;
-  background: #fffdf8;
+  background: #fffaf3;
   box-sizing: border-box;
 }
 
@@ -231,7 +231,7 @@
 }
 
 .modal-copy {
-  color: #69736c;
+  color: #7b6a5f;
   font-size: 26rpx;
   line-height: 1.7;
 }
