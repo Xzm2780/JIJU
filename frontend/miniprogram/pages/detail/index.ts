@@ -109,6 +109,14 @@ Page({
     }
   },
 
+  reportPost() {
+    if (this.data.post) {
+      wx.navigateTo({
+        url: `/pages/report/index?target_type=POST&target_id=${encodeURIComponent(this.data.post.id)}`
+      });
+    }
+  },
+
   async removePost() {
     const post = this.data.post;
     const session = loadSession();

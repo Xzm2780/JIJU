@@ -8,6 +8,9 @@ import {
   PostDetail,
   ReactionState,
   ReactionType,
+  ReportReason,
+  ReportReceipt,
+  ReportTargetType,
   PublishedPost,
   Session,
   TagCatalog
@@ -338,5 +341,24 @@ export async function cancelReaction(
       idempotencyKey
     }
   );
+  return response.data;
+}
+
+export async function createReport(
+  session: Session,
+  payload: {
+    target_type: ReportTargetType;
+    target_id: string;
+    reason: ReportReason;
+    other_description?: string;
+  },
+  idempotencyKey: string
+): Promise<ReportReceipt> {
+  const response = await request<ReportReceipt>('/reports', {
+    method: 'POST',
+    accessToken: session.accessToken,
+    idempotencyKey,
+    data: payload
+  });
   return response.data;
 }

@@ -126,6 +126,20 @@ export interface MyPostPage {
   request_id: string;
 }
 
+export type ReportTargetType = 'POST' | 'COMMENT';
+export type ReportReason =
+  | 'ABUSE'
+  | 'PRIVACY'
+  | 'MINOR_INVOLVED'
+  | 'DANGEROUS_OR_INAPPROPRIATE'
+  | 'SPAM'
+  | 'OTHER';
+
+export interface ReportReceipt {
+  report_id: string;
+  submitted_at: string;
+}
+
 export interface ApiEnvelope<T> {
   data: T;
   request_id: string;

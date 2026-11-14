@@ -1,0 +1,67 @@
+.report-card {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.report-title,
+.receipt-title {
+  font-size: 38rpx;
+  font-weight: 800;
+}
+
+.report-copy,
+.receipt-copy {
+  color: #776768;
+  font-size: 24rpx;
+  line-height: 1.7;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.label {
+  color: #5f5354;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.picker,
+.textarea {
+  width: 100%;
+  padding: 22rpx;
+  border: 1rpx solid #e4d7d4;
+  border-radius: 20rpx;
+  box-sizing: border-box;
+  background: #fffdfc;
+  font-size: 27rpx;
+}
+
+.picker {
+  min-height: 76rpx;
+  line-height: 32rpx;
+}
+
+.textarea {
+  min-height: 220rpx;
+  line-height: 1.6;
+}
+
+.receipt {
+  display: flex;
+  min-height: 420rpx;
+  align-items: stretch;
+  justify-content: center;
+  flex-direction: column;
+  gap: 24rpx;
+  text-align: center;
+}
+
+.receipt-id {
+  color: #9a8586;
+  font-size: 21rpx;
+  word-break: break-all;
+}

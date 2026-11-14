@@ -130,6 +130,14 @@
   font-size: 22rpx;
 }
 
+.report-link {
+  display: block;
+  margin: 30rpx auto 0;
+  background: transparent;
+  color: #9a7778;
+  font-size: 22rpx;
+}
+
 .author-actions button {
   flex: 1 1 0;
   width: 0;

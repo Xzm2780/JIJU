@@ -5,6 +5,7 @@
     "pages/my/index",
     "pages/notice/index",
     "pages/edit/index",
+    "pages/report/index",
     "pages/detail/index"
   ],
   "window": {

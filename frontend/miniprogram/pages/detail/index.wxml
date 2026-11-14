@@ -83,5 +83,6 @@
       <button class="secondary-button" bindtap="editPost">编辑</button>
       <button class="danger-button" bindtap="removePost">删除</button>
     </view>
+    <button wx:else class="report-link" bindtap="reportPost">举报这条内容</button>
   </view>
 </view>
