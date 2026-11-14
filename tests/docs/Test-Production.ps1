@@ -59,8 +59,8 @@ if (-not $publishWxml.Contains('<checkbox-group') -or -not $publishWxml.Contains
 if ($publishWxml.Contains('<switch')) {
     throw 'Mini-program public acknowledgement must not use a switch.'
 }
-if (-not $publishWxss.Contains('repeat(3, minmax(0, 1fr))')) {
-    throw 'Mini-program retention choices must use shrinkable three-column layout.'
+if (-not $publishWxss.Contains('flex: 1 1 0;') -or -not $publishWxss.Contains('width: 0;')) {
+    throw 'Mini-program retention choices must use three equal flexible columns without percentage-width overlap.'
 }
 if (-not $publishWxss.Contains('@media (max-width: 360px)')) {
     throw 'Mini-program retention choices need a narrow-screen rule.'
