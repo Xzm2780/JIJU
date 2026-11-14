@@ -1255,6 +1255,67 @@ paths:
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
+  /admin/auth/login:
+    post:
+      tags:
+        - Admin
+      operationId: loginAdmin
+      summary: 运营后台用户名密码登录
+      description: |
+        鉴权要求：无需已有会话，仅限具备有效后台角色的运营账号。
+        请求参数与校验：username 和 password 必填；错误响应不得区分账号不存在与密码错误。
+        响应结构：返回八小时后台访问令牌、到期时间和运营显示名称。
+        错误码：后台登录失败、角色不足和系统错误，引用 docs/errors.md。
+        幂等要求：登录不要求 Idempotency-Key。
+        副作用：创建后台会话并追加 ADMIN_LOGIN 审计；不修改业务数据。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: none
+        roles: [OPERATOR]
+      x-validation:
+        - username must be non-empty
+        - password must be non-empty
+        - account must be active and have an active admin role assignment
+      x-errors:
+        - JIJU_AUTH_4013
+        - JIJU_ACCESS_4031
+        - JIJU_VALIDATION_4221
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: login creates a new session and is not an idempotent business write
+      x-side-effects:
+        - create an eight-hour AdminRoleAssignment-backed session
+        - append ADMIN_LOGIN audit
+      x-view-count:
+        returned: false
+        rule: admin login response must never serialize view_count
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminLoginRequest'
+      responses:
+        '200':
+          description: 后台登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminLoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
   /admin/reports:
     get:
       tags:
@@ -2594,6 +2655,45 @@ components:
               type: boolean
         request_id:
           type: string
+    AdminLoginRequest:
+      type: object
+      additionalProperties: false
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+    AdminLoginResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [access_token, token_type, expires_at, user]
+          properties:
+            access_token:
+              type: string
+            token_type:
+              type: string
+              enum: [Bearer]
+            expires_at:
+              $ref: '#/components/schemas/UtcTimestamp'
+            user:
+              type: object
+              additionalProperties: false
+              required: [id, username, display_name]
+              properties:
+                id:
+                  $ref: '#/components/schemas/OpaqueId'
+                username:
+                  type: string
+                display_name:
+                  type: string
     NoticeConfirmationResponse:
       type: object
       additionalProperties: false

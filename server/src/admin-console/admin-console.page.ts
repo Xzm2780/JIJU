@@ -35,9 +35,10 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
     <form id="login-form" class="login-card">
       <div class="login-logo">J</div>
       <h1>情绪广场管理后台</h1>
-      <p>请输入运营后台身份令牌。所有治理动作会由服务端校验角色并写入审计。</p>
+      <p>请使用运营账号登录。所有治理动作会由服务端校验角色并写入审计。</p>
       <div class="login-field"><label>API 地址</label><input id="login-base" value="/api/v1"></div>
-      <div class="login-field"><label>后台身份令牌</label><input id="login-token" type="password" placeholder="Bearer token" autocomplete="current-password"></div>
+      <div class="login-field"><label>用户名</label><input id="login-username" placeholder="admin" autocomplete="username"></div>
+      <div class="login-field"><label>密码</label><input id="login-password" type="password" placeholder="请输入密码" autocomplete="current-password"></div>
       <button class="login-button" type="submit">登录后台</button>
       <div id="login-error" class="status error"></div>
     </form>
@@ -116,7 +117,8 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
   const setLoginError=(text)=>{$('#login-error').textContent=text||''};
   $('#login-base').value=state.base;
   async function api(path,options={}){
-    const response=await fetch(state.base+path,{method:options.method||'GET',headers:{accept:'application/json',authorization:'Bearer '+state.token,...(options.body?{'content-type':'application/json'}:{}),...(options.idempotencyKey?{'idempotency-key':options.idempotencyKey}:{})},body:options.body?JSON.stringify(options.body):undefined});
+    const authHeader=options.noAuth?{}:{authorization:'Bearer '+state.token};
+    const response=await fetch(state.base+path,{method:options.method||'GET',headers:{accept:'application/json',...authHeader,...(options.body?{'content-type':'application/json'}:{}),...(options.idempotencyKey?{'idempotency-key':options.idempotencyKey}:{})},body:options.body?JSON.stringify(options.body):undefined});
     const text=await response.text();const body=text?JSON.parse(text):null;
     if(!response.ok)throw new Error((body&&body.code?body.code+': ':'')+(body&&body.message?body.message:response.status));
     return body;
@@ -129,8 +131,8 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
   async function loadOverview(){try{const [reports,queue]=await Promise.all([api('/admin/reports?limit=50'),api('/admin/review-queue?source=all&limit=50')]);$('#summary-reports').textContent=reports.data.length;$('#summary-queue').textContent=queue.data.length;$('#summary-minor').textContent=queue.data.filter(x=>x.is_minor_related||x.priority==='PREEMPTIVE').length}catch(e){setStatus(e.message,true)}}
   async function loadReports(){try{setStatus('正在查询举报队列…');const p=new URLSearchParams({limit:'20'});if($('#report-status').value)p.set('status',$('#report-status').value);if($('#report-priority').value)p.set('priority',$('#report-priority').value);if($('#report-reason').value)p.set('reason',$('#report-reason').value);const r=await api('/admin/reports?'+p);renderList('#report-list',r.data,'举报');setStatus('共 '+r.data.length+' 条')}catch(e){setStatus(e.message,true)}}
   async function loadQueue(){try{setStatus('正在查询统一复核队列…');const p=new URLSearchParams({source:$('#queue-source').value,limit:'20'});if($('#queue-priority').value)p.set('priority',$('#queue-priority').value);const r=await api('/admin/review-queue?'+p);renderList('#queue-list',r.data,'统一复核');setStatus('共 '+r.data.length+' 条')}catch(e){setStatus(e.message,true)}}
-  $('#login-form').onsubmit=async(event)=>{event.preventDefault();state.base=$('#login-base').value.trim().replace(/\/$/,'');state.token=$('#login-token').value.trim();if(!state.token){setLoginError('请输入后台身份令牌');return}try{setLoginError('');await api('/admin/reports?limit=1');sessionStorage.setItem('jiju.admin.base',state.base);$('#login-screen').classList.add('hidden');$('#app-shell').classList.remove('hidden');switchPanel('overview')}catch(e){setLoginError(e.message);state.token=''}};
-  $('#logout-button').onclick=()=>{state.token='';sessionStorage.removeItem('jiju.admin.base');$('#app-shell').classList.add('hidden');$('#login-screen').classList.remove('hidden');$('#login-token').value='';setStatus('')};
+  $('#login-form').onsubmit=async(event)=>{event.preventDefault();state.base=$('#login-base').value.trim().replace(/\/$/,'');const username=$('#login-username').value.trim();const password=$('#login-password').value;if(!username||!password){setLoginError('请输入用户名和密码');return}try{setLoginError('');const result=await api('/admin/auth/login',{method:'POST',noAuth:true,body:{username,password}});state.token=result.data.access_token;sessionStorage.setItem('jiju.admin.base',state.base);$('#login-screen').classList.add('hidden');$('#app-shell').classList.remove('hidden');switchPanel('overview')}catch(e){setLoginError(e.message);state.token=''}};
+  $('#logout-button').onclick=async()=>{try{if(state.token)await api('/auth/logout',{method:'POST'})}catch(e){}state.token='';sessionStorage.removeItem('jiju.admin.base');$('#app-shell').classList.add('hidden');$('#login-screen').classList.remove('hidden');$('#login-password').value='';setStatus('')};
   $('#sidebar-nav').onclick=(event)=>{const b=event.target.closest('.nav-button');if(b)switchPanel(b.dataset.panel)};
   document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>switchPanel(b.dataset.jump));
   $('#load-reports').onclick=loadReports;$('#load-queue').onclick=loadQueue;

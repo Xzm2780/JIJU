@@ -32,10 +32,11 @@
   />
 
   <view wx:else class="feed-list">
-    <button
+    <view
       wx:for="{{items}}"
       wx:key="id"
       class="feed-card"
+      hover-class="feed-card-hover"
       data-id="{{item.id}}"
       bindtap="openDetail"
     >
@@ -52,7 +53,7 @@
         <text>{{item.comment_count}} 条回应</text>
         <text>{{item.reaction_counts.total}} 个轻互动</text>
       </view>
-    </button>
+    </view>
 
     <view wx:if="{{loadingMore}}" class="feed-status">正在加载更多…</view>
     <view wx:elif="{{error}}" class="feed-status feed-status-error">

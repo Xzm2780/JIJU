@@ -100,6 +100,19 @@ erDiagram
 
 主要约束：同一用户、同一角色、同一范围不应存在重复有效授权。
 
+### 4.3.1 AdminCredential
+
+| 字段 | 逻辑类型 | 必填 | 约束与说明 |
+| --- | --- | --- | --- |
+| id | 不透明 ID | 是 | 唯一。 |
+| user_id | 用户 ID | 是 | 与 AdminRoleAssignment 指向同一运营账号；一对一唯一。 |
+| username | 登录名 | 是 | 全局唯一，仅用于后台登录。 |
+| password_hash | scrypt 哈希 | 是 | `scrypt$salt$hash`，不得保存明文或可逆密码。 |
+| active | 布尔 | 是 | 停用后不能发起新的后台登录。 |
+| created_at、updated_at | UTC 时间 | 是 | 凭据创建与更新时间。 |
+
+后台会话仍使用 AuthSession 保存令牌哈希，权限仍由 AdminRoleAssignment 决定；密码只用于登录，不直接承载权限。
+
 ### 4.4 Post
 
 | 字段 | 逻辑类型 | 必填 | 约束与说明 |

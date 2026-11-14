@@ -1,5 +1,14 @@
 .my-page {
+  width: 100%;
   padding-bottom: calc(150rpx + env(safe-area-inset-bottom));
+}
+
+.profile-card,
+.dashboard,
+.menu-section,
+.guest-card {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .guest-card {
@@ -46,6 +55,7 @@
 
 .profile-card {
   display: flex;
+  align-self: stretch;
   padding: 30rpx;
   border-radius: 30rpx;
   background: linear-gradient(145deg, #fffaf8, #f4e8e5);
@@ -150,12 +160,17 @@
 }
 
 .menu-section {
+  display: block;
   margin-top: 28rpx;
+  width: 100%;
 }
 
 .menu-card {
+  display: block;
+  width: 100%;
   margin-top: 14rpx;
   padding: 0 24rpx;
+  box-sizing: border-box;
   border-radius: 26rpx;
   background: #fffcfb;
   box-shadow: 0 12rpx 34rpx rgba(74, 52, 54, 0.08);

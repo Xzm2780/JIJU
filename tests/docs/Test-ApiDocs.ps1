@@ -33,6 +33,7 @@ $expectedPaths = @(
     '  /auth/wechat/login:',
     '  /auth/logout:',
     '  /admin/reports:',
+    '  /admin/auth/login:',
     '  /admin/content/{target_type}/{target_id}/reviews:',
     '  /admin/content/{target_type}/{target_id}/actions:',
     '  /admin/users/{user_id}/restrictions:',
@@ -51,13 +52,13 @@ if ($pathCount -ne $expectedPaths.Count) {
 }
 
 $operationIds = [regex]::Matches($api, '(?m)^      operationId: ([A-Za-z0-9_]+)$')
-if ($operationIds.Count -ne 25) {
-    throw "Expected exactly 25 operations, found $($operationIds.Count)."
+if ($operationIds.Count -ne 26) {
+    throw "Expected exactly 26 operations, found $($operationIds.Count)."
 }
 
 $uniqueOperationIds = @($operationIds | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
-if ($uniqueOperationIds.Count -ne 25) {
-    throw "Expected 25 unique operation IDs, found $($uniqueOperationIds.Count)."
+if ($uniqueOperationIds.Count -ne 26) {
+    throw "Expected 26 unique operation IDs, found $($uniqueOperationIds.Count)."
 }
 
 $requiredExtensions = @(
@@ -78,8 +79,8 @@ foreach ($extension in $requiredExtensions) {
     else {
         $count = [regex]::Matches($api, "(?m)^      ${escaped}:$").Count
     }
-    if ($count -ne 25) {
-        throw "Expected $extension on all 25 operations, found $count."
+    if ($count -ne 26) {
+        throw "Expected $extension on all 26 operations, found $count."
     }
 }
 
@@ -93,8 +94,8 @@ if ($idempotencyHeaderRefs -ne 14) {
 
 $viewCountFalse = [regex]::Matches($api, '(?m)^        returned: false$').Count
 $viewCountConditional = [regex]::Matches($api, '(?m)^        returned: conditional$').Count
-if ($viewCountFalse -ne 24 -or $viewCountConditional -ne 1) {
-    throw "Expected 24 non-view-count responses and one conditional author-detail response, found $viewCountFalse and $viewCountConditional."
+if ($viewCountFalse -ne 25 -or $viewCountConditional -ne 1) {
+    throw "Expected 25 non-view-count responses and one conditional author-detail response, found $viewCountFalse and $viewCountConditional."
 }
 
 $viewCountSchemas = [regex]::Matches($api, '(?m)^\s+view_count:$').Count

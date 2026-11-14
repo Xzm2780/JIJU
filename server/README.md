@@ -46,7 +46,7 @@ npm start
 
 API 默认监听 `http://127.0.0.1:3001/api/v1`。
 
-仅演示环境可运行 `SEED_DEMO_DATA=true npm run prisma:seed` 生成 6 篇广场示例帖子。默认演示后台令牌为 `jiju-admin-demo-token`；生产环境必须设置 `SEED_DEMO_DATA=false`，不得创建默认后台凭据。
+仅演示环境可运行 `SEED_DEMO_DATA=true npm run prisma:seed` 生成 6 篇广场示例帖子。默认演示后台账号为 `admin` / `jiju-admin-demo`，密码只保存为 scrypt 哈希；生产环境必须设置 `SEED_DEMO_DATA=false`，不得创建默认后台凭据。
 
 ## 测试
 

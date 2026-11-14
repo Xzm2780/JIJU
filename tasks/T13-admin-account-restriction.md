@@ -7,7 +7,7 @@
 ## 2. 范围（Scope）
 
 - 页面：后台账号处置页。
-- 接口：`POST /admin/users/{user_id}/restrictions`。
+- 接口：`POST /admin/users/{user_id}/restrictions`、`POST /admin/auth/login`。
 - 支持警告、限制发帖、限制评论、限制互动和封禁。
 
 ## 3. 非目标（Non-goals）

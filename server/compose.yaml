@@ -45,6 +45,8 @@ services:
       WECHAT_APP_SECRET: ""
       SEED_DEMO_DATA: "true"
       SEED_ADMIN_TOKEN: jiju-admin-demo-token
+      SEED_ADMIN_USERNAME: admin
+      SEED_ADMIN_PASSWORD: jiju-admin-demo
     ports:
       - "3001:3001"
     depends_on:

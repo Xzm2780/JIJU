@@ -6,6 +6,7 @@ import { AdminContentModule } from './admin-content/admin-content.module';
 import { AdminAccountsModule } from './admin-accounts/admin-accounts.module';
 import { AdminAuditModule } from './admin-audit/admin-audit.module';
 import { AdminConsoleModule } from './admin-console/admin-console.module';
+import { AdminAuthModule } from './admin-auth/admin-auth.module';
 import { CommentsModule } from './comments/comments.module';
 import { ContentModule } from './content/content.module';
 import { MyPostsModule } from './me/my-posts.module';
@@ -29,6 +30,7 @@ import { TagsModule } from './tags/tags.module';
     AdminAccountsModule,
     AdminAuditModule,
     AdminConsoleModule,
+    AdminAuthModule,
     CommentsModule,
     NoticesModule,
     TagsModule,

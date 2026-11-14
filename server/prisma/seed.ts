@@ -5,7 +5,11 @@ import {
   ReactionType,
   TagCategory
 } from '@prisma/client';
-import { createHash } from 'node:crypto';
+import {
+  createHash,
+  randomBytes,
+  scryptSync
+} from 'node:crypto';
 
 const prisma = new PrismaClient();
 
@@ -97,6 +101,31 @@ async function main(): Promise<void> {
   }
   const adminToken =
     process.env.SEED_ADMIN_TOKEN ?? 'jiju-admin-demo-token';
+  const adminUsername =
+    process.env.SEED_ADMIN_USERNAME ?? 'admin';
+  const adminPassword =
+    process.env.SEED_ADMIN_PASSWORD ?? 'jiju-admin-demo';
+  const passwordSalt = randomBytes(16).toString('hex');
+  const passwordHash = `scrypt$${passwordSalt}$${scryptSync(
+    adminPassword,
+    passwordSalt,
+    64
+  ).toString('hex')}`;
+  await prisma.adminCredential.upsert({
+    where: { userId: demoAdmin.id },
+    create: {
+      id: 'adc_demo_admin',
+      userId: demoAdmin.id,
+      username: adminUsername,
+      passwordHash,
+      active: true
+    },
+    update: {
+      username: adminUsername,
+      passwordHash,
+      active: true
+    }
+  });
   const adminExpiresAt = new Date(now + 7 * 24 * 60 * 60 * 1000);
   await prisma.authSession.upsert({
     where: { id: 'ses_demo_admin' },
