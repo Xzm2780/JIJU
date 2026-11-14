@@ -10,6 +10,7 @@ import {
 } from '@prisma/client';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { ApiError } from '../common/api-error';
+import { assertActionAllowed } from '../common/account-restrictions';
 import {
   countGraphemes,
   normalizeBody,
@@ -45,6 +46,7 @@ export class PostMutationService {
   ) {}
 
   async edit(arguments_: MutationArguments) {
+    assertActionAllowed(arguments_.user, 'post');
     const body = arguments_.body;
     if (!body) {
       throw new ApiError('JIJU_VALIDATION_4221', 422, '缺少编辑内容');
@@ -313,6 +315,7 @@ export class PostMutationService {
   }
 
   async delete(arguments_: MutationArguments): Promise<void> {
+    assertActionAllowed(arguments_.user, 'post');
     const idempotencyKey = requireIdempotencyKey(
       arguments_.idempotencyKey,
       'post.delete'

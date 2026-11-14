@@ -9,6 +9,7 @@ import {
 } from '@prisma/client';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { ApiError } from '../common/api-error';
+import { assertActionAllowed } from '../common/account-restrictions';
 import { formatBeijingDateTime } from '../common/beijing-time';
 import {
   countGraphemes,
@@ -102,6 +103,7 @@ export class CommentsService {
     requestId: string;
     bodyText: string;
   }) {
+    assertActionAllowed(arguments_.user, 'comment');
     const key = requireIdempotencyKey(
       arguments_.idempotencyKey,
       'comment.publish'
@@ -267,6 +269,7 @@ export class CommentsService {
     idempotencyKey: string | undefined;
     requestId: string;
   }): Promise<void> {
+    assertActionAllowed(arguments_.user, 'comment');
     const key = requireIdempotencyKey(
       arguments_.idempotencyKey,
       'comment.delete'

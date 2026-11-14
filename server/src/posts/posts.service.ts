@@ -11,6 +11,7 @@ import {
 } from '@prisma/client';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { ApiError } from '../common/api-error';
+import { assertActionAllowed } from '../common/account-restrictions';
 import {
   beijingDayWindow,
   formatBeijingDateTime
@@ -67,6 +68,7 @@ export class PostsService {
 
   async publish(arguments_: PublishArguments) {
     const { user, idempotencyKey, requestId, body } = arguments_;
+    assertActionAllowed(user, 'post');
     const normalizedIdempotencyKey = requireIdempotencyKey(
       idempotencyKey,
       'post.publish'

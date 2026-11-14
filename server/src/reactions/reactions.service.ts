@@ -9,6 +9,7 @@ import {
 } from '@prisma/client';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { ApiError } from '../common/api-error';
+import { assertActionAllowed } from '../common/account-restrictions';
 import { requireIdempotencyKey } from '../common/idempotency-key';
 import { stableStringify } from '../common/stable-stringify';
 import { createUuidV7 } from '../common/uuid-v7';
@@ -35,6 +36,7 @@ export class ReactionsService {
     idempotencyKey: string | undefined;
     requestId: string;
   }) {
+    assertActionAllowed(arguments_.user, 'reaction');
     const key = requireIdempotencyKey(
       arguments_.idempotencyKey,
       'reaction.set'
@@ -119,6 +121,7 @@ export class ReactionsService {
     idempotencyKey: string | undefined;
     requestId: string;
   }) {
+    assertActionAllowed(arguments_.user, 'reaction');
     const key = requireIdempotencyKey(
       arguments_.idempotencyKey,
       'reaction.cancel'

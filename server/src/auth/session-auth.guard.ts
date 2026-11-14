@@ -48,7 +48,10 @@ export class SessionAuthGuard implements CanActivate {
       id: session.user.id,
       authProvider: session.user.authProvider,
       plazaNickname: session.user.plazaNickname,
-      accountStatus: session.user.accountStatus
+      accountStatus: session.user.accountStatus,
+      postingRestrictedUntil: session.user.postingRestrictedUntil,
+      commentingRestrictedUntil: session.user.commentingRestrictedUntil,
+      reactionRestrictedUntil: session.user.reactionRestrictedUntil
     };
     return true;
   }

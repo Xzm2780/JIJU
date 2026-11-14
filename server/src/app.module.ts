@@ -1,6 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { AdminReportsModule } from './admin-reports/admin-reports.module';
+import { AdminContentModule } from './admin-content/admin-content.module';
+import { AdminAccountsModule } from './admin-accounts/admin-accounts.module';
+import { AdminAuditModule } from './admin-audit/admin-audit.module';
+import { AdminConsoleModule } from './admin-console/admin-console.module';
 import { CommentsModule } from './comments/comments.module';
 import { ContentModule } from './content/content.module';
 import { MyPostsModule } from './me/my-posts.module';
@@ -19,6 +24,11 @@ import { TagsModule } from './tags/tags.module';
     PrismaModule,
     RedisModule,
     AuthModule,
+    AdminReportsModule,
+    AdminContentModule,
+    AdminAccountsModule,
+    AdminAuditModule,
+    AdminConsoleModule,
     CommentsModule,
     NoticesModule,
     TagsModule,
