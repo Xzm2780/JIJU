@@ -139,8 +139,9 @@ export class CommentsService {
       return existing;
     }
 
-    return this.prisma.$transaction(
-      async (tx) => {
+    try {
+      return await this.prisma.$transaction(
+        async (tx) => {
         await this.requirePublicPost(arguments_.postId, tx);
         const now = new Date();
         const notice = await tx.noticeConfirmation.findUnique({
@@ -258,9 +259,26 @@ export class CommentsService {
           }
         });
         return response;
-      },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
-    );
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+      );
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const replay = await this.replay(
+          arguments_.user.id,
+          'comment.publish',
+          key,
+          fingerprint
+        );
+        if (replay) {
+          return replay;
+        }
+      }
+      throw error;
+    }
   }
 
   async delete(arguments_: {
@@ -287,8 +305,9 @@ export class CommentsService {
       return;
     }
 
-    await this.prisma.$transaction(
-      async (tx) => {
+    try {
+      await this.prisma.$transaction(
+        async (tx) => {
         const comment = await tx.comment.findUnique({
           where: { id: arguments_.commentId }
         });
@@ -315,9 +334,26 @@ export class CommentsService {
             expiresAt: new Date(now.getTime() + 24 * 60 * 60 * 1000)
           }
         });
-      },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
-    );
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+      );
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const replay = await this.replay(
+          arguments_.user.id,
+          'comment.delete',
+          key,
+          fingerprint
+        );
+        if (replay) {
+          return;
+        }
+      }
+      throw error;
+    }
   }
 
   private async requirePublicPost(

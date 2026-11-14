@@ -189,6 +189,7 @@ model Post {
   viewRecords            ViewRecord[]
 
   @@index([publicStatus, moderationStatus, publishedAt, id])
+  @@index([publicStatus, expiresAt, publishedAt, id])
   @@index([authorId, publicStatus, publishedAt, id])
   @@index([expiresAt, publicStatus])
 }

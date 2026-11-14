@@ -59,7 +59,8 @@ export class AdminContentService {
       return replay;
     }
 
-    return this.runSerializable(async (tx) => {
+    try {
+      return await this.runSerializable(async (tx) => {
       const target = await this.getTarget(
         tx,
         arguments_.targetType,
@@ -173,7 +174,24 @@ export class AdminContentService {
         response
       );
       return response;
-    });
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const replay = await this.replay(
+          arguments_.user.id,
+          'admin.review',
+          key,
+          fingerprint
+        );
+        if (replay) {
+          return replay;
+        }
+      }
+      throw error;
+    }
   }
 
   async action(arguments_: AdminArguments & { body: ContentActionDto }) {
@@ -210,7 +228,8 @@ export class AdminContentService {
       return replay;
     }
 
-    return this.runSerializable(async (tx) => {
+    try {
+      return await this.runSerializable(async (tx) => {
       const target = await this.getTarget(
         tx,
         arguments_.targetType,
@@ -314,7 +333,24 @@ export class AdminContentService {
         response
       );
       return response;
-    });
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const replay = await this.replay(
+          arguments_.user.id,
+          'admin.content.action',
+          key,
+          fingerprint
+        );
+        if (replay) {
+          return replay;
+        }
+      }
+      throw error;
+    }
   }
 
   private async getTarget(

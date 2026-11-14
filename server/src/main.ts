@@ -5,6 +5,7 @@ import { ApiError } from './common/api-error';
 import { ApiExceptionFilter } from './common/api-exception.filter';
 import { createUuidV7 } from './common/uuid-v7';
 import { validateWechatEnvironment } from './config/environment.validation';
+import { createRequestObservabilityMiddleware } from './common/request-observability';
 
 async function bootstrap(): Promise<void> {
   validateWechatEnvironment(process.env);
@@ -15,6 +16,7 @@ async function bootstrap(): Promise<void> {
     response.setHeader('x-request-id', requestId);
     next();
   });
+  app.use(createRequestObservabilityMiddleware());
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(
     new ValidationPipe({

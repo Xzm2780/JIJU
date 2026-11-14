@@ -69,8 +69,9 @@ export class AdminAccountsService {
       return replay;
     }
 
-    return this.prisma.$transaction(
-      async (tx) => {
+    try {
+      return await this.prisma.$transaction(
+        async (tx) => {
         const user = await tx.user.findUnique({
           where: { id: arguments_.userId }
         });
@@ -155,9 +156,25 @@ export class AdminAccountsService {
           }
         });
         return response;
-      },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
-    );
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+      );
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const replay = await this.replay(
+          arguments_.actor.id,
+          key,
+          fingerprint
+        );
+        if (replay) {
+          return replay;
+        }
+      }
+      throw error;
+    }
   }
 
   private async replay(

@@ -107,8 +107,9 @@ export class PostMutationService {
       return existing;
     }
 
-    return this.prisma.$transaction(
-      async (tx) => {
+    try {
+      return await this.prisma.$transaction(
+        async (tx) => {
         const post = await tx.post.findUnique({
           where: { id: arguments_.postId }
         });
@@ -309,9 +310,26 @@ export class PostMutationService {
           }
         });
         return response;
-      },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
-    );
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+      );
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const replay = await this.idempotentReplay(
+          arguments_.user.id,
+          'post.edit',
+          idempotencyKey,
+          fingerprint
+        );
+        if (replay) {
+          return replay;
+        }
+      }
+      throw error;
+    }
   }
 
   async delete(arguments_: MutationArguments): Promise<void> {
@@ -331,8 +349,9 @@ export class PostMutationService {
       return;
     }
 
-    await this.prisma.$transaction(
-      async (tx) => {
+    try {
+      await this.prisma.$transaction(
+        async (tx) => {
         const post = await tx.post.findUnique({
           where: { id: arguments_.postId }
         });
@@ -362,9 +381,26 @@ export class PostMutationService {
             expiresAt: new Date(now.getTime() + 24 * 60 * 60 * 1000)
           }
         });
-      },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
-    );
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+      );
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const replay = await this.idempotentReplay(
+          arguments_.user.id,
+          'post.delete',
+          idempotencyKey,
+          fingerprint
+        );
+        if (replay) {
+          return;
+        }
+      }
+      throw error;
+    }
   }
 
   private async idempotentReplay(

@@ -112,7 +112,7 @@ export class ReactionsService {
         response
       );
       return response;
-    });
+    }, () => this.replay(arguments_.user.id, 'reaction.set', key, fingerprint));
   }
 
   async cancel(arguments_: {
@@ -171,7 +171,8 @@ export class ReactionsService {
         response
       );
       return response;
-    });
+    }, () =>
+      this.replay(arguments_.user.id, 'reaction.cancel', key, fingerprint));
   }
 
   private async requirePublicPost(
@@ -287,7 +288,8 @@ export class ReactionsService {
   }
 
   private async runSerializable<T>(
-    operation: (tx: Prisma.TransactionClient) => Promise<T>
+    operation: (tx: Prisma.TransactionClient) => Promise<T>,
+    replay?: () => Promise<T | null>
   ): Promise<T> {
     let lastError: unknown;
     for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -297,10 +299,16 @@ export class ReactionsService {
         });
       } catch (error) {
         lastError = error;
-        if (
-          !(error instanceof Prisma.PrismaClientKnownRequestError) ||
-          !['P2034', 'P2002'].includes(error.code)
-        ) {
+        if (!(error instanceof Prisma.PrismaClientKnownRequestError)) {
+          throw error;
+        }
+        if (error.code === 'P2002' && replay) {
+          const result = await replay();
+          if (result) {
+            return result;
+          }
+        }
+        if (error.code !== 'P2034') {
           throw error;
         }
       }

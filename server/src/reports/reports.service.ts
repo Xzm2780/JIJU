@@ -64,7 +64,8 @@ export class ReportsService {
       return replay;
     }
 
-    return this.runSerializable(async (tx) => {
+    try {
+      return await this.runSerializable(async (tx) => {
       const notice = await tx.noticeConfirmation.findUnique({
         where: {
           userId_noticeVersion: {
@@ -153,7 +154,23 @@ export class ReportsService {
         }
       });
       return response;
-    });
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const replay = await this.replay(
+          arguments_.user.id,
+          key,
+          fingerprint
+        );
+        if (replay) {
+          return replay;
+        }
+      }
+      throw error;
+    }
   }
 
   private async targetSnapshot(
