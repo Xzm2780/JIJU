@@ -148,7 +148,7 @@ $requiredInterfaces = @(
     'GET /tags',
     'GET /posts/{post_id}',
     'POST /posts',
-    'PATCH /posts/{post_id}',
+    'PUT /posts/{post_id}',
     'DELETE /posts/{post_id}',
     'GET /posts/{post_id}/comments',
     'POST /posts/{post_id}/comments',

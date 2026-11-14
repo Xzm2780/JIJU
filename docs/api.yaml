@@ -232,7 +232,7 @@ paths:
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
-    patch:
+    put:
       tags:
         - Posts
       operationId: editPost

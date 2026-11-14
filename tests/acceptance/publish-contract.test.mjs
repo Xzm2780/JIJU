@@ -214,7 +214,7 @@ test('T06 red contract: a non-author cannot edit another user post', { skip: ski
   assert.equal(published.status, 201);
 
   const response = await request(`/posts/${published.body.data.id}`, {
-    method: 'PATCH',
+    method: 'PUT',
     token: otherToken,
     idempotencyKey: idempotencyKey('post.edit'),
     body: JSON.stringify({

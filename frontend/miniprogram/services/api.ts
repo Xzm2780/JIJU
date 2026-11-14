@@ -29,7 +29,7 @@ export class ApiRequestError extends Error {
 }
 
 interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   data?: WechatMiniprogram.IAnyObject;
   accessToken?: string;
   idempotencyKey?: string;
@@ -299,7 +299,7 @@ export async function editPost(
   const response = await request<PublishedPost>(
     `/posts/${encodeURIComponent(postId)}`,
     {
-      method: 'PATCH',
+      method: 'PUT',
       accessToken: session.accessToken,
       idempotencyKey,
       data: payload

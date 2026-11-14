@@ -6,7 +6,7 @@ import {
   Headers,
   HttpCode,
   Param,
-  Patch,
+  Put,
   Post,
   Req,
   UseGuards
@@ -63,7 +63,7 @@ export class PostsController {
     });
   }
 
-  @Patch(':postId')
+  @Put(':postId')
   @UseGuards(SessionAuthGuard)
   async edit(
     @Param('postId') postId: string,

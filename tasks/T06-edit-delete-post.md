@@ -7,7 +7,7 @@
 ## 2. 范围（Scope）
 
 - 页面：编辑帖页，以及作者端删除确认交互。
-- 接口：`PATCH /posts/{post_id}`、`DELETE /posts/{post_id}`。
+- 接口：`PUT /posts/{post_id}`、`DELETE /posts/{post_id}`。
 - 支持内容版本、编辑复核和作者软删除。
 
 ## 3. 非目标（Non-goals）
@@ -32,7 +32,7 @@ AC-16、AC-17、AC-18、AC-20、SUP-01、SUP-02、SUP-05
 
 ## 7. 涉及接口（Interfaces）
 
-`PATCH /posts/{post_id}`、`DELETE /posts/{post_id}`
+`PUT /posts/{post_id}`、`DELETE /posts/{post_id}`
 
 ## 8. 涉及表（Tables）
 
