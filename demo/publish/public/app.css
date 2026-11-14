@@ -267,12 +267,15 @@ input[type="text"]:focus {
 
 .segmented-control {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  min-width: 0;
   gap: 8px;
 }
 
 .segmented-control label {
   position: relative;
+  min-width: 0;
 }
 
 .segmented-control input {
@@ -283,11 +286,16 @@ input[type="text"]:focus {
 
 .segmented-control span {
   display: block;
-  padding: 12px;
+  min-width: 0;
+  padding: 11px 6px;
   border: 1px solid var(--line);
   border-radius: 12px;
   text-align: center;
   background: var(--surface-strong);
+  font-size: 14px;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .segmented-control input:checked + span {
@@ -298,29 +306,36 @@ input[type="text"]:focus {
 }
 
 .public-notice {
-  margin: 28px 0 20px;
-  padding: 18px;
+  margin: 22px 0 18px;
+  padding: 14px 16px;
   border: 1px solid #d7c79e;
-  border-radius: 16px;
-  display: grid;
-  gap: 14px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
   background: #fbf5e8;
+}
+
+.public-notice-copy {
+  min-width: 0;
 }
 
 .public-notice p {
   margin: 0;
   color: #66583c;
-  line-height: 1.65;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .public-notice h2 {
-  margin: 2px 0 6px;
-  font-size: 21px;
+  margin: 2px 0 4px;
+  font-size: 18px;
 }
 
 .notice-kicker {
   color: var(--warning) !important;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.1em;
 }
@@ -328,14 +343,63 @@ input[type="text"]:focus {
 .checkbox-line {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-weight: 650;
 }
 
 .checkbox-line input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.acknowledgement {
+  flex: none;
+  position: relative;
+  padding: 8px 10px;
+  border: 1px solid #d7c79e;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.66);
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.acknowledgement-box {
   width: 18px;
   height: 18px;
-  accent-color: var(--accent);
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid #b9a778;
+  border-radius: 5px;
+  background: #fff;
+  color: transparent;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.acknowledgement-box::after {
+  content: "✓";
+}
+
+.acknowledgement input:checked + .acknowledgement-box {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.acknowledgement input:focus-visible + .acknowledgement-box {
+  outline: 3px solid rgba(46, 107, 85, 0.18);
+  outline-offset: 2px;
 }
 
 .demo-rules {
@@ -529,6 +593,16 @@ code {
     grid-template-columns: 1fr;
   }
 
+  .public-notice {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .acknowledgement {
+    align-self: flex-start;
+  }
+
   .form-actions {
     align-items: stretch;
     flex-direction: column;
@@ -537,5 +611,16 @@ code {
   .primary-button,
   .secondary-button {
     width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .segmented-control {
+    gap: 6px;
+  }
+
+  .segmented-control span {
+    padding: 10px 4px;
+    font-size: 12px;
   }
 }

@@ -78,6 +78,18 @@ if ($readme -notmatch 'npm start' -or $readme -notmatch 'npm test') {
     throw 'README must include start and test commands.'
 }
 
+$html = Get-Content -LiteralPath (Join-Path $demoRoot 'public\index.html') -Raw -Encoding UTF8
+$css = Get-Content -LiteralPath (Join-Path $demoRoot 'public\app.css') -Raw -Encoding UTF8
+if (-not $html.Contains('acknowledgement-box')) {
+    throw 'Public acknowledgement must render a visible custom checkmark.'
+}
+if (-not $css.Contains('grid-template-columns: repeat(3, minmax(0, 1fr));')) {
+    throw 'Retention choices must use three shrinkable columns.'
+}
+if (-not $css.Contains('@media (max-width: 420px)')) {
+    throw 'Retention controls must have a narrow-screen responsive rule.'
+}
+
 $coverage = Get-Content -LiteralPath (Join-Path $demoRoot 'AC-COVERAGE.md') -Raw -Encoding UTF8
 $requiredAcs = @('AUTH-02', 'AC-03', 'AC-04', 'AC-05', 'AC-07', 'AC-20')
 foreach ($ac in $requiredAcs) {
