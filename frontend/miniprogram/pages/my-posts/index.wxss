@@ -78,7 +78,6 @@
 
 .post-body {
   display: -webkit-box;
-  max-height: 6.8em;
   max-width: 100%;
   margin: 20rpx 0;
   overflow: hidden;
@@ -86,6 +85,7 @@
   font-size: 29rpx;
   line-height: 1.7;
   overflow-wrap: anywhere;
+  text-overflow: ellipsis;
   word-break: break-word;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;

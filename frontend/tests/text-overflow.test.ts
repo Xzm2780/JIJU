@@ -39,6 +39,8 @@ describe('long text presentation rules', () => {
     expect(body).toContain('-webkit-line-clamp: 5');
     expect(body).toContain('overflow: hidden');
     expect(body).toContain('overflow-wrap: anywhere');
+    expect(body).toContain('text-overflow: ellipsis');
+    expect(body).not.toContain('max-height');
     expect(nickname).toContain('text-overflow: ellipsis');
     expect(nickname).toContain('white-space: nowrap');
   });
@@ -62,6 +64,8 @@ describe('long text presentation rules', () => {
     expect(body).toContain('-webkit-line-clamp: 4');
     expect(body).toContain('overflow: hidden');
     expect(body).toContain('overflow-wrap: anywhere');
+    expect(body).toContain('text-overflow: ellipsis');
+    expect(body).not.toContain('max-height');
   });
 
   it('handles long profile, settings and receipt text', () => {
@@ -69,12 +73,14 @@ describe('long text presentation rules', () => {
     const settings = readCss('miniprogram/pages/settings/index.wxss');
     const report = readCss('miniprogram/pages/report/index.wxss');
 
-    expect(declarationsFor(profile, '.profile-name')).toContain(
-      '-webkit-line-clamp: 2'
-    );
-    expect(declarationsFor(profile, '.profile-bio')).toContain(
-      '-webkit-line-clamp: 2'
-    );
+    const profileName = declarationsFor(profile, '.profile-name');
+    const profileBio = declarationsFor(profile, '.profile-bio');
+    expect(profileName).toContain('-webkit-line-clamp: 2');
+    expect(profileName).toContain('text-overflow: ellipsis');
+    expect(profileName).not.toContain('max-height');
+    expect(profileBio).toContain('-webkit-line-clamp: 2');
+    expect(profileBio).toContain('text-overflow: ellipsis');
+    expect(profileBio).not.toContain('max-height');
     expect(declarationsFor(settings, '.setting-value')).toContain(
       'text-overflow: ellipsis'
     );
