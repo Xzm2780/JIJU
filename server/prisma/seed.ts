@@ -148,12 +148,10 @@ async function main(): Promise<void> {
       id: 'usr_demo_emotion_square',
       authProvider: 'SEED',
       plazaNickname: '晚风邮局',
-      bio: '收集城市里轻轻落下的情绪。',
       avatarColor: 'ROSE'
     },
     update: {
       plazaNickname: '晚风邮局',
-      bio: '收集城市里轻轻落下的情绪。',
       avatarColor: 'ROSE'
     }
   });

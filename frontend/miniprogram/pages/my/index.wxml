@@ -7,11 +7,11 @@
   </view>
 
   <block wx:else>
-    <state-panel wx:if="{{loading && !profile}}" state="loading" title="正在加载个人资料" />
+    <state-panel wx:if="{{loading && !profile}}" state="loading" title="正在加载广场身份" />
     <state-panel
       wx:elif="{{error && !profile}}"
       state="error"
-      title="个人资料加载失败"
+      title="广场身份加载失败"
       message="{{error}}"
       action-text="重试"
       bind:action="retry"
@@ -22,7 +22,6 @@
         <view class="avatar avatar-{{profile.avatar_color}}">{{avatarInitial}}</view>
         <view class="profile-main">
           <text class="profile-name">{{profile.plaza_nickname}}</text>
-          <text class="profile-bio">{{profile.bio || '还没有填写个人简介'}}</text>
         </view>
         <button class="edit-link" size="mini" bindtap="editProfile">编辑</button>
       </view>
@@ -58,7 +57,7 @@
         <view class="menu-card">
           <view class="menu-item" hover-class="menu-item-hover" bindtap="editProfile">
             <text class="menu-icon">◎</text>
-            <view class="menu-copy"><text class="menu-title">个人资料</text></view>
+            <view class="menu-copy"><text class="menu-title">广场身份</text></view>
             <text class="chevron">›</text>
           </view>
           <view class="menu-item" hover-class="menu-item-hover" bindtap="openNotice">

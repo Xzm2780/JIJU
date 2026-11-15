@@ -830,11 +830,11 @@ paths:
       tags:
         - Me
       operationId: getMyProfile
-      summary: 获取个人资料与帖子看板
+      summary: 获取广场身份与帖子看板
       description: |
         鉴权要求：必须登录，只能读取当前账号资料。
         请求参数与校验：无业务参数。
-        响应结构：返回昵称、简介、头像配色和全部/有效/到期/下架帖子数量。
+        响应结构：返回广场昵称、头像配色和全部/有效/到期/下架帖子数量。
         错误码：未登录、登录失效和系统错误，引用 docs/errors.md。
         幂等要求：GET 只读，不需要 Idempotency-Key。
         副作用：只读。
@@ -876,11 +876,11 @@ paths:
       tags:
         - Me
       operationId: updateMyProfile
-      summary: 修改个人资料
+      summary: 修改广场身份
       description: |
         鉴权要求：必须登录，只能修改当前账号。
-        请求参数与校验：昵称 1 至 20 个扩展字素簇；简介最多 80 个扩展字素簇；头像配色使用固定枚举。
-        响应结构：返回更新后的昵称、简介和头像配色。
+        请求参数与校验：昵称 1 至 20 个扩展字素簇；头像配色使用固定枚举。
+        响应结构：返回更新后的广场昵称和头像配色。
         错误码：未登录、登录失效、校验失败、幂等冲突和系统错误，引用 docs/errors.md。
         幂等要求：必须携带 Idempotency-Key，值为 v1:profile.update:<uuid_v7>。
         副作用：更新 User 资料，不修改帖子、评论、互动或治理数据。
@@ -890,7 +890,6 @@ paths:
         roles: [AUTH_NON_AUTHOR, AUTHOR]
       x-validation:
         - plaza_nickname must contain 1 to 20 extended grapheme clusters
-        - bio must contain at most 80 extended grapheme clusters
         - avatar_color must be ROSE, SAGE, SAND, LAVENDER or SKY
       x-errors:
         - JIJU_AUTH_4011
@@ -907,7 +906,7 @@ paths:
         format: 'v1:<operation>:<uuid_v7>'
         rule: reuse the key for retries of the same profile payload
       x-side-effects:
-        - update the current user's plaza nickname, bio and avatar color
+        - update the current user's plaza nickname and avatar color
       x-view-count:
         returned: false
         rule: profile update must never serialize view_count
@@ -1720,7 +1719,7 @@ paths:
       description: |
         鉴权要求：独立后台身份，需 ACCOUNT_MODERATOR 或 AUDITOR 角色。
         请求参数与校验：status 可为 ALL、ACTIVE、RESTRICTED、DEACTIVATED、BANNED、DELETED；query 搜索广场昵称或用户 ID；cursor 和 limit 为游标分页参数。
-        响应结构：返回用户 ID、广场昵称、简介、头像配色、账号状态、当前限制到期时间、未删除帖子数、未删除评论数和加入时间；不返回微信身份、登录凭据、会话或浏览历史。
+        响应结构：返回用户 ID、广场昵称、头像配色、账号状态、当前限制到期时间、未删除帖子数、未删除评论数和加入时间；不返回微信身份、登录凭据、会话或浏览历史。
         ACTIVE 表示账号正常且无进行中的能力限制；RESTRICTED 表示账号正常但至少存在一项尚未到期的发帖、评论或互动限制。
         错误码：引用 docs/errors.md；未登录、后台权限不足、参数校验失败和系统错误必须区分。
         幂等要求：GET 只读，不需要 Idempotency-Key。
@@ -2642,13 +2641,11 @@ components:
     MyProfile:
       type: object
       additionalProperties: false
-      required: [id, plaza_nickname, bio, avatar_color, stats]
+      required: [id, plaza_nickname, avatar_color, stats]
       properties:
         id:
           $ref: '#/components/schemas/OpaqueId'
         plaza_nickname:
-          type: string
-        bio:
           type: string
         avatar_color:
           type: string
@@ -2667,17 +2664,13 @@ components:
     UpdateMyProfileRequest:
       type: object
       additionalProperties: false
-      required: [plaza_nickname, bio, avatar_color]
+      required: [plaza_nickname, avatar_color]
       properties:
         plaza_nickname:
           type: string
           minLength: 1
           maxLength: 20
           description: 按 Unicode 扩展字素簇计数
-        bio:
-          type: string
-          maxLength: 80
-          description: 按 Unicode 扩展字素簇计数，可为空
         avatar_color:
           type: string
           enum: [ROSE, SAGE, SAND, LAVENDER, SKY]
@@ -2689,13 +2682,11 @@ components:
         data:
           type: object
           additionalProperties: false
-          required: [id, plaza_nickname, bio, avatar_color]
+          required: [id, plaza_nickname, avatar_color]
           properties:
             id:
               $ref: '#/components/schemas/OpaqueId'
             plaza_nickname:
-              type: string
-            bio:
               type: string
             avatar_color:
               type: string
@@ -3089,7 +3080,6 @@ components:
       required:
         - id
         - plaza_nickname
-        - bio
         - avatar_color
         - account_status
         - posting_restricted_until
@@ -3103,8 +3093,6 @@ components:
         id:
           $ref: '#/components/schemas/OpaqueId'
         plaza_nickname:
-          type: string
-        bio:
           type: string
         avatar_color:
           type: string

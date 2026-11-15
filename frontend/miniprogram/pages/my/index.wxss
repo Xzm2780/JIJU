@@ -104,20 +104,6 @@
   -webkit-line-clamp: 2;
 }
 
-.profile-bio {
-  display: -webkit-box;
-  max-width: 100%;
-  overflow: hidden;
-  color: #7f6e6f;
-  font-size: 23rpx;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-  text-overflow: ellipsis;
-  word-break: break-word;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
 .edit-link,
 .text-link {
   flex: 0 0 auto;

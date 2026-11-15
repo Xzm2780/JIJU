@@ -1,6 +1,6 @@
 <view class="page">
   <view wx:if="{{!session}}" class="card login-required">
-    <text class="login-title">登录后编辑个人资料</text>
+    <text class="login-title">登录后编辑广场身份</text>
     <button class="primary-button" bindtap="openLogin">微信登录</button>
   </view>
 
@@ -27,12 +27,7 @@
       <input class="input" value="{{nickname}}" maxlength="-1" bindinput="onNicknameInput" />
     </view>
 
-    <view class="field">
-      <view class="label-row"><text class="label">个人简介</text><text class="counter">{{bioCount}} / 80</text></view>
-      <textarea class="textarea" value="{{bio}}" maxlength="-1" placeholder="简单介绍一下自己" bindinput="onBioInput" />
-    </view>
-
     <view wx:if="{{message}}" class="message error">{{message}}</view>
-    <button class="primary-button" loading="{{saving}}" disabled="{{saving || loading}}" bindtap="save">保存资料</button>
+    <button class="primary-button" loading="{{saving}}" disabled="{{saving || loading}}" bindtap="save">保存</button>
   </view>
 </view>

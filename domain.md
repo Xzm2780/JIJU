@@ -37,7 +37,6 @@
 | auth_subject_ref | 字符串（内部敏感主体引用） | 是 | 正式微信由服务端对 openid 做不可逆摘要；mock 仅非生产 | 是 | 唯一索引；不得对外展示或进入日志 | AUTH-01 |
 | auth_provider | 枚举（WECHAT、MOCK） | 是 | 正式环境为 WECHAT；MOCK 仅非生产 | 否 | 无 | AUTH-01、NFR-SEC-01 |
 | plaza_nickname | 字符串 | 是 | 服务端生成稳定昵称 | 否 | 不建公开检索索引 | AUTH-04 |
-| bio | 字符串（个人简介） | 否 | 空 | 否 | 不建公开检索索引 | AUTH-04 |
 | avatar_color | 枚举（ROSE、SAGE、SAND、LAVENDER、SKY） | 是 | ROSE | 否 | 无 | AUTH-04 |
 | account_status | 枚举（正常或封禁；具体值待确认） | 是 | ACTIVE | 否 | 建议按状态建立筛选索引 | MOD-07、MOD-08 |
 | posting_restricted_until | 时间戳（UTC） | 否 | 空 | 否 | 与账号状态联合筛选 | MOD-07 |

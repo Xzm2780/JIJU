@@ -26,7 +26,6 @@ describe('ProfileService', () => {
         findUnique: jest.fn().mockResolvedValue({
           id: USER.id,
           plazaNickname: '晚风 1024',
-          bio: '慢一点也没关系',
           avatarColor: 'ROSE'
         })
       },
@@ -51,7 +50,6 @@ describe('ProfileService', () => {
     const result = await service.get(USER.id);
     expect(result).toMatchObject({
       plaza_nickname: '晚风 1024',
-      bio: '慢一点也没关系',
       stats: { total: 3, active: 1, expired: 1, hidden: 1 }
     });
   });
@@ -63,7 +61,6 @@ describe('ProfileService', () => {
         update: jest.fn().mockResolvedValue({
           id: USER.id,
           plazaNickname: '新的昵称',
-          bio: '新的简介',
           avatarColor: 'SAGE'
         })
       },
@@ -88,7 +85,6 @@ describe('ProfileService', () => {
       requestId: 'req_profile',
       body: {
         plaza_nickname: '新的昵称',
-        bio: '新的简介',
         avatar_color: 'SAGE'
       }
     });
@@ -99,7 +95,7 @@ describe('ProfileService', () => {
     expect(storedIdempotency.operation).toBe('profile.update');
   });
 
-  it('rejects invalid nickname, bio and avatar color', async () => {
+  it('rejects invalid nickname and avatar color', async () => {
     const service = new ProfileService({} as any);
     const base = {
       user: USER,
@@ -112,7 +108,6 @@ describe('ProfileService', () => {
         ...base,
         body: {
           plaza_nickname: '',
-          bio: '',
           avatar_color: 'ROSE'
         }
       })
@@ -122,17 +117,6 @@ describe('ProfileService', () => {
         ...base,
         body: {
           plaza_nickname: '昵称',
-          bio: '字'.repeat(81),
-          avatar_color: 'ROSE'
-        }
-      })
-    ).rejects.toMatchObject({ code: 'JIJU_VALIDATION_4221' });
-    await expect(
-      service.update({
-        ...base,
-        body: {
-          plaza_nickname: '昵称',
-          bio: '',
           avatar_color: 'UNKNOWN'
         }
       })

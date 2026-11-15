@@ -68,19 +68,16 @@ describe('long text presentation rules', () => {
     expect(body).not.toContain('max-height');
   });
 
-  it('handles long profile, settings and receipt text', () => {
+  it('handles long plaza identity, settings and receipt text', () => {
     const profile = readCss('miniprogram/pages/my/index.wxss');
     const settings = readCss('miniprogram/pages/settings/index.wxss');
     const report = readCss('miniprogram/pages/report/index.wxss');
 
     const profileName = declarationsFor(profile, '.profile-name');
-    const profileBio = declarationsFor(profile, '.profile-bio');
     expect(profileName).toContain('-webkit-line-clamp: 2');
     expect(profileName).toContain('text-overflow: ellipsis');
     expect(profileName).not.toContain('max-height');
-    expect(profileBio).toContain('-webkit-line-clamp: 2');
-    expect(profileBio).toContain('text-overflow: ellipsis');
-    expect(profileBio).not.toContain('max-height');
+    expect(declarationsFor(profile, '.profile-bio')).toBe('');
     expect(declarationsFor(settings, '.setting-value')).toContain(
       'text-overflow: ellipsis'
     );

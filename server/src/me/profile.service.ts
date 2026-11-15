@@ -51,7 +51,6 @@ export class ProfileService {
     return {
       id: user.id,
       plaza_nickname: user.plazaNickname,
-      bio: user.bio ?? '',
       avatar_color: user.avatarColor,
       stats
     };
@@ -63,7 +62,6 @@ export class ProfileService {
     requestId: string;
     body: {
       plaza_nickname: string;
-      bio: string;
       avatar_color: string;
     };
   }) {
@@ -76,16 +74,11 @@ export class ProfileService {
     if (nicknameLength < 1 || nicknameLength > 20) {
       throw validation('昵称长度需为 1 至 20 个可见字符');
     }
-    const bio = normalizeBody(arguments_.body.bio);
-    if (countGraphemes(bio) > 80) {
-      throw validation('个人简介最多 80 个可见字符');
-    }
     if (!AVATAR_COLORS.includes(arguments_.body.avatar_color)) {
       throw validation('头像配色无效');
     }
     const fingerprint = stableStringify({
       plaza_nickname: nickname,
-      bio,
       avatar_color: arguments_.body.avatar_color
     });
     const existing = await this.prisma.idempotencyRecord.findUnique({
@@ -117,7 +110,6 @@ export class ProfileService {
           where: { id: arguments_.user.id },
           data: {
             plazaNickname: nickname,
-            bio,
             avatarColor: arguments_.body.avatar_color
           }
         });
@@ -125,7 +117,6 @@ export class ProfileService {
           data: {
             id: user.id,
             plaza_nickname: user.plazaNickname,
-            bio: user.bio ?? '',
             avatar_color: user.avatarColor
           },
           request_id: arguments_.requestId

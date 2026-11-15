@@ -28,4 +28,16 @@ describe('miniapp navigation copy and alignment', () => {
     expect(styles).toMatch(/\.setting-label\s*\{[^}]*text-align:\s*left/s);
     expect(styles).toMatch(/\.setting-label\s*\{[^}]*flex:\s*1 1 0/s);
   });
+
+  it('models a non-social plaza identity without a personal bio', () => {
+    const identity = read('miniprogram/pages/profile/index.wxml');
+    const myPage = read('miniprogram/pages/my/index.wxml');
+
+    expect(identity).toContain('<text class="label">广场昵称</text>');
+    expect(identity).toContain('<text class="label">头像配色</text>');
+    expect(identity).not.toContain('个人简介');
+    expect(identity).not.toContain('textarea');
+    expect(myPage).not.toContain('profile-bio');
+    expect(myPage).toContain('<text class="menu-title">广场身份</text>');
+  });
 });

@@ -82,7 +82,7 @@ Page({
         error:
           error instanceof ApiRequestError
             ? error.payload.message
-            : '个人资料加载失败'
+            : '广场身份加载失败'
       });
     } finally {
       if (fromPullDown) {
