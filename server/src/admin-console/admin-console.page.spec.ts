@@ -14,10 +14,10 @@ describe('Admin console account management', () => {
 
   it('shows the same profile fields used by the miniapp', () => {
     expect(ADMIN_CONSOLE_HTML).toContain('item.plaza_nickname');
-    expect(ADMIN_CONSOLE_HTML).toContain('item.avatar_color');
     expect(ADMIN_CONSOLE_HTML).toContain('item.post_count');
     expect(ADMIN_CONSOLE_HTML).toContain('item.comment_count');
     expect(ADMIN_CONSOLE_HTML).not.toContain('item.bio');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('item.avatar_color');
   });
 
   it('contains syntactically valid inline operator scripts', () => {

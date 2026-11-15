@@ -39,14 +39,12 @@ export interface ProfileStats {
 export interface UserProfile {
   id: string;
   plaza_nickname: string;
-  avatar_color: 'ROSE' | 'SAGE' | 'SAND' | 'LAVENDER' | 'SKY';
   stats: ProfileStats;
 }
 
 export interface UpdatedProfile {
   id: string;
   plaza_nickname: string;
-  avatar_color: UserProfile['avatar_color'];
 }
 
 export interface PublishDraft {

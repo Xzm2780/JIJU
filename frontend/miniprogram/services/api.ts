@@ -453,7 +453,6 @@ export async function updateProfile(
   session: Session,
   payload: {
     plaza_nickname: string;
-    avatar_color: UserProfile['avatar_color'];
   },
   idempotencyKey: string
 ): Promise<UpdatedProfile> {

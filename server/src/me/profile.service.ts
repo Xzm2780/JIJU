@@ -12,8 +12,6 @@ import { stableStringify } from '../common/stable-stringify';
 import { createUuidV7 } from '../common/uuid-v7';
 import { PrismaService } from '../prisma/prisma.service';
 
-const AVATAR_COLORS = ['ROSE', 'SAGE', 'SAND', 'LAVENDER', 'SKY'];
-
 @Injectable()
 export class ProfileService {
   constructor(private readonly prisma: PrismaService) {}
@@ -51,7 +49,6 @@ export class ProfileService {
     return {
       id: user.id,
       plaza_nickname: user.plazaNickname,
-      avatar_color: user.avatarColor,
       stats
     };
   }
@@ -62,7 +59,6 @@ export class ProfileService {
     requestId: string;
     body: {
       plaza_nickname: string;
-      avatar_color: string;
     };
   }) {
     const key = requireIdempotencyKey(
@@ -74,12 +70,8 @@ export class ProfileService {
     if (nicknameLength < 1 || nicknameLength > 20) {
       throw validation('昵称长度需为 1 至 20 个可见字符');
     }
-    if (!AVATAR_COLORS.includes(arguments_.body.avatar_color)) {
-      throw validation('头像配色无效');
-    }
     const fingerprint = stableStringify({
-      plaza_nickname: nickname,
-      avatar_color: arguments_.body.avatar_color
+      plaza_nickname: nickname
     });
     const existing = await this.prisma.idempotencyRecord.findUnique({
       where: {
@@ -109,15 +101,13 @@ export class ProfileService {
         const user = await tx.user.update({
           where: { id: arguments_.user.id },
           data: {
-            plazaNickname: nickname,
-            avatarColor: arguments_.body.avatar_color
+            plazaNickname: nickname
           }
         });
         const response = {
           data: {
             id: user.id,
-            plaza_nickname: user.plazaNickname,
-            avatar_color: user.avatarColor
+            plaza_nickname: user.plazaNickname
           },
           request_id: arguments_.requestId
         };

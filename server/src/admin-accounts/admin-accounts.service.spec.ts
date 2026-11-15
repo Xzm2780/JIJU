@@ -132,7 +132,6 @@ describe('AdminAccountsService', () => {
           {
             id: 'usr_target',
             plazaNickname: '晚风 1024',
-            avatarColor: 'ROSE',
             accountStatus: 'ACTIVE',
             postingRestrictedUntil: new Date('2026-11-16T03:00:00.000Z'),
             commentingRestrictedUntil: null,
@@ -165,7 +164,6 @@ describe('AdminAccountsService', () => {
       {
         id: 'usr_target',
         plaza_nickname: '晚风 1024',
-        avatar_color: 'ROSE',
         account_status: AdminUserStatus.RESTRICTED,
         posting_restricted_until: '2026-11-16T03:00:00.000Z',
         commenting_restricted_until: null,
@@ -218,7 +216,6 @@ describe('AdminAccountsService', () => {
           {
             id: 'usr_banned',
             plazaNickname: '停用账号',
-            avatarColor: 'SAND',
             accountStatus: 'BANNED',
             postingRestrictedUntil: null,
             commentingRestrictedUntil: null,
@@ -229,7 +226,6 @@ describe('AdminAccountsService', () => {
           {
             id: 'usr_next',
             plazaNickname: '下一页账号',
-            avatarColor: 'SAGE',
             accountStatus: 'BANNED',
             postingRestrictedUntil: null,
             commentingRestrictedUntil: null,

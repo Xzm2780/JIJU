@@ -29,15 +29,17 @@ describe('miniapp navigation copy and alignment', () => {
     expect(styles).toMatch(/\.setting-label\s*\{[^}]*flex:\s*1 1 0/s);
   });
 
-  it('models a non-social plaza identity without a personal bio', () => {
-    const identity = read('miniprogram/pages/profile/index.wxml');
+  it('uses a normal profile with a generated avatar and editable nickname', () => {
+    const profile = read('miniprogram/pages/profile/index.wxml');
     const myPage = read('miniprogram/pages/my/index.wxml');
 
-    expect(identity).toContain('<text class="label">广场昵称</text>');
-    expect(identity).toContain('<text class="label">头像配色</text>');
-    expect(identity).not.toContain('个人简介');
-    expect(identity).not.toContain('textarea');
+    expect(profile).toContain('<view class="avatar-preview">');
+    expect(profile).toContain('<text class="label">昵称</text>');
+    expect(profile).not.toContain('头像配色');
+    expect(profile).not.toContain('color-grid');
+    expect(profile).not.toContain('个人简介');
+    expect(profile).not.toContain('textarea');
     expect(myPage).not.toContain('profile-bio');
-    expect(myPage).toContain('<text class="menu-title">广场身份</text>');
+    expect(myPage).toContain('<text class="menu-title">个人资料</text>');
   });
 });

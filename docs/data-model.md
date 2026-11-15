@@ -61,7 +61,6 @@ erDiagram
 | auth_subject_ref | 内部敏感主体引用 | 是 | 正式微信由服务端对 openid 做不可逆摘要；唯一，不对外返回，不进入日志或埋点。 |
 | auth_provider | 枚举 | 是 | `WECHAT` 或 `MOCK`；正式环境只允许 WECHAT，MOCK 仅非生产。 |
 | plaza_nickname | 字符串 | 是 | 服务端生成；不要求唯一；不得以微信昵称或头像替代。 |
-| avatar_color | 枚举 | 是 | ROSE、SAGE、SAND、LAVENDER、SKY；用于生成不包含微信头像的本地头像。 |
 | account_status | 枚举 | 是 | 至少支持正常和封禁；最终枚举待确认。 |
 | posting_restricted_until | UTC 时间 | 否 | 发帖限制解除时间。 |
 | commenting_restricted_until | UTC 时间 | 否 | 评论限制解除时间。 |

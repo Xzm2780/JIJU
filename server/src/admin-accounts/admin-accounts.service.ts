@@ -74,7 +74,6 @@ export class AdminAccountsService {
       select: {
         id: true,
         plazaNickname: true,
-        avatarColor: true,
         accountStatus: true,
         postingRestrictedUntil: true,
         commentingRestrictedUntil: true,
@@ -96,7 +95,6 @@ export class AdminAccountsService {
       data: page.map((user) => ({
         id: user.id,
         plaza_nickname: user.plazaNickname,
-        avatar_color: user.avatarColor,
         account_status: this.effectiveStatus(user, now),
         posting_restricted_until:
           user.postingRestrictedUntil?.toISOString() ?? null,

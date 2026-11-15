@@ -80,7 +80,6 @@ model User {
   authSubjectRef     String?               @unique
   authProvider       String                @default("MOCK")
   plazaNickname      String
-  avatarColor        String                @default("ROSE")
   accountStatus      String                @default("ACTIVE")
   postingRestrictedUntil    DateTime?
   commentingRestrictedUntil DateTime?

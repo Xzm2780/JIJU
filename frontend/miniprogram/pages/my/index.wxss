@@ -65,22 +65,6 @@
   font-size: 42rpx;
 }
 
-.avatar-SAGE {
-  background: linear-gradient(145deg, #a5ae9e, #7f8c78);
-}
-
-.avatar-SAND {
-  background: linear-gradient(145deg, #c7aa84, #a78660);
-}
-
-.avatar-LAVENDER {
-  background: linear-gradient(145deg, #afa1b7, #877691);
-}
-
-.avatar-SKY {
-  background: linear-gradient(145deg, #94aab4, #6f8791);
-}
-
 .profile-main {
   display: flex;
   min-width: 0;

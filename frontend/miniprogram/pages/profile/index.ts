@@ -12,29 +12,16 @@ import {
   loadSession,
   saveSession
 } from '../../services/session';
-import { Session, UserProfile } from '../../types';
+import { Session } from '../../types';
 import { countGraphemes, normalizeBody } from '../../utils/graphemes';
 import { createIdempotencyKey } from '../../utils/idempotency';
-
-const AVATAR_COLORS: Array<{
-  value: UserProfile['avatar_color'];
-  label: string;
-}> = [
-  { value: 'ROSE', label: '烟粉' },
-  { value: 'SAGE', label: '鼠尾草' },
-  { value: 'SAND', label: '暖沙' },
-  { value: 'LAVENDER', label: '灰紫' },
-  { value: 'SKY', label: '雾蓝' }
-];
 
 Page({
   data: {
     session: null as Session | null,
     nickname: '',
-    avatarColor: 'ROSE' as UserProfile['avatar_color'],
     avatarInitial: '我',
     nicknameCount: 0,
-    colors: AVATAR_COLORS,
     loading: true,
     saving: false,
     message: ''
@@ -65,7 +52,6 @@ Page({
       const profile = await fetchProfile(session);
       this.setData({
         nickname: profile.plaza_nickname,
-        avatarColor: profile.avatar_color,
         avatarInitial: Array.from(profile.plaza_nickname)[0] ?? '我',
         nicknameCount: countGraphemes(profile.plaza_nickname),
         loading: false
@@ -81,7 +67,7 @@ Page({
         message:
           error instanceof ApiRequestError
             ? error.payload.message
-            : '广场身份加载失败'
+            : '个人资料加载失败'
       });
     }
   },
@@ -96,12 +82,6 @@ Page({
       nickname,
       nicknameCount: countGraphemes(normalizeBody(nickname)),
       avatarInitial: Array.from(normalizeBody(nickname))[0] ?? '我'
-    });
-  },
-
-  selectColor(event: WechatMiniprogram.BaseEvent) {
-    this.setData({
-      avatarColor: event.currentTarget.dataset.color as UserProfile['avatar_color']
     });
   },
 
@@ -121,8 +101,7 @@ Page({
       const updated = await updateProfile(
         session,
         {
-          plaza_nickname: nickname,
-          avatar_color: this.data.avatarColor
+          plaza_nickname: nickname
         },
         createIdempotencyKey('profile.update')
       );
@@ -133,7 +112,7 @@ Page({
           plaza_nickname: updated.plaza_nickname
         }
       });
-      wx.showToast({ title: '广场身份已保存', icon: 'success' });
+      wx.showToast({ title: '个人资料已保存', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 350);
     } catch (error) {
       this.setData({

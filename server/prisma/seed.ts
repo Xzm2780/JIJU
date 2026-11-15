@@ -147,29 +147,26 @@ async function main(): Promise<void> {
     create: {
       id: 'usr_demo_emotion_square',
       authProvider: 'SEED',
-      plazaNickname: '晚风邮局',
-      avatarColor: 'ROSE'
+      plazaNickname: '晚风邮局'
     },
     update: {
-      plazaNickname: '晚风邮局',
-      avatarColor: 'ROSE'
+      plazaNickname: '晚风邮局'
     }
   });
   const demoReaders = await Promise.all(
     [
-      ['usr_demo_reader_1', '清晨 2046', 'SAGE'],
-      ['usr_demo_reader_2', '远山 0713', 'LAVENDER'],
-      ['usr_demo_reader_3', '南岸 1188', 'SAND']
-    ].map(([id, plazaNickname, avatarColor]) =>
+      ['usr_demo_reader_1', '清晨 2046'],
+      ['usr_demo_reader_2', '远山 0713'],
+      ['usr_demo_reader_3', '南岸 1188']
+    ].map(([id, plazaNickname]) =>
       prisma.user.upsert({
         where: { id },
         create: {
           id,
           authProvider: 'SEED',
-          plazaNickname,
-          avatarColor
+          plazaNickname
         },
-        update: { plazaNickname, avatarColor }
+        update: { plazaNickname }
       })
     )
   );

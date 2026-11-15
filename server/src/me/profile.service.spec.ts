@@ -25,8 +25,7 @@ describe('ProfileService', () => {
       user: {
         findUnique: jest.fn().mockResolvedValue({
           id: USER.id,
-          plazaNickname: '晚风 1024',
-          avatarColor: 'ROSE'
+          plazaNickname: '晚风 1024'
         })
       },
       post: {
@@ -60,8 +59,7 @@ describe('ProfileService', () => {
       user: {
         update: jest.fn().mockResolvedValue({
           id: USER.id,
-          plazaNickname: '新的昵称',
-          avatarColor: 'SAGE'
+          plazaNickname: '新的昵称'
         })
       },
       idempotencyRecord: {
@@ -84,18 +82,16 @@ describe('ProfileService', () => {
         'v1:profile.update:00000000-0000-7000-8000-000000000001',
       requestId: 'req_profile',
       body: {
-        plaza_nickname: '新的昵称',
-        avatar_color: 'SAGE'
+        plaza_nickname: '新的昵称'
       }
     });
     expect(result.data).toMatchObject({
-      plaza_nickname: '新的昵称',
-      avatar_color: 'SAGE'
+      plaza_nickname: '新的昵称'
     });
     expect(storedIdempotency.operation).toBe('profile.update');
   });
 
-  it('rejects invalid nickname and avatar color', async () => {
+  it('rejects an invalid nickname', async () => {
     const service = new ProfileService({} as any);
     const base = {
       user: USER,
@@ -107,17 +103,7 @@ describe('ProfileService', () => {
       service.update({
         ...base,
         body: {
-          plaza_nickname: '',
-          avatar_color: 'ROSE'
-        }
-      })
-    ).rejects.toMatchObject({ code: 'JIJU_VALIDATION_4221' });
-    await expect(
-      service.update({
-        ...base,
-        body: {
-          plaza_nickname: '昵称',
-          avatar_color: 'UNKNOWN'
+          plaza_nickname: ''
         }
       })
     ).rejects.toMatchObject({ code: 'JIJU_VALIDATION_4221' });
