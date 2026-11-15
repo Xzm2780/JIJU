@@ -1470,6 +1470,83 @@ paths:
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
+  /admin/content:
+    get:
+      tags:
+        - Admin
+      operationId: listAdminContent
+      summary: 查询后台内容管理列表
+      description: |
+        鉴权要求：独立后台身份，需 CONTENT_MODERATOR 或 AUDITOR 角色。
+        请求参数与校验：target_type 为 POST 或 COMMENT；status 可为 ALL、ACTIVE、PENDING_REVIEW、HIDDEN、EXPIRED、DELETED；query 搜索内容摘要或作者昵称；cursor 和 limit 为游标分页参数。
+        响应结构：返回内容类型、摘要、作者广场昵称、内容版本、公开状态、审核状态、时间信息和待处理举报数；不返回浏览量或浏览者身份。
+        错误码：引用 docs/errors.md；未登录、后台权限不足、校验失败和系统错误必须区分。
+        幂等要求：GET 只读，不需要 Idempotency-Key。
+        副作用：不改变内容、举报或审核状态。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: admin
+        roles: [CONTENT_MODERATOR, AUDITOR]
+      x-validation:
+        - target_type must be POST or COMMENT
+        - status must use a supported admin content state
+        - cursor must be an opaque server-issued cursor
+        - limit must be between 1 and 50
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4031
+        - JIJU_VALIDATION_4221
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: read-only request
+      x-side-effects:
+        - none
+      x-view-count:
+        returned: false
+        rule: admin content list must never serialize view_count or viewer identity
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - name: target_type
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ContentTargetType'
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ALL, ACTIVE, PENDING_REVIEW, HIDDEN, EXPIRED, DELETED]
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 后台内容列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminContentListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
   /admin/content/{target_type}/{target_id}/reviews:
     post:
       tags:
@@ -2760,6 +2837,65 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AdminReportItem'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+        request_id:
+          type: string
+    AdminContentItem:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - target_type
+        - author_nickname
+        - body_excerpt
+        - content_version
+        - public_status
+        - moderation_status
+        - published_at
+        - report_count
+      properties:
+        id:
+          $ref: '#/components/schemas/OpaqueId'
+        target_type:
+          $ref: '#/components/schemas/ContentTargetType'
+        author_nickname:
+          type: string
+        body_excerpt:
+          type: string
+        content_version:
+          type: integer
+          minimum: 1
+        public_status:
+          $ref: '#/components/schemas/PostPublicStatus'
+        moderation_status:
+          $ref: '#/components/schemas/ModerationStatus'
+        published_at:
+          $ref: '#/components/schemas/UtcTimestamp'
+        expires_at:
+          allOf:
+            - $ref: '#/components/schemas/UtcTimestamp'
+          nullable: true
+        hidden_at:
+          allOf:
+            - $ref: '#/components/schemas/UtcTimestamp'
+          nullable: true
+        deleted_at:
+          allOf:
+            - $ref: '#/components/schemas/UtcTimestamp'
+          nullable: true
+        report_count:
+          type: integer
+          minimum: 0
+    AdminContentListResponse:
+      type: object
+      additionalProperties: false
+      required: [data, page, request_id]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminContentItem'
         page:
           $ref: '#/components/schemas/PageInfo'
         request_id:

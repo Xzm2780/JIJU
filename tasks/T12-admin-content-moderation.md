@@ -7,7 +7,7 @@
 ## 2. 范围（Scope）
 
 - 页面：后台内容复核与治理页。
-- 接口：`POST /admin/content/{target_type}/{target_id}/reviews`、`POST /admin/content/{target_type}/{target_id}/actions`。
+- 接口：`GET /admin/content`、`POST /admin/content/{target_type}/{target_id}/reviews`、`POST /admin/content/{target_type}/{target_id}/actions`。
 - 支持复核通过/拒绝和隐藏、下架、恢复动作入口。
 
 ## 3. 非目标（Non-goals）
@@ -31,7 +31,7 @@ AC-06、AC-15、AC-19、AC-23、SUP-06
 
 ## 7. 涉及接口（Interfaces）
 
-`POST /admin/content/{target_type}/{target_id}/reviews`、`POST /admin/content/{target_type}/{target_id}/actions`
+`GET /admin/content`、`POST /admin/content/{target_type}/{target_id}/reviews`、`POST /admin/content/{target_type}/{target_id}/actions`
 
 ## 8. 涉及表（Tables）
 

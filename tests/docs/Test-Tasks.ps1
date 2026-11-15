@@ -164,6 +164,7 @@ $requiredInterfaces = @(
     'POST /auth/wechat/login',
     'POST /auth/logout',
     'GET /admin/reports',
+    'GET /admin/content',
     'GET /admin/review-queue',
     'POST /admin/content/{target_type}/{target_id}/reviews',
     'POST /admin/content/{target_type}/{target_id}/actions',
@@ -196,4 +197,4 @@ foreach ($row in $acRows) {
     }
 }
 
-Write-Host "Task package validation passed: 19 tasks, 26 covered interfaces, acyclic dependencies, and 31 AC task mappings."
+Write-Host "Task package validation passed: 19 tasks, 27 covered interfaces, acyclic dependencies, and 31 AC task mappings."
