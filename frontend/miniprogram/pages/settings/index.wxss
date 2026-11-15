@@ -59,6 +59,19 @@
   text-align: left;
 }
 
+.setting-action {
+  cursor: pointer;
+}
+
+.setting-action-hover {
+  background: #faf3f0;
+}
+
+.setting-disabled {
+  pointer-events: none;
+  opacity: 0.56;
+}
+
 .setting-value.active {
   color: #6f8a73;
 }
@@ -72,21 +85,6 @@
 .danger-zone .group-title,
 .danger-title {
   color: #914f4f;
-}
-
-.danger-copy {
-  display: flex;
-  min-width: 0;
-  flex: 1 1 0;
-  flex-direction: column;
-  gap: 6rpx;
-}
-
-.danger-desc {
-  color: #a18484;
-  font-size: 21rpx;
-  overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 .empty-card {

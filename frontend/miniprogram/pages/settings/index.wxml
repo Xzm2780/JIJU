@@ -21,23 +21,20 @@
     <view class="settings-group">
       <text class="group-title">会话</text>
       <view class="card settings-list">
-        <button class="setting-row setting-button" loading="{{busy}}" disabled="{{busy}}" bindtap="logout">
+        <view class="setting-row setting-action {{busy ? 'setting-disabled' : ''}}" hover-class="setting-action-hover" aria-role="button" bindtap="logout">
           <text class="setting-label">退出登录</text>
           <text class="chevron">›</text>
-        </button>
+        </view>
       </view>
     </view>
 
     <view class="settings-group danger-zone">
       <text class="group-title">危险操作</text>
       <view class="card settings-list">
-        <button class="setting-row setting-button danger" disabled="{{busy}}" bindtap="deleteAccount">
-          <view class="danger-copy">
-            <text class="danger-title">永久注销账号</text>
-            <text class="danger-desc">立即停用并进入 30 天冷静期</text>
-          </view>
+        <view class="setting-row setting-action {{busy ? 'setting-disabled' : ''}}" hover-class="setting-action-hover" aria-role="button" bindtap="deleteAccount">
+          <text class="setting-label danger-title">永久注销账号</text>
           <text class="chevron">›</text>
-        </button>
+        </view>
       </view>
     </view>
 

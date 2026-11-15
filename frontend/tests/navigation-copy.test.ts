@@ -22,6 +22,9 @@ describe('miniapp navigation copy and alignment', () => {
 
     expect(markup).toContain('<text class="setting-label">退出登录</text>');
     expect(markup).not.toContain('退出当前会话');
+    expect(markup).toContain('class="setting-row setting-action');
+    expect(markup).not.toContain('setting-button');
+    expect(markup).not.toContain('立即停用并进入 30 天冷静期');
     expect(styles).toMatch(/\.setting-label\s*\{[^}]*text-align:\s*left/s);
     expect(styles).toMatch(/\.setting-label\s*\{[^}]*flex:\s*1 1 0/s);
   });
