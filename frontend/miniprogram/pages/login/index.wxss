@@ -30,18 +30,8 @@
 }
 
 .eyebrow,
-.title,
-.intro,
-.privacy-note {
+.title {
   display: block;
-}
-
-.eyebrow {
-  margin-bottom: 12rpx;
-  color: #a5686c;
-  font-size: 22rpx;
-  font-weight: 700;
-  letter-spacing: 4rpx;
 }
 
 .title {
@@ -54,47 +44,36 @@
   word-break: break-word;
 }
 
-.intro {
-  margin-top: 20rpx;
-  color: #746566;
-  font-size: 25rpx;
-  line-height: 1.7;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.benefits {
-  display: flex;
-  margin: 34rpx 0;
-  padding: 24rpx;
-  border-radius: 24rpx;
-  background: #f8f1ed;
-  flex-direction: column;
-  gap: 18rpx;
-  text-align: left;
-}
-
-.benefit {
-  display: flex;
-  color: #5f5354;
-  font-size: 24rpx;
-  line-height: 1.6;
-  align-items: flex-start;
-  gap: 14rpx;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.benefit-icon {
-  flex: 0 0 auto;
-  color: #a5686c;
-  font-size: 28rpx;
-}
-
 .action,
 .cancel {
   width: 100%;
   margin: 0;
+}
+
+.agreement {
+  display: flex;
+  margin: 34rpx 0 24rpx;
+  color: #66595a;
+  font-size: 23rpx;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4rpx;
+}
+
+.agreement-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.agreement checkbox {
+  transform: scale(0.82);
+}
+
+.agreement-link {
+  color: #8d565b;
+  font-weight: 650;
 }
 
 .cancel {
@@ -131,15 +110,6 @@
   color: #914f4f;
   font-size: 24rpx;
   line-height: 1.6;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.privacy-note {
-  margin-top: 26rpx;
-  color: #9a8586;
-  font-size: 21rpx;
-  line-height: 1.7;
   overflow-wrap: anywhere;
   word-break: break-word;
 }

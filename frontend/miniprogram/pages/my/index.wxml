@@ -53,16 +53,11 @@
       </view>
 
       <view class="menu-section">
-        <text class="section-title">账号与服务</text>
+        <text class="section-title">账号</text>
         <view class="menu-card">
           <view class="menu-item" hover-class="menu-item-hover" bindtap="editProfile">
             <text class="menu-icon">◎</text>
             <view class="menu-copy"><text class="menu-title">个人资料</text></view>
-            <text class="chevron">›</text>
-          </view>
-          <view class="menu-item" hover-class="menu-item-hover" bindtap="openNotice">
-            <text class="menu-icon">◇</text>
-            <view class="menu-copy"><text class="menu-title">使用须知</text></view>
             <text class="chevron">›</text>
           </view>
           <view class="menu-item" hover-class="menu-item-hover" bindtap="openSettings">

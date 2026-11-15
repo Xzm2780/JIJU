@@ -107,10 +107,6 @@ Page({
     wx.navigateTo({ url: '/pages/profile/index' });
   },
 
-  openNotice() {
-    wx.navigateTo({ url: '/pages/notice/index' });
-  },
-
   openSettings() {
     wx.navigateTo({ url: '/pages/settings/index' });
   },

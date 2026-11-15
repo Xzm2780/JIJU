@@ -13,6 +13,7 @@ describe('miniapp navigation copy and alignment', () => {
     expect(markup).not.toContain('menu-desc');
     expect(markup).not.toContain('查看、编辑和管理已发布内容');
     expect(markup).not.toContain('退出登录与永久注销');
+    expect(markup).not.toContain('使用须知');
     expect(markup).toContain('<text class="menu-title">我的帖子</text>');
   });
 
@@ -45,5 +46,21 @@ describe('miniapp navigation copy and alignment', () => {
     expect(styles).toMatch(/\.input\s*\{[^}]*height:\s*92rpx/s);
     expect(styles).toMatch(/\.input\s*\{[^}]*line-height:\s*92rpx/s);
     expect(styles).toMatch(/\.input\s*\{[^}]*color:\s*#30292a/s);
+  });
+
+  it('requires the notice agreement before WeChat login', () => {
+    const loginMarkup = read('miniprogram/pages/login/index.wxml');
+    const loginLogic = read('miniprogram/pages/login/index.ts');
+    const noticeLogic = read('miniprogram/pages/notice/index.ts');
+    const settingsMarkup = read('miniprogram/pages/settings/index.wxml');
+
+    expect(loginMarkup).toContain('我已阅读并同意');
+    expect(loginMarkup).toContain('《使用须知》');
+    expect(loginMarkup).toContain('disabled="{{busy || !agreed}}"');
+    expect(loginMarkup).not.toContain('class="benefits"');
+    expect(loginLogic).toContain('confirmNotice(');
+    expect(noticeLogic).toContain("query.review === '1'");
+    expect(settingsMarkup).toContain('服务与协议');
+    expect(settingsMarkup).toContain('使用须知');
   });
 });

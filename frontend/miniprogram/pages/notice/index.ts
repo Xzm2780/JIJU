@@ -11,15 +11,22 @@ import { createIdempotencyKey } from '../../utils/idempotency';
 Page({
   data: {
     version: '',
+    versionLabel: '',
+    reviewOnly: false,
     confirmed: false,
     busy: false,
     message: ''
   },
 
-  onLoad() {
+  onLoad(query: Record<string, string | undefined>) {
     const session = loadSession();
+    const reviewOnly = query.review === '1';
     this.setData({
       version: session?.currentNoticeVersion ?? '',
+      versionLabel:
+        session?.currentNoticeVersion ??
+        (reviewOnly ? '登录后确认当前版本' : '加载中'),
+      reviewOnly,
       confirmed: session?.noticeConfirmed ?? false
     });
   },
@@ -54,6 +61,8 @@ Page({
   },
 
   back() {
-    wx.navigateBack();
+    wx.navigateBack({
+      fail: () => wx.switchTab({ url: '/pages/my/index' })
+    });
   }
 });

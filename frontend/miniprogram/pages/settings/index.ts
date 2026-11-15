@@ -27,6 +27,10 @@ Page({
     openLoginPage();
   },
 
+  openNotice() {
+    wx.navigateTo({ url: '/pages/notice/index' });
+  },
+
   async logout() {
     const session = this.data.session;
     if (!session || this.data.busy) {

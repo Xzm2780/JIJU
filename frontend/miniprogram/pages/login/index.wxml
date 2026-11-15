@@ -1,30 +1,41 @@
 <view class="page login-page">
   <view class="login-hero card">
     <view class="brand-mark">J</view>
-    <text class="eyebrow">欢迎来到 JIJU</text>
-    <text class="title">给情绪一个被听见的地方</text>
-    <text class="intro">登录后可以发布内容、回应他人，并管理自己的帖子。</text>
-
-    <view class="benefits">
-      <view class="benefit"><text class="benefit-icon">◇</text><text>微信一键登录，无需填写账号密码</text></view>
-      <view class="benefit"><text class="benefit-icon">◎</text><text>使用独立广场昵称，不展示微信头像和昵称</text></view>
-      <view class="benefit"><text class="benefit-icon">⌁</text><text>登录后返回原页面，已填写内容会保留</text></view>
-    </view>
+    <text class="title">欢迎来到 JIJU</text>
 
     <view wx:if="{{session}}" class="signed-in">
       <text class="signed-title">已登录</text>
       <text class="signed-name">{{session.user.plaza_nickname}}</text>
-      <button class="primary-button action" bindtap="finishLogin">返回继续</button>
+      <view wx:if="{{!session.noticeConfirmed}}" class="agreement">
+        <checkbox-group bindchange="onAgreementChange">
+          <label class="agreement-label">
+            <checkbox value="agreed" checked="{{agreed}}" color="#a5686c" />
+            <text>我已阅读并同意</text>
+          </label>
+        </checkbox-group>
+        <text class="agreement-link" bindtap="openNotice">《使用须知》</text>
+      </view>
+      <button class="primary-button action" loading="{{busy}}" disabled="{{busy || (!session.noticeConfirmed && !agreed)}}" bindtap="continueSession">
+        {{session.noticeConfirmed ? '返回继续' : '完成须知确认'}}
+      </button>
     </view>
 
     <block wx:else>
-      <button class="primary-button action" loading="{{busy}}" disabled="{{busy}}" bindtap="login">
+      <view class="agreement">
+        <checkbox-group bindchange="onAgreementChange">
+          <label class="agreement-label">
+            <checkbox value="agreed" checked="{{agreed}}" color="#a5686c" />
+            <text>我已阅读并同意</text>
+          </label>
+        </checkbox-group>
+        <text class="agreement-link" bindtap="openNotice">《使用须知》</text>
+      </view>
+      <button class="primary-button action" loading="{{busy}}" disabled="{{busy || !agreed}}" bindtap="login">
         {{busy ? '正在登录…' : '微信一键登录'}}
       </button>
       <button class="secondary-button cancel" disabled="{{busy}}" bindtap="cancel">暂不登录，返回浏览</button>
     </block>
 
     <view wx:if="{{error}}" class="login-error">{{error}}</view>
-    <text class="privacy-note">JIJU 仅使用微信临时登录凭证识别账号，不会读取或展示你的微信头像、昵称和好友关系。首次发布或互动前仍需确认当前版本使用须知。</text>
   </view>
 </view>

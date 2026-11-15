@@ -19,6 +19,17 @@
     </view>
 
     <view class="settings-group">
+      <text class="group-title">服务与协议</text>
+      <view class="card settings-list">
+        <view class="setting-row setting-action" hover-class="setting-action-hover" aria-role="button" bindtap="openNotice">
+          <text class="setting-label">使用须知</text>
+          <text class="setting-value {{session.noticeConfirmed ? 'active' : ''}}">{{session.noticeConfirmed ? '已确认' : '待确认'}}</text>
+          <text class="chevron">›</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="settings-group">
       <text class="group-title">会话</text>
       <view class="card settings-list">
         <view class="setting-row setting-action {{busy ? 'setting-disabled' : ''}}" hover-class="setting-action-hover" aria-role="button" bindtap="logout">

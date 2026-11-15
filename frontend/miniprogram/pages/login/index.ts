@@ -1,5 +1,6 @@
 import {
   ApiRequestError,
+  confirmNotice,
   loginWithWechat
 } from '../../services/api';
 import {
@@ -7,11 +8,13 @@ import {
   saveSession
 } from '../../services/session';
 import { Session } from '../../types';
+import { createIdempotencyKey } from '../../utils/idempotency';
 import { formatBeijing } from '../../utils/time';
 
 Page({
   data: {
     session: null as Session | null,
+    agreed: false,
     busy: false,
     error: ''
   },
@@ -21,6 +24,10 @@ Page({
   },
 
   async login() {
+    if (!this.data.agreed) {
+      this.setData({ error: '请先阅读并勾选使用须知' });
+      return;
+    }
     await this.performLogin(false);
   },
 
@@ -29,16 +36,15 @@ Page({
       return;
     }
     if (this.data.session) {
-      this.finishLogin();
+      await this.continueSession();
       return;
     }
     this.setData({ busy: true, error: '' });
     try {
       const session = await loginWithWechat(restoreDeletedAccount);
       saveSession(session);
-      this.setData({ session, busy: false });
-      wx.showToast({ title: '登录成功', icon: 'success', duration: 900 });
-      setTimeout(() => this.finishLogin(), 250);
+      this.setData({ session });
+      await this.finalizeSession(session);
     } catch (error) {
       if (
         error instanceof ApiRequestError &&
@@ -70,6 +76,56 @@ Page({
             : '登录失败，请检查网络后重试'
       });
     }
+  },
+
+  onAgreementChange(event: WechatMiniprogram.CheckboxGroupChange) {
+    this.setData({
+      agreed: event.detail.value.includes('agreed'),
+      error: ''
+    });
+  },
+
+  openNotice() {
+    wx.navigateTo({ url: '/pages/notice/index?review=1' });
+  },
+
+  async continueSession() {
+    const session = this.data.session;
+    if (!session || this.data.busy) {
+      return;
+    }
+    if (!session.noticeConfirmed && !this.data.agreed) {
+      this.setData({ error: '请先阅读并勾选使用须知' });
+      return;
+    }
+    this.setData({ busy: true, error: '' });
+    try {
+      await this.finalizeSession(session);
+    } catch (error) {
+      this.setData({
+        busy: false,
+        error:
+          error instanceof ApiRequestError
+            ? error.payload.message
+            : '使用须知确认失败，请检查网络后重试'
+      });
+    }
+  },
+
+  async finalizeSession(session: Session) {
+    let current = session;
+    if (!current.noticeConfirmed) {
+      await confirmNotice(
+        current,
+        createIdempotencyKey('notice.confirm')
+      );
+      current = { ...current, noticeConfirmed: true };
+      saveSession(current);
+      this.setData({ session: current });
+    }
+    this.setData({ busy: false });
+    wx.showToast({ title: '登录成功', icon: 'success', duration: 900 });
+    setTimeout(() => this.finishLogin(), 250);
   },
 
   finishLogin() {
