@@ -58,6 +58,20 @@ describe('publish client utilities', () => {
     );
   });
 
+  it('does not treat asynchronous wx.getRandomValues as a synchronous API', () => {
+    (globalThis as unknown as { wx: unknown }).wx = {
+      getRandomValues: () => Promise.resolve(new Uint8Array(16))
+    };
+    expect(
+      createIdempotencyKey(
+        'post.publish',
+        Date.parse('2026-11-13T10:00:00Z')
+      )
+    ).toMatch(
+      /^v1:post\.publish:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+    );
+  });
+
   it('reuses a key for retries and changes it for a new payload', () => {
     const manager = new IdempotencyManager('post.publish');
     const first = manager.forPayload({ body_text: '原文' });

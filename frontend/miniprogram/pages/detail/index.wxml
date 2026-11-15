@@ -89,8 +89,8 @@
           disabled="{{reactionBusy}}"
           bindtap="toggleReaction"
         >
-          <text class="reaction-icon">✦</text>
-          <text class="reaction-label">加油</text>
+          <text class="reaction-icon">✊</text>
+          <text class="reaction-label">握拳</text>
           <text class="reaction-number">{{post.reaction_counts.cheer}}</text>
         </button>
       </view>

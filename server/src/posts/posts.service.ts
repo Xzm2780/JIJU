@@ -240,7 +240,7 @@ export class PostsService {
           throw new ApiError(
             'JIJU_QUOTA_4291',
             429,
-            `今日发帖次数已达上限，请于 ${formatBeijingDateTime(day.end)}（北京时间）后重试`,
+            `今日发帖次数已达上限，请于 ${formatBeijingDateTime(day.end)} 后重试`,
             { next_available_bj: day.end.toISOString(), remaining: 0 }
           );
         }

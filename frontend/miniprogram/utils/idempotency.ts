@@ -1,23 +1,17 @@
 function randomBytes(length: number): Uint8Array {
   const bytes = new Uint8Array(length);
-  const wxCrypto =
-    typeof wx !== 'undefined'
-      ? (wx as unknown as {
-          getRandomValues?: (options: { length: number }) => {
-            randomValues: ArrayBuffer;
-          };
-        }).getRandomValues
-      : undefined;
-  if (wxCrypto) {
-    return new Uint8Array(wxCrypto({ length }).randomValues);
-  }
   const webCrypto = (globalThis as unknown as {
     crypto?: { getRandomValues?: (values: Uint8Array) => Uint8Array };
   }).crypto;
   if (webCrypto?.getRandomValues) {
     return webCrypto.getRandomValues(bytes);
   }
-  throw new Error('A secure random source is required for idempotency keys');
+  // wx.getRandomValues is asynchronous and cannot be used inside this
+  // synchronous UUID builder. These values are uniqueness tokens, not secrets.
+  for (let index = 0; index < bytes.length; index += 1) {
+    bytes[index] = Math.floor(Math.random() * 256);
+  }
+  return bytes;
 }
 
 export function createUuidV7(now = Date.now()): string {

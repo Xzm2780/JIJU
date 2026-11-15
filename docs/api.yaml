@@ -1982,7 +1982,7 @@ components:
     ReactionType:
       type: string
       enum: [HUG, HEAD_PAT, CHEER]
-      description: 抱一抱、摸摸头、加油
+      description: 抱一抱、摸摸头、握拳鼓励
     ContentTargetType:
       type: string
       enum: [POST, COMMENT]

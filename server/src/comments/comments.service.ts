@@ -183,7 +183,7 @@ export class CommentsService {
           throw new ApiError(
             'JIJU_QUOTA_4292',
             429,
-            `评论过于频繁，请于 ${formatBeijingDateTime(releaseAt)}（北京时间）后重试`,
+            `评论过于频繁，请于 ${formatBeijingDateTime(releaseAt)} 后重试`,
             { next_available_bj: releaseAt.toISOString() }
           );
         }
