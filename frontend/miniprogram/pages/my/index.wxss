@@ -96,19 +96,37 @@
 }
 
 .profile-name {
+  display: -webkit-box;
+  max-height: 2.8em;
+  max-width: 100%;
+  overflow: hidden;
   color: #30292a;
   font-size: 34rpx;
   font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .profile-bio {
+  display: -webkit-box;
+  max-height: 3em;
+  max-width: 100%;
+  overflow: hidden;
   color: #7f6e6f;
   font-size: 23rpx;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .edit-link,
 .text-link {
+  flex: 0 0 auto;
   margin: 0;
   background: transparent;
   color: #8d565b;
@@ -222,11 +240,15 @@
 .menu-title {
   font-size: 26rpx;
   font-weight: 700;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .menu-desc {
   color: #968384;
   font-size: 21rpx;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .chevron {

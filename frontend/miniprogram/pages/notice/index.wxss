@@ -9,6 +9,8 @@
   font-size: 38rpx;
   font-weight: 800;
   line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .notice-version {
@@ -24,6 +26,8 @@
   color: #5f5354;
   font-size: 27rpx;
   line-height: 1.8;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   flex-direction: column;
   gap: 18rpx;
 }

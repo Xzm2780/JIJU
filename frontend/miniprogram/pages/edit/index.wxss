@@ -6,16 +6,22 @@
 
 .header-row {
   display: flex;
+  min-width: 0;
   align-items: baseline;
   justify-content: space-between;
+  gap: 16rpx;
 }
 
 .title {
+  min-width: 0;
   font-size: 38rpx;
   font-weight: 800;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .counter {
+  flex: 0 0 auto;
   color: #8f7e7f;
   font-size: 23rpx;
 }
@@ -34,6 +40,8 @@
   background: #fffdfc;
   font-size: 30rpx;
   line-height: 1.7;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .grid {
@@ -42,6 +50,7 @@
 }
 
 .picker {
+  display: block;
   min-height: 80rpx;
   padding: 0 20rpx;
   border: 1rpx solid #e4d7d4;
@@ -51,7 +60,10 @@
   color: #5f5354;
   font-size: 26rpx;
   line-height: 80rpx;
+  overflow: hidden;
   text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .grid picker {
@@ -61,10 +73,13 @@
 }
 
 .fixed-expiry {
+  max-width: 100%;
   padding: 20rpx;
   border-radius: 18rpx;
   background: #f8f1ed;
   color: #876d58;
   font-size: 23rpx;
   line-height: 1.6;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }

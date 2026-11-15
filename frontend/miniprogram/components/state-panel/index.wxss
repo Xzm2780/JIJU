@@ -14,15 +14,21 @@
 }
 
 .state-title {
+  max-width: 100%;
   color: #30292a;
   font-size: 30rpx;
   font-weight: 700;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .state-message {
+  width: 100%;
   max-width: 560rpx;
   font-size: 26rpx;
   line-height: 1.6;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .state-action {

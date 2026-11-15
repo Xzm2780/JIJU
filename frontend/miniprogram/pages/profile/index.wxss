@@ -31,8 +31,10 @@
 
 .label-row {
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: space-between;
+  gap: 16rpx;
 }
 
 .label {
@@ -42,6 +44,7 @@
 }
 
 .counter {
+  flex: 0 0 auto;
   color: #a18d8e;
   font-size: 20rpx;
 }
@@ -55,6 +58,8 @@
   box-sizing: border-box;
   background: #fffdfc;
   font-size: 27rpx;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .textarea {

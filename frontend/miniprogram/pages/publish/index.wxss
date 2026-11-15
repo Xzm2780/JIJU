@@ -6,6 +6,7 @@
 
 .header-row {
   display: flex;
+  min-width: 0;
   justify-content: space-between;
   gap: 20rpx;
   align-items: flex-start;
@@ -15,6 +16,9 @@
 .eyebrow,
 .title {
   display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .eyebrow {
@@ -32,6 +36,7 @@
 }
 
 .counter {
+  flex: 0 0 auto;
   margin-top: 16rpx;
   color: #766b6d;
   font-size: 24rpx;
@@ -45,10 +50,13 @@
 .message {
   margin-bottom: 20rpx;
   padding: 20rpx 24rpx;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   border-radius: 18rpx;
   background: #f1e0e2;
   color: #7c4c52;
   font-size: 26rpx;
+  word-break: break-word;
 }
 
 .message.error {
@@ -85,11 +93,18 @@
   min-height: 280rpx;
   padding: 24rpx;
   line-height: 1.7;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .picker {
+  display: block;
   min-height: 84rpx;
   padding: 24rpx;
+  overflow: hidden;
+  line-height: 36rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .help {
@@ -162,6 +177,8 @@
   color: #685149;
   font-size: 22rpx;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .acknowledgement-group {
@@ -235,6 +252,8 @@
   color: #766b6d;
   font-size: 26rpx;
   line-height: 1.7;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .modal-actions {

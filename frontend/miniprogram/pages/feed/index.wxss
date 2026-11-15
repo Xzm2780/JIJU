@@ -73,23 +73,42 @@
   justify-content: space-between;
 }
 
+.card-title-row {
+  min-width: 0;
+  gap: 16rpx;
+}
+
 .nickname {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
   color: #7c4c52;
   font-size: 26rpx;
   font-weight: 700;
+  flex: 1 1 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .time {
+  flex: 0 0 auto;
   color: #9c898a;
   font-size: 21rpx;
 }
 
 .body {
-  display: block;
+  display: -webkit-box;
+  max-height: 8.75em;
+  max-width: 100%;
   margin: 22rpx 0;
+  overflow: hidden;
   font-size: 31rpx;
   line-height: 1.75;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   white-space: pre-wrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
 }
 
 .tags {
@@ -100,11 +119,16 @@
 }
 
 .tag {
+  max-width: 100%;
   padding: 7rpx 16rpx;
+  overflow: hidden;
   border-radius: 999rpx;
+  box-sizing: border-box;
   background: #f1e0e2;
   color: #7c4c52;
   font-size: 22rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tag-context {
@@ -113,15 +137,19 @@
 }
 
 .counts {
+  gap: 16rpx;
   color: #877778;
   font-size: 22rpx;
+  flex-wrap: wrap;
 }
 
 .feed-status {
   padding: 20rpx;
   color: #8f7e7f;
   font-size: 24rpx;
+  overflow-wrap: anywhere;
   text-align: center;
+  word-break: break-word;
 }
 
 .feed-status-error {

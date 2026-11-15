@@ -25,4 +25,16 @@ describe('Admin console account management', () => {
     expect(match).not.toBeNull();
     expect(() => new Function(match![1])).not.toThrow();
   });
+
+  it('clamps long table text and exposes the complete value as a tooltip', () => {
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      '.cell-main.cell-clamp-2{max-height:3.1em;max-width:460px;-webkit-line-clamp:2}'
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      "main.className='cell-main cell-clamp-2'"
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain('main.title=item.body_excerpt');
+    expect(ADMIN_CONSOLE_HTML).toContain("sub.title=subText");
+    expect(ADMIN_CONSOLE_HTML).toContain('name.title=item.plaza_nickname');
+  });
 });

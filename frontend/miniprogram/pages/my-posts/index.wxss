@@ -49,8 +49,14 @@
 .post-counts,
 .post-actions {
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: space-between;
+}
+
+.post-head,
+.post-counts {
+  gap: 16rpx;
 }
 
 .status-badge {
@@ -71,11 +77,18 @@
 }
 
 .post-body {
-  display: block;
+  display: -webkit-box;
+  max-height: 6.8em;
+  max-width: 100%;
   margin: 20rpx 0;
+  overflow: hidden;
   color: #30292a;
   font-size: 29rpx;
   line-height: 1.7;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
 }
 
 .expiry {
@@ -105,5 +118,7 @@
 
 .list-status {
   padding: 22rpx;
+  overflow-wrap: anywhere;
   text-align: center;
+  word-break: break-word;
 }

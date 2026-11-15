@@ -8,6 +8,8 @@
 .receipt-title {
   font-size: 38rpx;
   font-weight: 800;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .report-copy,
@@ -15,6 +17,8 @@
   color: #776768;
   font-size: 24rpx;
   line-height: 1.7;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .field {
@@ -41,13 +45,19 @@
 }
 
 .picker {
+  display: block;
   min-height: 76rpx;
+  overflow: hidden;
   line-height: 32rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .textarea {
   min-height: 220rpx;
   line-height: 1.6;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .receipt {
@@ -63,5 +73,6 @@
 .receipt-id {
   color: #9a8586;
   font-size: 21rpx;
-  word-break: break-all;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }

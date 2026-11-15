@@ -29,6 +29,7 @@
   text-align: left;
   align-items: center;
   justify-content: space-between;
+  gap: 24rpx;
 }
 
 .setting-row:last-child {
@@ -36,8 +37,15 @@
 }
 
 .setting-value {
+  display: block;
+  min-width: 0;
+  max-width: 62%;
+  overflow: hidden;
   color: #8d7a7b;
   font-size: 23rpx;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .setting-value.active {
@@ -45,6 +53,7 @@
 }
 
 .chevron {
+  flex: 0 0 auto;
   color: #b39b9d;
   font-size: 34rpx;
 }
@@ -56,6 +65,8 @@
 
 .danger-copy {
   display: flex;
+  min-width: 0;
+  flex: 1 1 0;
   flex-direction: column;
   gap: 6rpx;
 }
@@ -63,10 +74,14 @@
 .danger-desc {
   color: #a18484;
   font-size: 21rpx;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .empty-card {
   padding: 60rpx;
   color: #8d7a7b;
+  overflow-wrap: anywhere;
   text-align: center;
+  word-break: break-word;
 }

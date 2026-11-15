@@ -36,3 +36,10 @@ button::after {
   color: #30292a;
   border: 1rpx solid #e0d4d2;
 }
+
+.message,
+.help {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
