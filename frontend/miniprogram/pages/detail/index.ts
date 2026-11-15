@@ -373,7 +373,7 @@ Page({
     }
     this.setData({ reactionBusy: true, reactionMessage: '' });
     const effectIcon =
-      type === 'HUG' ? '♡' : type === 'HEAD_PAT' ? '✧' : '✊';
+      type === 'HUG' ? '♡' : type === 'HEAD_PAT' ? '✧' : '✹';
     this.setData({
       reactionEffect: type,
       reactionEffectIcon: effectIcon

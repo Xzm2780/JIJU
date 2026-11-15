@@ -89,7 +89,7 @@
           disabled="{{reactionBusy}}"
           bindtap="toggleReaction"
         >
-          <text class="reaction-icon">✊</text>
+          <text class="reaction-icon">✹</text>
           <text class="reaction-label">握拳</text>
           <text class="reaction-number">{{post.reaction_counts.cheer}}</text>
         </button>
@@ -130,7 +130,7 @@
         </view>
         <text class="comment-body">{{item.body_text}}</text>
         <view class="comment-actions">
-          <button class="text-link" data-id="{{item.id}}" bindtap="reportComment">举报</button>
+          <button wx:if="{{!item.can_delete}}" class="text-link" data-id="{{item.id}}" bindtap="reportComment">举报</button>
           <button wx:if="{{item.can_delete}}" class="text-link danger-text" data-id="{{item.id}}" bindtap="removeComment">删除</button>
         </view>
       </view>

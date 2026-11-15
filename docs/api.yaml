@@ -1016,7 +1016,7 @@ paths:
       summary: 提交举报
       description: |
         鉴权要求：必须登录；游客先完成登录再提交；运营账号按普通账号规则处理。
-        请求参数与校验：target_type 为 POST 或 COMMENT；target_id 合法；reason 使用固定枚举；reason=OTHER 时 other_description 必填且不得为空；服务端自行读取被举报对象的当前 content_version，不接受客户端伪造版本。
+        请求参数与校验：target_type 为 POST 或 COMMENT；target_id 合法且不能是当前用户自己的内容；reason 使用固定枚举；reason=OTHER 时 other_description 必填且不得为空；服务端自行读取被举报对象的当前 content_version，不接受客户端伪造版本。
         响应结构：返回举报 ID 和提交时间，不向普通用户公开举报人或处理结果细节。
         错误码：引用 docs/errors.md；内容不可用、校验失败、未登录、须知未确认和状态冲突必须区分。
         幂等要求：必须携带 Idempotency-Key，值为 v1:report.submit:<uuid_v7>；同一举报意图重试复用同一键，同时执行同用户、同对象、同原因 24 小时业务去重。
@@ -1029,6 +1029,7 @@ paths:
       x-validation:
         - target_type must be POST or COMMENT
         - target_id must be valid and refer to an available reportable object
+        - the reporter must not be the target content author
         - reason must be one of the fixed report reasons
         - other_description is required and non-empty only when reason is OTHER
         - server captures content_version without accepting it from the client

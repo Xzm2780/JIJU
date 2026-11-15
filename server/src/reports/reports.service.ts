@@ -87,6 +87,14 @@ export class ReportsService {
         arguments_.body.target_type,
         arguments_.body.target_id
       );
+      if (target.authorId === arguments_.user.id) {
+        throw new ApiError(
+          'JIJU_VALIDATION_4221',
+          422,
+          '不能举报自己的内容',
+          { fields: { target_id: '自己的内容无需举报' } }
+        );
+      }
       const now = new Date();
       const recent = await tx.report.findFirst({
         where: {
@@ -177,7 +185,7 @@ export class ReportsService {
     tx: Prisma.TransactionClient,
     targetType: ReportTargetType,
     targetId: string
-  ): Promise<{ contentVersion: number }> {
+  ): Promise<{ contentVersion: number; authorId: string }> {
     const now = new Date();
     if (targetType === ReportTargetType.POST) {
       const post = await tx.post.findUnique({ where: { id: targetId } });
@@ -195,7 +203,10 @@ export class ReportsService {
       ) {
         throw unavailable();
       }
-      return { contentVersion: post.currentContentVersion };
+      return {
+        contentVersion: post.currentContentVersion,
+        authorId: post.authorId
+      };
     }
 
     const comment = await tx.comment.findUnique({
@@ -213,7 +224,10 @@ export class ReportsService {
     ) {
       throw unavailable();
     }
-    return { contentVersion: comment.contentVersion };
+    return {
+      contentVersion: comment.contentVersion,
+      authorId: comment.authorId
+    };
   }
 
   private async replay(
