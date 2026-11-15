@@ -67,8 +67,9 @@ Page({
       }
     }
     clearSession();
-    this.setData({ session: null, busy: false, message: '已退出当前会话' });
-    wx.switchTab({ url: '/pages/my/index' });
+    this.setData({ session: null, busy: false, message: '' });
+    wx.showToast({ title: '已退出登录', icon: 'success', duration: 800 });
+    wx.switchTab({ url: '/pages/feed/index' });
   },
 
   async deleteAccount() {

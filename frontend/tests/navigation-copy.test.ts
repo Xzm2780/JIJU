@@ -63,4 +63,19 @@ describe('miniapp navigation copy and alignment', () => {
     expect(settingsMarkup).toContain('服务与协议');
     expect(settingsMarkup).toContain('使用须知');
   });
+
+  it('returns guests to the feed after logout and prompts login for protected actions', () => {
+    const settingsLogic = read('miniprogram/pages/settings/index.ts');
+    const detailLogic = read('miniprogram/pages/detail/index.ts');
+    const reportLogic = read('miniprogram/pages/report/index.ts');
+    const myMarkup = read('miniprogram/pages/my/index.wxml');
+
+    expect(settingsLogic).toContain(
+      "wx.switchTab({ url: '/pages/feed/index' })"
+    );
+    expect(settingsLogic).not.toContain('已退出当前会话');
+    expect(detailLogic).toContain('openLoginPage()');
+    expect(reportLogic).toContain('openLoginPage()');
+    expect(myMarkup).toContain('bindtap="openLogin"');
+  });
 });
