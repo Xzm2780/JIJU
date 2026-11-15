@@ -25,10 +25,15 @@
 
   <view wx:elif="{{post}}" class="detail-card card">
     <view class="meta-row">
-      <text class="nickname">{{post.author_nickname}}</text>
+      <view class="author-line">
+        <view class="author-avatar">{{authorInitial}}</view>
+        <view class="author-copy">
+          <text class="nickname">{{post.author_nickname}}</text>
+          <text class="published">{{publishedAt}}</text>
+        </view>
+      </view>
       <text wx:if="{{post.is_author}}" class="author-badge">作者视图</text>
     </view>
-    <text class="published">{{publishedAt}}</text>
 
     <text class="body">{{post.body_text}}</text>
 
@@ -43,39 +48,52 @@
       <text wx:if="{{post.is_author}}">{{post.view_count}} 次浏览</text>
     </view>
 
-    <view class="expiry">
+    <view wx:if="{{post.is_author && expiresAt}}" class="expiry">
       <text>公开至 {{expiresAt}}</text>
       <text>到期后不再接受新的回应</text>
     </view>
 
-    <view class="reactions" aria-label="轻互动">
-      <button
-        class="reaction-button {{myReaction === 'HUG' ? 'reaction-active' : ''}}"
-        data-type="HUG"
-        disabled="{{reactionBusy}}"
-        bindtap="toggleReaction"
-      >
-        <text>抱一抱</text>
-        <text>{{post.reaction_counts.hug}}</text>
-      </button>
-      <button
-        class="reaction-button {{myReaction === 'HEAD_PAT' ? 'reaction-active' : ''}}"
-        data-type="HEAD_PAT"
-        disabled="{{reactionBusy}}"
-        bindtap="toggleReaction"
-      >
-        <text>摸摸头</text>
-        <text>{{post.reaction_counts.head_pat}}</text>
-      </button>
-      <button
-        class="reaction-button {{myReaction === 'CHEER' ? 'reaction-active' : ''}}"
-        data-type="CHEER"
-        disabled="{{reactionBusy}}"
-        bindtap="toggleReaction"
-      >
-        <text>加油</text>
-        <text>{{post.reaction_counts.cheer}}</text>
-      </button>
+    <view class="reaction-stage">
+      <view wx:if="{{reactionEffect}}" class="reaction-burst burst-{{reactionEffect}}">
+        <text class="particle particle-1">{{reactionEffectIcon}}</text>
+        <text class="particle particle-2">{{reactionEffectIcon}}</text>
+        <text class="particle particle-3">{{reactionEffectIcon}}</text>
+        <text class="particle particle-4">{{reactionEffectIcon}}</text>
+        <text class="particle particle-5">{{reactionEffectIcon}}</text>
+        <text class="particle particle-6">{{reactionEffectIcon}}</text>
+      </view>
+      <view class="reactions" aria-label="轻互动">
+        <button
+          class="reaction-button {{myReaction === 'HUG' ? 'reaction-active' : ''}}"
+          data-type="HUG"
+          disabled="{{reactionBusy}}"
+          bindtap="toggleReaction"
+        >
+          <text class="reaction-icon">♡</text>
+          <text class="reaction-label">抱一抱</text>
+          <text class="reaction-number">{{post.reaction_counts.hug}}</text>
+        </button>
+        <button
+          class="reaction-button {{myReaction === 'HEAD_PAT' ? 'reaction-active' : ''}}"
+          data-type="HEAD_PAT"
+          disabled="{{reactionBusy}}"
+          bindtap="toggleReaction"
+        >
+          <text class="reaction-icon">✧</text>
+          <text class="reaction-label">摸摸头</text>
+          <text class="reaction-number">{{post.reaction_counts.head_pat}}</text>
+        </button>
+        <button
+          class="reaction-button {{myReaction === 'CHEER' ? 'reaction-active' : ''}}"
+          data-type="CHEER"
+          disabled="{{reactionBusy}}"
+          bindtap="toggleReaction"
+        >
+          <text class="reaction-icon">✦</text>
+          <text class="reaction-label">加油</text>
+          <text class="reaction-number">{{post.reaction_counts.cheer}}</text>
+        </button>
+      </view>
     </view>
     <text wx:if="{{reactionMessage}}" class="reaction-message">{{reactionMessage}}</text>
 
@@ -94,7 +112,7 @@
           <button
             class="primary-button comment-submit"
             loading="{{commentSubmitting}}"
-            disabled="{{commentSubmitting}}"
+            disabled="{{commentSubmitting || commentCount === 0 || commentCount > 200}}"
             bindtap="submitComment"
           >
             发送回应

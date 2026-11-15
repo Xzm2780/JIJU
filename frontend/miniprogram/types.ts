@@ -116,7 +116,7 @@ export interface PostDetail {
   context_tag: TagRef | null;
   body_text: string;
   published_at: string;
-  expires_at: string;
+  expires_at?: string;
   comment_count: number;
   reaction_counts: ReactionCounts;
   is_author: boolean;

@@ -361,7 +361,7 @@ Page({
       const next = error.payload.details?.next_available_bj;
       this.showMessage(
         next
-          ? `今日发帖次数已达上限，请于 ${formatBeijing(next)}（北京时间）后重试`
+          ? `今日发帖次数已达上限，请于 ${formatBeijing(next)} 后重试`
           : error.payload.message,
         'error'
       );

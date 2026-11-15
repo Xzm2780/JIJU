@@ -136,8 +136,8 @@ Page({
   toCard(item: MyPostItem): MyPostCard {
     return {
       ...item,
-      publishedLabel: `${formatBeijing(item.published_at)}（北京时间）`,
-      expiresLabel: `${formatBeijing(item.expires_at)}（北京时间）`,
+      publishedLabel: formatBeijing(item.published_at),
+      expiresLabel: formatBeijing(item.expires_at),
       statusLabel:
         item.public_status === 'EXPIRED'
           ? '已到期'

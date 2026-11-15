@@ -104,7 +104,7 @@ Page({
       this.setData({ session: null, busy: false });
       wx.showModal({
         title: '账号已停用',
-        content: `计划清理时间：${formatBeijing(result.deletion_scheduled_at)}（北京时间）`,
+        content: `计划清理时间：${formatBeijing(result.deletion_scheduled_at)}`,
         showCancel: false,
         success: () => wx.switchTab({ url: '/pages/my/index' })
       });

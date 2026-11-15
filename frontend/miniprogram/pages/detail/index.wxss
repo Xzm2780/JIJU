@@ -14,6 +14,34 @@
   gap: 16rpx;
 }
 
+.author-line {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.author-avatar {
+  display: flex;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #c38c90, #a5686c);
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 800;
+  flex: 0 0 72rpx;
+  align-items: center;
+  justify-content: center;
+}
+
+.author-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
 .nickname {
   color: #7c4c52;
   font-size: 28rpx;
@@ -30,7 +58,6 @@
 
 .published {
   display: block;
-  margin-top: 8rpx;
   color: #9c898a;
   font-size: 22rpx;
 }
@@ -91,23 +118,27 @@
   gap: 16rpx;
 }
 
+.reaction-stage {
+  position: relative;
+  margin-top: 30rpx;
+}
+
 .reactions {
   display: flex;
-  margin-top: 28rpx;
   gap: 12rpx;
 }
 
 .reaction-button {
   display: flex;
   min-width: 0;
-  min-height: 78rpx;
+  min-height: 122rpx;
   margin: 0;
   padding: 0 12rpx;
   border: 1rpx solid #e5d6d4;
   border-radius: 20rpx;
   background: #fffdfc;
   color: #6e5e5f;
-  font-size: 23rpx;
+  font-size: 21rpx;
   line-height: 1.3;
   flex: 1 1 0;
   align-items: center;
@@ -116,11 +147,78 @@
   gap: 4rpx;
 }
 
+.reaction-icon {
+  color: #9b6166;
+  font-size: 36rpx;
+  line-height: 1;
+}
+
+.reaction-label {
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.reaction-number {
+  color: #9a8586;
+  font-size: 20rpx;
+}
+
 .reaction-active {
   border-color: #b87b7f;
   background: #f1e0e2;
   color: #7c4c52;
   font-weight: 700;
+}
+
+.reaction-active .reaction-icon,
+.reaction-active .reaction-number {
+  color: #7c4c52;
+}
+
+.reaction-burst {
+  position: absolute;
+  inset: -30rpx 0 auto;
+  height: 150rpx;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  left: 50%;
+  bottom: 10rpx;
+  color: #a5686c;
+  font-size: 32rpx;
+  opacity: 0;
+  animation: reaction-pop 0.7s ease-out forwards;
+}
+
+.particle-1 { --x: -130rpx; --y: -88rpx; animation-delay: 0s; }
+.particle-2 { --x: -76rpx; --y: -118rpx; animation-delay: 0.03s; }
+.particle-3 { --x: -24rpx; --y: -92rpx; animation-delay: 0.06s; }
+.particle-4 { --x: 34rpx; --y: -112rpx; animation-delay: 0.09s; }
+.particle-5 { --x: 86rpx; --y: -82rpx; animation-delay: 0.12s; }
+.particle-6 { --x: 132rpx; --y: -58rpx; animation-delay: 0.15s; }
+
+.burst-HEAD_PAT .particle {
+  color: #9b7aa5;
+}
+
+.burst-CHEER .particle {
+  color: #b78255;
+}
+
+@keyframes reaction-pop {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5) rotate(0deg);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), var(--y)) scale(1.25) rotate(18deg);
+  }
 }
 
 .reaction-message {
@@ -152,7 +250,7 @@
 }
 
 .comment-form {
-  padding: 20rpx;
+  padding: 22rpx;
   border-radius: 22rpx;
   background: #f8f1ed;
 }
@@ -174,6 +272,11 @@
   justify-content: space-between;
 }
 
+.comment-submit-row {
+  margin-top: 14rpx;
+  gap: 18rpx;
+}
+
 .comment-counter,
 .comment-time,
 .comment-loading {
@@ -182,10 +285,13 @@
 }
 
 .comment-submit {
-  width: auto;
+  width: 190rpx;
+  min-width: 190rpx;
+  height: 70rpx;
   margin: 0;
-  padding: 0 24rpx;
+  padding: 0 18rpx;
   font-size: 23rpx;
+  line-height: 70rpx;
 }
 
 .comment-message,

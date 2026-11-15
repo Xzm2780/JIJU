@@ -39,9 +39,9 @@ Post、PostVersion、Comment、Reaction、ViewRecord、Tag
 ## 9. 实现要点（Implementation points / core rules）
 
 1. 非作者访问到期、隐藏、删除或不存在内容时统一返回 `JIJU_CONTENT_4041` 和“内容已不可用”。
-2. 详情展示广场昵称、标签快照、正文、发布时间、评论数和轻互动分类数量。
+2. 详情展示广场昵称、标签快照、正文、发布时间、评论数和轻互动分类数量；非作者响应不返回留存结束时间。
 3. 非作者新详情访问使用 `X-View-Token` 去重，首次计数最多创建一条 ViewRecord。
-4. 作者访问不计浏览量，并且只有作者详情响应可以包含 `view_count`。
+4. 作者访问不计浏览量，并且只有作者详情响应可以包含 `expires_at` 和 `view_count`。
 5. 响应序列化必须对非作者完全省略 `view_count`，不得依赖前端删除字段。
 
 ## 10. 测试要求（Test requirements）

@@ -91,6 +91,7 @@ describe('PostQueryService', () => {
     expect(result.is_author).toBe(false);
     expect(result.content_version).toBe(1);
     expect(result.my_reaction).toBeNull();
+    expect(result).not.toHaveProperty('expires_at');
     expect(result).not.toHaveProperty('view_count');
     expect(prisma.viewRecord.createMany).toHaveBeenCalledWith(
       expect.objectContaining({ skipDuplicates: true })
@@ -113,6 +114,7 @@ describe('PostQueryService', () => {
     });
 
     expect(result.is_author).toBe(true);
+    expect(result).toHaveProperty('expires_at');
     expect(result).toHaveProperty('view_count', 3);
     expect(prisma.viewRecord.createMany).not.toHaveBeenCalled();
   });

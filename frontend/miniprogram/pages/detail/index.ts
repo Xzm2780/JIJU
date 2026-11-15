@@ -21,6 +21,7 @@ Page({
     viewToken: '',
     post: null as PostDetail | null,
     publishedAt: '',
+    authorInitial: 'TA',
     expiresAt: '',
     loading: true,
     unavailable: false,
@@ -28,6 +29,8 @@ Page({
     myReaction: null as ReactionType | null,
     reactionBusy: false,
     reactionMessage: '',
+    reactionEffect: '',
+    reactionEffectIcon: '',
     comments: [] as Array<CommentItem & { publishedLabel: string }>,
     commentText: '',
     commentCount: 0,
@@ -78,10 +81,14 @@ Page({
       );
       this.setData({
         post,
+        authorInitial: Array.from(post.author_nickname)[0] ?? 'TA',
         myReaction: post.my_reaction,
-        publishedAt: `${formatBeijing(post.published_at)}（北京时间）`,
-        expiresAt: `${formatBeijing(post.expires_at)}（北京时间）`,
+        publishedAt: formatBeijing(post.published_at),
+        expiresAt: post.expires_at ? formatBeijing(post.expires_at) : '',
         loading: false
+      });
+      wx.setNavigationBarTitle({
+        title: post.is_author ? '我的情绪' : 'TA的情绪'
       });
       await this.loadComments(true);
     } catch (error) {
@@ -134,7 +141,7 @@ Page({
         .filter((item) => !existing.has(item.id))
         .map((item) => ({
           ...item,
-          publishedLabel: `${formatBeijing(item.published_at)}（北京时间）`
+          publishedLabel: formatBeijing(item.published_at)
         }));
       this.setData({
         comments: reset ? next : [...this.data.comments, ...next],
@@ -202,7 +209,7 @@ Page({
           ...this.data.comments,
           {
             ...created,
-            publishedLabel: `${formatBeijing(created.published_at)}（北京时间）`
+            publishedLabel: formatBeijing(created.published_at)
           }
         ],
         commentText: '',
@@ -365,6 +372,17 @@ Page({
       return;
     }
     this.setData({ reactionBusy: true, reactionMessage: '' });
+    const effectIcon =
+      type === 'HUG' ? '♡' : type === 'HEAD_PAT' ? '✧' : '✦';
+    this.setData({
+      reactionEffect: type,
+      reactionEffectIcon: effectIcon
+    });
+    setTimeout(() => {
+      if (this.data.reactionEffect === type) {
+        this.setData({ reactionEffect: '', reactionEffectIcon: '' });
+      }
+    }, 700);
     try {
       const next =
         this.data.myReaction === type

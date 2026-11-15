@@ -220,13 +220,17 @@ export class PostQueryService {
       ),
       body_text: post.bodyText,
       published_at: post.publishedAt.toISOString(),
-      expires_at: post.expiresAt.toISOString(),
       comment_count: postCounts?.commentCount ?? 0,
       reaction_counts:
         postCounts?.reactionCounts ?? emptyReactionCounts(),
       is_author: isAuthor,
       my_reaction: myReaction?.active ? myReaction.type : null,
-      ...(isAuthor ? { view_count: viewCount } : {})
+      ...(isAuthor
+        ? {
+            expires_at: post.expiresAt.toISOString(),
+            view_count: viewCount
+          }
+        : {})
     };
   }
 

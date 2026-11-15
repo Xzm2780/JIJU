@@ -45,7 +45,7 @@ Page({
       this.setData({
         items: page.data.map((item) => ({
           ...item,
-          publishedLabel: `${formatBeijing(item.published_at)}（北京时间）`
+          publishedLabel: formatBeijing(item.published_at)
         })),
         cursor: page.page.next_cursor ?? '',
         hasMore: page.page.has_more,
@@ -85,7 +85,7 @@ Page({
         .filter((item) => !existing.has(item.id))
         .map((item) => ({
           ...item,
-          publishedLabel: `${formatBeijing(item.published_at)}（北京时间）`
+          publishedLabel: formatBeijing(item.published_at)
         }));
       this.setData({
         items: [...this.data.items, ...nextItems],

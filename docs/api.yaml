@@ -180,7 +180,7 @@ paths:
       description: |
         鉴权要求：可选登录。游客和登录用户均可读取有效公开帖子；登录态有效且为作者时返回作者视图。
         请求参数与校验：post_id 必须为合法不透明 ID；X-View-Token 标识一次新详情页访问，同一页面刷新、回到前台或返回已打开页面时必须复用。
-        响应结构：公共视图包含作者广场昵称、标签、正文、评论数量和轻互动分类数量；作者视图额外返回 view_count。
+        响应结构：公共视图包含作者广场昵称、标签、正文、评论数量和轻互动分类数量，不返回留存结束时间；作者视图额外返回 expires_at 和 view_count。
         错误码：非作者访问到期、隐藏、删除或不存在内容统一返回 JIJU_CONTENT_4041；可选登录态失效返回 JIJU_AUTH_4012；其他错误引用 docs/errors.md。
         幂等要求：GET 不需要 Idempotency-Key；X-View-Token 用于浏览量去重。
         副作用：非作者成功打开新详情页且 view_token 首次出现时创建 A 条 ViewRecord；作者访问、失败访问、内容不可用和巡检不计数。
@@ -2181,10 +2181,10 @@ components:
       type: object
       required:
         - id
+        - content_version
         - author_nickname
         - body_text
         - published_at
-        - expires_at
         - comment_count
         - reaction_counts
         - is_author
@@ -2192,6 +2192,9 @@ components:
       properties:
         id:
           $ref: '#/components/schemas/OpaqueId'
+        content_version:
+          type: integer
+          minimum: 1
         author_nickname:
           type: string
         emotion_tag:
@@ -2205,8 +2208,6 @@ components:
         body_text:
           type: string
         published_at:
-          $ref: '#/components/schemas/UtcTimestamp'
-        expires_at:
           $ref: '#/components/schemas/UtcTimestamp'
         comment_count:
           type: integer
@@ -2243,7 +2244,7 @@ components:
           allOf:
             - $ref: '#/components/schemas/PostDetailBase'
             - type: object
-              required: [is_author, view_count]
+              required: [is_author, view_count, expires_at]
               properties:
                 is_author:
                   type: boolean
@@ -2251,6 +2252,9 @@ components:
                 view_count:
                   type: integer
                   minimum: 0
+                expires_at:
+                  $ref: '#/components/schemas/UtcTimestamp'
+                  description: 仅作者详情返回留存结束时间
         request_id:
           type: string
     PublishPostRequest:

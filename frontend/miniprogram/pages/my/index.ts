@@ -100,7 +100,7 @@ Page({
             title: '恢复账号',
             content: `账号仍处于注销冷静期，截止 ${formatBeijing(
               error.payload.details?.recovery_deadline ?? ''
-            )}（北京时间）。是否恢复？`,
+            )}。是否恢复？`,
             confirmText: '恢复账号',
             success: (result) => resolve(result.confirm),
             fail: () => resolve(false)
