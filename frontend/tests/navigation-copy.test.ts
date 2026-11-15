@@ -31,6 +31,7 @@ describe('miniapp navigation copy and alignment', () => {
 
   it('uses a normal profile with a generated avatar and editable nickname', () => {
     const profile = read('miniprogram/pages/profile/index.wxml');
+    const styles = read('miniprogram/pages/profile/index.wxss');
     const myPage = read('miniprogram/pages/my/index.wxml');
 
     expect(profile).toContain('<view class="avatar-preview">');
@@ -41,5 +42,8 @@ describe('miniapp navigation copy and alignment', () => {
     expect(profile).not.toContain('textarea');
     expect(myPage).not.toContain('profile-bio');
     expect(myPage).toContain('<text class="menu-title">个人资料</text>');
+    expect(styles).toMatch(/\.input\s*\{[^}]*height:\s*92rpx/s);
+    expect(styles).toMatch(/\.input\s*\{[^}]*line-height:\s*92rpx/s);
+    expect(styles).toMatch(/\.input\s*\{[^}]*color:\s*#30292a/s);
   });
 });
