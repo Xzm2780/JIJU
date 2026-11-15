@@ -6,7 +6,7 @@
 
 ## 2. 范围（Scope）
 
-- 页面：登录/授权恢复流程。
+- 页面：独立微信登录页，以及发布、评论、轻互动、举报、个人资料和账号设置中的登录入口。
 - 接口：`POST /auth/wechat/login`、`POST /auth/logout`。
 - 支持登录成功后恢复原页面、操作意图和本地草稿。
 
@@ -41,7 +41,7 @@ User、AuthSession、NoticeConfirmation
 
 1. 服务端通过 `WechatAuthProvider` 使用微信登录 code 换取内部账号；生产适配器调用 code2Session，mock 只允许非生产，生产开启 mock 时启动失败。
 2. 为账号生成稳定广场昵称，并返回当前须知版本与确认状态。
-3. 登录成功后恢复原页面、操作意图和本地草稿；取消登录保留本地草稿。
+3. 登录成功后返回原页面并恢复操作意图和本地草稿；取消登录同样返回原页面并保留草稿。
 4. 明确区分未登录 `JIJU_AUTH_4011` 与登录失效 `JIJU_AUTH_4012`。
 5. openid、unionid、session_key 不落库、不返回客户端、不进入日志；注销只撤销当前会话，重复注销保持幂等，不删除账号或业务数据。
 
@@ -50,7 +50,8 @@ User、AuthSession、NoticeConfirmation
 - `[AUTO]` 接口：有效 code、无效 code、会话发放、过期会话和重复注销。
 - `[AUTO]` 安全：正式 provider 不泄漏 session_key；生产配置禁止 mock；缺少 appid/secret 时启动失败。
 - `[AUTO]` 越权：游客直接调用受限接口返回未登录错误且不产生数据。
-- `[AUTO+MANUAL]` UI：登录成功后恢复发布页和输入，取消登录保留草稿。
+- `[AUTO]` 客户端：有效本地会话可恢复，过期、损坏或缺少必要字段的会话自动清除。
+- `[AUTO+MANUAL]` UI：登录成功后返回发布、评论、互动、举报或资料原页面；取消登录保留输入和草稿。
 - `[MANUAL]` 微信真机：授权、取消、网络中断和重新进入小程序的会话表现。
 
 ## 11. 完成定义（Definition of done）

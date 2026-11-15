@@ -64,14 +64,4 @@
     </view>
   </view>
 
-  <view wx:if="{{showLoginModal}}" class="modal-mask">
-    <view class="modal">
-      <text class="modal-title">先完成微信登录</text>
-      <text class="modal-copy">登录后继续发布，当前草稿会自动保留。</text>
-      <view class="modal-actions">
-        <button class="secondary-button" bindtap="cancelLogin">取消登录</button>
-        <button class="primary-button" bindtap="confirmLogin">微信登录</button>
-      </view>
-    </view>
-  </view>
 </view>

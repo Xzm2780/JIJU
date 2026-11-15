@@ -4,6 +4,11 @@ import {
   updateProfile
 } from '../../services/api';
 import {
+  isAuthenticationError,
+  openLoginPage
+} from '../../services/auth-flow';
+import {
+  clearSession,
   loadSession,
   saveSession
 } from '../../services/session';
@@ -37,13 +42,27 @@ Page({
     message: ''
   },
 
-  async onLoad() {
-    const session = loadSession();
-    if (!session) {
-      this.setData({ loading: false, message: '请先登录' });
+  hasShown: false,
+
+  onLoad() {
+    void this.initialize();
+  },
+
+  onShow() {
+    if (!this.hasShown) {
+      this.hasShown = true;
       return;
     }
-    this.setData({ session });
+    void this.initialize();
+  },
+
+  async initialize() {
+    const session = loadSession();
+    if (!session) {
+      this.setData({ session: null, loading: false, message: '' });
+      return;
+    }
+    this.setData({ session, loading: true, message: '' });
     try {
       const profile = await fetchProfile(session);
       this.setData({
@@ -56,6 +75,11 @@ Page({
         loading: false
       });
     } catch (error) {
+      if (isAuthenticationError(error)) {
+        clearSession();
+        this.setData({ session: null, loading: false, message: '' });
+        return;
+      }
       this.setData({
         loading: false,
         message:
@@ -64,6 +88,10 @@ Page({
             : '资料加载失败'
       });
     }
+  },
+
+  openLogin() {
+    openLoginPage();
   },
 
   onNicknameInput(event: WechatMiniprogram.Input) {

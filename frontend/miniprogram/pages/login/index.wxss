@@ -1,0 +1,145 @@
+.login-page {
+  display: flex;
+  min-height: 100vh;
+  padding-top: 64rpx;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.login-hero {
+  width: 100%;
+  padding: 48rpx 36rpx 36rpx;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.brand-mark {
+  display: flex;
+  width: 112rpx;
+  height: 112rpx;
+  margin: 0 auto 26rpx;
+  border-radius: 34rpx;
+  background: linear-gradient(145deg, #c38c90, #a5686c);
+  box-shadow: 0 18rpx 42rpx rgba(165, 104, 108, 0.26);
+  color: #fff;
+  font-family: "Songti SC", serif;
+  font-size: 54rpx;
+  font-weight: 700;
+  align-items: center;
+  justify-content: center;
+}
+
+.eyebrow,
+.title,
+.intro,
+.privacy-note {
+  display: block;
+}
+
+.eyebrow {
+  margin-bottom: 12rpx;
+  color: #a5686c;
+  font-size: 22rpx;
+  font-weight: 700;
+  letter-spacing: 4rpx;
+}
+
+.title {
+  color: #30292a;
+  font-family: "Songti SC", serif;
+  font-size: 44rpx;
+  font-weight: 650;
+  line-height: 1.42;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.intro {
+  margin-top: 20rpx;
+  color: #746566;
+  font-size: 25rpx;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.benefits {
+  display: flex;
+  margin: 34rpx 0;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: #f8f1ed;
+  flex-direction: column;
+  gap: 18rpx;
+  text-align: left;
+}
+
+.benefit {
+  display: flex;
+  color: #5f5354;
+  font-size: 24rpx;
+  line-height: 1.6;
+  align-items: flex-start;
+  gap: 14rpx;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.benefit-icon {
+  flex: 0 0 auto;
+  color: #a5686c;
+  font-size: 28rpx;
+}
+
+.action,
+.cancel {
+  width: 100%;
+  margin: 0;
+}
+
+.cancel {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+}
+
+.signed-in {
+  display: flex;
+  margin: 30rpx 0;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.signed-title {
+  color: #708575;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.signed-name {
+  color: #30292a;
+  font-size: 30rpx;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.login-error {
+  margin-top: 20rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 16rpx;
+  background: #f6e3e1;
+  color: #914f4f;
+  font-size: 24rpx;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.privacy-note {
+  margin-top: 26rpx;
+  color: #9a8586;
+  font-size: 21rpx;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}

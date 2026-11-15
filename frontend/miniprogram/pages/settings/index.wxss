@@ -79,9 +79,25 @@
 }
 
 .empty-card {
+  display: flex;
   padding: 60rpx;
   color: #8d7a7b;
-  overflow-wrap: anywhere;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20rpx;
   text-align: center;
+  overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.empty-title {
+  color: #30292a;
+  font-size: 30rpx;
+  font-weight: 750;
+}
+
+.empty-copy {
+  font-size: 23rpx;
+  line-height: 1.7;
 }

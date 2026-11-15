@@ -2,9 +2,9 @@ import {
   ApiRequestError,
   confirmNotice,
   fetchTags,
-  loginWithWechat,
   publishPost
 } from '../../services/api';
+import { openLoginPage } from '../../services/auth-flow';
 import {
   clearSession,
   loadSession,
@@ -45,12 +45,12 @@ Page({
     message: '',
     messageType: '' as '' | 'error' | 'warning' | 'info',
     publishing: false,
-    showLoginModal: false,
     loadingTags: true
   },
 
   riskContext: null as RiskContext | null,
   pendingPublishAfterLogin: false,
+  loginReturned: false,
 
   async onLoad() {
     const session = loadSession();
@@ -67,6 +67,27 @@ Page({
       getTabBar?: () => { setData: (value: { selected: number }) => void };
     }).getTabBar?.();
     tabBar?.setData({ selected: 1 });
+    const session = loadSession();
+    if (session) {
+      this.setData(
+        {
+          session,
+          sessionLabel: session.user.plaza_nickname
+        },
+        () => {
+          if (this.pendingPublishAfterLogin) {
+            this.pendingPublishAfterLogin = false;
+            void this.publish(false);
+          }
+        }
+      );
+      return;
+    }
+    this.setData({ session: null, sessionLabel: '游客' });
+    if (this.loginReturned) {
+      this.loginReturned = false;
+      this.showMessage('尚未登录，草稿仍保存在本机', 'warning');
+    }
   },
 
   async loadTags() {
@@ -203,41 +224,11 @@ Page({
     this.saveCurrentDraft();
     if (!this.data.session) {
       this.pendingPublishAfterLogin = true;
-      this.setData({ showLoginModal: true });
+      this.loginReturned = true;
+      openLoginPage();
       return;
     }
     await this.publish(false);
-  },
-
-  cancelLogin() {
-    this.pendingPublishAfterLogin = false;
-    this.setData({ showLoginModal: false });
-    this.showMessage('已取消登录，草稿仍保存在本机', 'warning');
-  },
-
-  async confirmLogin() {
-    try {
-      const session = await loginWithWechat();
-      saveSession(session);
-      this.setData({
-        session,
-        sessionLabel: session.user.plaza_nickname,
-        showLoginModal: false
-      });
-      this.applyDraft(loadDraft());
-      if (!(await this.ensureNotice(session))) {
-        return;
-      }
-      if (this.pendingPublishAfterLogin) {
-        this.pendingPublishAfterLogin = false;
-        await this.publish(false);
-      }
-    } catch (error) {
-      this.showMessage(
-        error instanceof ApiRequestError ? error.payload.message : '登录失败，请重试',
-        'error'
-      );
-    }
   },
 
   async ensureNotice(session: Session): Promise<boolean> {
@@ -326,9 +317,11 @@ Page({
 
     if (error.statusCode === 401) {
       clearSession();
-      this.setData({ session: null, sessionLabel: '游客', showLoginModal: true });
+      this.setData({ session: null, sessionLabel: '游客' });
       this.pendingPublishAfterLogin = true;
+      this.loginReturned = true;
       this.showMessage('登录状态已失效，草稿已保留', 'warning');
+      openLoginPage();
       return;
     }
     if (error.statusCode === 403 && error.payload.code === 'JIJU_ACCESS_4032') {

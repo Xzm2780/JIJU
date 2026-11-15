@@ -40,7 +40,7 @@ User、AdminRoleAssignment、AuditLog、IdempotencyRecord
 
 ## 9. 实现要点（Implementation points / core rules）
 
-1. 用户列表允许 ACCOUNT_MODERATOR 或 AUDITOR 只读查询；处置仅允许 ACCOUNT_MODERATOR，且必须从用户列表确认目标账号后提交。
+1. 用户列表允许 ACCOUNT_MODERATOR 或 AUDITOR 只读查询；处置仅允许 ACCOUNT_MODERATOR，且必须从用户列表确认目标账号后提交。后台登录令牌仅保存在当前标签页会话存储中，刷新可恢复，关闭标签页或退出后清除。
 2. 动作限定 WARNING、POST_LIMIT、COMMENT_LIMIT、REACTION_LIMIT、BAN。
 3. 限制类动作必须提供未来 `expires_at`；BAN 可为空表示持续封禁，具体运营期限须按批准规则填写。
 4. WARNING 只写审计；其他动作更新对应账号限制或封禁字段，不删除内容。
@@ -49,6 +49,7 @@ User、AdminRoleAssignment、AuditLog、IdempotencyRecord
 ## 10. 测试要求（Test requirements）
 
 - `[AUTO]` 接口：用户列表状态筛选、资料字段裁剪、游标分页；五种动作、时间校验、账号不存在和重复幂等请求。
+- `[AUTO+MANUAL]` UI：后台登录成功后刷新页面仍保持会话；过期、撤销或退出后回到登录页，且不在持久存储中保存密码。
 - `[AUTO]` 越权：普通用户、作者和非账号治理角色不能调用。
 - `[AUTO]` 副作用：限制只影响对应能力，不改写或删除用户内容。
 - `[AUTO]` 审计：操作者、角色、原因、时间和前后状态完整。

@@ -222,50 +222,6 @@
   margin: 0;
 }
 
-.modal-mask {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40rpx;
-  background: rgba(50, 38, 40, 0.5);
-}
-
-.modal {
-  width: 100%;
-  padding: 34rpx;
-  border-radius: 28rpx;
-  background: #fffcfb;
-  box-sizing: border-box;
-}
-
-.modal-title {
-  display: block;
-  margin-bottom: 16rpx;
-  font-family: "Songti SC", serif;
-  font-size: 38rpx;
-  font-weight: 650;
-}
-
-.modal-copy {
-  color: #766b6d;
-  font-size: 26rpx;
-  line-height: 1.7;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 16rpx;
-  margin-top: 30rpx;
-}
-
-.modal-actions button {
-  flex: 1;
-}
-
 @media (max-width: 360px) {
   .segment {
     padding: 14rpx 2rpx;

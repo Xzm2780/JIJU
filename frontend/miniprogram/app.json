@@ -3,6 +3,7 @@
     "pages/feed/index",
     "pages/publish/index",
     "pages/my/index",
+    "pages/login/index",
     "pages/my-posts/index",
     "pages/profile/index",
     "pages/settings/index",

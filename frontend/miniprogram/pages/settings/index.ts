@@ -3,6 +3,7 @@ import {
   deleteAccount,
   logoutSession
 } from '../../services/api';
+import { openLoginPage } from '../../services/auth-flow';
 import {
   clearSession,
   loadSession
@@ -20,6 +21,10 @@ Page({
 
   onShow() {
     this.setData({ session: loadSession(), message: '' });
+  },
+
+  openLogin() {
+    openLoginPage();
   },
 
   async logout() {

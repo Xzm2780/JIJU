@@ -3,7 +3,14 @@ import {
   deletePost,
   fetchMyPosts
 } from '../../services/api';
-import { loadSession } from '../../services/session';
+import {
+  isAuthenticationError,
+  openLoginPage
+} from '../../services/auth-flow';
+import {
+  clearSession,
+  loadSession
+} from '../../services/session';
 import {
   MyPostItem,
   MyPostStatusFilter,
@@ -38,7 +45,7 @@ Page({
     } else {
       this.setData({
         loading: false,
-        error: '请先在“我的”页面完成登录'
+        error: '请先登录后查看我的帖子'
       });
     }
   },
@@ -78,6 +85,15 @@ Page({
         loading: false
       });
     } catch (error) {
+      if (isAuthenticationError(error)) {
+        clearSession();
+        this.setData({
+          session: null,
+          loading: false,
+          error: '登录已失效，请重新登录'
+        });
+        return;
+      }
       this.setData({
         loading: false,
         error:
@@ -123,6 +139,15 @@ Page({
         loadingMore: false
       });
     } catch (error) {
+      if (isAuthenticationError(error)) {
+        clearSession();
+        this.setData({
+          session: null,
+          loadingMore: false,
+          error: '登录已失效，请重新登录'
+        });
+        return;
+      }
       this.setData({
         loadingMore: false,
         error:
@@ -150,7 +175,11 @@ Page({
   },
 
   retry() {
-    void this.loadFirstPage();
+    if (this.data.session) {
+      void this.loadFirstPage();
+      return;
+    }
+    openLoginPage();
   },
 
   openDetail(event: WechatMiniprogram.BaseEvent) {
@@ -189,6 +218,12 @@ Page({
       await deletePost(session, id, createIdempotencyKey('post.delete'));
       await this.loadFirstPage();
     } catch (error) {
+      if (isAuthenticationError(error)) {
+        clearSession();
+        this.setData({ session: null });
+        openLoginPage();
+        return;
+      }
       wx.showToast({
         title:
           error instanceof ApiRequestError

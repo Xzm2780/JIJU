@@ -2,7 +2,14 @@ import {
   ApiRequestError,
   createReport
 } from '../../services/api';
-import { loadSession } from '../../services/session';
+import {
+  isAuthenticationError,
+  openLoginPage
+} from '../../services/auth-flow';
+import {
+  clearSession,
+  loadSession
+} from '../../services/session';
 import {
   ReportReason,
   ReportReceipt,
@@ -51,16 +58,7 @@ Page({
   async submit() {
     const session = loadSession();
     if (!session) {
-      wx.showModal({
-        title: '请先登录',
-        content: '登录后才能提交举报。',
-        confirmText: '去登录',
-        success: (result) => {
-          if (result.confirm) {
-            wx.switchTab({ url: '/pages/my/index' });
-          }
-        }
-      });
+      openLoginPage();
       return;
     }
     if (!this.data.targetId || this.data.submitting) {
@@ -90,6 +88,12 @@ Page({
       this.setData({ submitting: false, receipt });
     } catch (error) {
       this.setData({ submitting: false });
+      if (isAuthenticationError(error)) {
+        clearSession();
+        this.setData({ message: '登录已失效，请重新登录后提交举报' });
+        openLoginPage();
+        return;
+      }
       if (
         error instanceof ApiRequestError &&
         error.payload.code === 'JIJU_ACCESS_4032'

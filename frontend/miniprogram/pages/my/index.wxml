@@ -2,8 +2,8 @@
   <view wx:if="{{!session}}" class="card guest-card">
     <view class="guest-avatar">我</view>
     <text class="guest-title">登录后管理你的情绪记录</text>
-    <text class="guest-copy">登录后可编辑资料、查看帖子数据和账号设置。</text>
-    <button class="primary-button" loading="{{busy}}" disabled="{{busy}}" bindtap="login">微信登录</button>
+    <text class="guest-copy">登录后可发布、回应和管理内容。JIJU 不展示你的微信头像和昵称。</text>
+    <button class="primary-button" bindtap="openLogin">微信登录</button>
     <button class="secondary-button" bindtap="goPublish">先去写一条</button>
   </view>
 

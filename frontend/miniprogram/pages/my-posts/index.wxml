@@ -11,7 +11,7 @@
     state="error"
     title="暂时无法加载"
     message="{{error}}"
-    action-text="重试"
+    action-text="{{session ? '重试' : '登录'}}"
     bind:action="retry"
   />
   <state-panel

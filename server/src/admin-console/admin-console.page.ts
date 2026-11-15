@@ -63,7 +63,7 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
     <section class="workspace">
       <header class="topbar">
         <div><div class="breadcrumb">JIJU 运营管理 / <span id="breadcrumb-current">数据工作台</span></div><h2 id="page-title">数据工作台</h2><div id="page-subtitle" class="topbar-sub">处理举报、内容复核和账号治理</div></div>
-        <div class="topbar-actions"><span class="operator">运营后台</span><button id="logout-button" class="secondary">退出登录</button></div>
+        <div class="topbar-actions"><span id="operator-name" class="operator">运营后台</span><button id="logout-button" class="secondary">退出登录</button></div>
       </header>
       <main>
         <div id="status" class="status"></div>
@@ -78,7 +78,7 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
           </div>
           <div class="page-head"><div><h3>待处理事项</h3><p>按来源汇总当前需要运营关注的项目。</p></div></div>
           <div class="list" id="overview-list"></div>
-          <div class="system-note">建议按“举报队列 → 统一复核 → 内容治理 → 审计”顺序处理。账号限制属于独立高风险操作，需二次确认。登录令牌与业务数据不会写入浏览器持久存储，关闭页面后需要重新登录。</div>
+          <div class="system-note">建议按“举报队列 → 统一复核 → 内容治理 → 审计”顺序处理。账号限制属于独立高风险操作，需二次确认。登录状态仅保存在当前浏览器标签页，刷新页面无需重新登录；关闭标签页或退出后清除。</div>
         </section>
 
         <section class="panel" id="panel-reports">
@@ -120,7 +120,8 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
 
 <script>
 (() => {
-  const state={token:''};
+  const ADMIN_SESSION_KEY='jiju.admin-console.session.v1';
+  const state={token:'',expiresAt:'',user:null};
   let contentCursor='';
   let contentItems=[];
   let accountCursor='';
@@ -133,11 +134,16 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
     const authHeader=options.noAuth?{}:{authorization:'Bearer '+state.token};
     const response=await fetch('/api/v1'+path,{method:options.method||'GET',headers:{accept:'application/json',...authHeader,...(options.body?{'content-type':'application/json'}:{}),...(options.idempotencyKey?{'idempotency-key':options.idempotencyKey}:{})},body:options.body?JSON.stringify(options.body):undefined});
     const text=await response.text();const body=text?JSON.parse(text):null;
-    if(!response.ok)throw new Error((body&&body.code?body.code+': ':'')+(body&&body.message?body.message:response.status));
+    if(!response.ok){const error=new Error((body&&body.code?body.code+': ':'')+(body&&body.message?body.message:response.status));error.statusCode=response.status;error.code=body&&body.code;if(response.status===401&&!options.noAuth){clearAdminSession();showLoginScreen('登录状态已失效，请重新登录')}throw error}
     return body;
   }
   function uuidV7(){const b=crypto.getRandomValues(new Uint8Array(16));let t=BigInt(Date.now());for(let i=5;i>=0;i--){b[i]=Number(t&255n);t>>=8n}b[6]=(b[6]&15)|112;b[8]=(b[8]&63)|128;const h=[...b].map(x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)}
   const key=(operation)=>'v1:'+operation+':'+uuidV7();
+  function clearAdminSession(removeStored=true){state.token='';state.expiresAt='';state.user=null;if(removeStored){try{sessionStorage.removeItem(ADMIN_SESSION_KEY)}catch(error){}}}
+  function saveAdminSession(data){state.token=data.access_token;state.expiresAt=data.expires_at;state.user=data.user;try{sessionStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify({accessToken:data.access_token,expiresAt:data.expires_at,user:data.user}))}catch(error){}}
+  function showLoginScreen(message=''){$('#app-shell').classList.add('hidden');$('#login-screen').classList.remove('hidden');setLoginError(message);$('#login-password').value=''}
+  function showAdminApp(){$('#login-screen').classList.add('hidden');$('#app-shell').classList.remove('hidden');$('#operator-name').textContent=state.user&&state.user.display_name?state.user.display_name+' · 运营账号':'运营后台';switchPanel('overview')}
+  function restoreAdminSession(){try{const raw=sessionStorage.getItem(ADMIN_SESSION_KEY);if(!raw)return false;const saved=JSON.parse(raw);const expiresAt=Date.parse(saved.expiresAt);if(!saved.accessToken||!Number.isFinite(expiresAt)||expiresAt<=Date.now()+5000||!saved.user){clearAdminSession();return false}state.token=saved.accessToken;state.expiresAt=saved.expiresAt;state.user=saved.user;showAdminApp();return true}catch(error){clearAdminSession();return false}}
   function switchPanel(name){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id==='panel-'+name));document.querySelectorAll('.nav-button').forEach(x=>x.classList.toggle('active',x.dataset.panel===name));$('#page-title').textContent=titles[name][0];$('#page-subtitle').textContent=titles[name][1];$('#breadcrumb-current').textContent=titles[name][0];if(name==='overview')loadOverview();if(name==='reports')loadReports();if(name==='queue')loadQueue();if(name==='content')loadContent();if(name==='accounts')loadAccounts()}
   const labels={
     POST:'帖子',COMMENT:'评论',
@@ -183,8 +189,8 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
   $('#load-accounts').onclick=()=>{accountCursor='';accountItems=[];loadAccounts(false)};
   $('#load-more-accounts').onclick=()=>loadAccounts(true);
   $('#account-action').onchange=syncAccountExpiry;
-  $('#login-form').onsubmit=async(event)=>{event.preventDefault();const username=$('#login-username').value.trim();const password=$('#login-password').value;if(!username||!password){setLoginError('请输入用户名和密码');return}try{setLoginError('');const result=await api('/admin/auth/login',{method:'POST',noAuth:true,body:{username,password}});state.token=result.data.access_token;$('#login-screen').classList.add('hidden');$('#app-shell').classList.remove('hidden');switchPanel('overview')}catch(e){setLoginError(e.message);state.token=''}};
-  $('#logout-button').onclick=async()=>{try{if(state.token)await api('/auth/logout',{method:'POST'})}catch(e){}state.token='';$('#app-shell').classList.add('hidden');$('#login-screen').classList.remove('hidden');$('#login-password').value='';setStatus('')};
+  $('#login-form').onsubmit=async(event)=>{event.preventDefault();const username=$('#login-username').value.trim();const password=$('#login-password').value;if(!username||!password){setLoginError('请输入用户名和密码');return}try{setLoginError('');const result=await api('/admin/auth/login',{method:'POST',noAuth:true,body:{username,password}});saveAdminSession(result.data);showAdminApp()}catch(e){clearAdminSession();setLoginError(e.message)}};
+  $('#logout-button').onclick=async()=>{try{if(state.token)await api('/auth/logout',{method:'POST'})}catch(e){}clearAdminSession();showLoginScreen();setStatus('')};
   $('#sidebar-nav').onclick=(event)=>{const b=event.target.closest('.nav-button');if(b)switchPanel(b.dataset.panel)};
   document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>switchPanel(b.dataset.jump));
   $('#load-reports').onclick=loadReports;$('#load-queue').onclick=loadQueue;
@@ -192,6 +198,7 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
   $('#submit-action').onclick=async()=>{try{const action=$('#content-action').value;if(!action)throw new Error('请选择后续处理方式');setStatus('正在执行内容处理…');const type=$('#content-type').value,id=encodeURIComponent($('#content-id').value.trim());const r=await api('/admin/content/'+type+'/'+id+'/actions',{method:'POST',idempotencyKey:key('admin.content.action'),body:{action,expected_content_version:Number($('#content-version').value),reason:$('#content-reason').value.trim()}});setStatus('处理完成：'+human(r.data.public_status_before)+' → '+human(r.data.public_status_after))}catch(e){setStatus(e.message,true)}};
   $('#account-form').onsubmit=async(event)=>{event.preventDefault();try{const userId=$('#account-user-id').value.trim();if(!userId)throw new Error('请先从用户列表选择需要处理的账号');setStatus('正在提交账号处理…');const body={action:$('#account-action').value,reason:$('#account-reason').value.trim()};const expires=$('#account-expires').value.trim();if(expires)body.expires_at=new Date(expires).toISOString();const r=await api('/admin/users/'+encodeURIComponent(userId)+'/restrictions',{method:'POST',idempotencyKey:key('admin.user.restrict'),body});await loadAccounts(false);setStatus('处理完成：'+human(r.data.action)+' · '+$('#selected-account-label').textContent.replace('正在处理：',''))}catch(e){setStatus(e.message,true)}};
   $('#load-audit').onclick=async()=>{try{setStatus('正在查询审计…');const p=new URLSearchParams({limit:'20'});[['actor_id','#audit-actor'],['action_type','#audit-action'],['object_type','#audit-object-type'],['object_id','#audit-object-id']].forEach(([name,sel])=>{const v=$(sel).value.trim();if(v)p.set(name,v)});for(const [name,sel] of [['from','#audit-from'],['to','#audit-to']]){const v=$(sel).value;if(v)p.set(name,new Date(v).toISOString())}const r=await api('/admin/audit-logs?'+p);renderAuditTable('#audit-list',r.data);setStatus('共 '+r.data.length+' 条')}catch(e){setStatus(e.message,true)}};
+  if(!restoreAdminSession())showLoginScreen();
 })();
 </script>
 </body>

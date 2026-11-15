@@ -1,5 +1,9 @@
 <view class="page">
-  <view wx:if="{{!session}}" class="card empty-card">请先登录</view>
+  <view wx:if="{{!session}}" class="card empty-card">
+    <text class="empty-title">登录后才能使用账号设置</text>
+    <text class="empty-copy">登录状态仅用于当前账号，不会展示微信头像或昵称。</text>
+    <button class="primary-button" bindtap="openLogin">微信登录</button>
+  </view>
   <block wx:else>
     <view class="settings-group">
       <text class="group-title">账号</text>

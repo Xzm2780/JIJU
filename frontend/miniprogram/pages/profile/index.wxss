@@ -4,6 +4,30 @@
   gap: 28rpx;
 }
 
+.login-required {
+  display: flex;
+  min-height: 420rpx;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20rpx;
+  text-align: center;
+}
+
+.login-title {
+  color: #30292a;
+  font-size: 32rpx;
+  font-weight: 750;
+}
+
+.login-copy {
+  color: #816f70;
+  font-size: 24rpx;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .avatar-preview {
   display: flex;
   width: 140rpx;

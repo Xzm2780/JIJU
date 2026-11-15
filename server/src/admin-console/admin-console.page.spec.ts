@@ -38,4 +38,25 @@ describe('Admin console account management', () => {
     expect(ADMIN_CONSOLE_HTML).toContain("sub.title=subText");
     expect(ADMIN_CONSOLE_HTML).toContain('name.title=item.plaza_nickname');
   });
+
+  it('restores the admin session after refresh without persisting credentials', () => {
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      "const ADMIN_SESSION_KEY='jiju.admin-console.session.v1'"
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      'sessionStorage.setItem(ADMIN_SESSION_KEY'
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      'sessionStorage.getItem(ADMIN_SESSION_KEY)'
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      'sessionStorage.removeItem(ADMIN_SESSION_KEY)'
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain('function restoreAdminSession()');
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      'if(!restoreAdminSession())showLoginScreen()'
+    );
+    expect(ADMIN_CONSOLE_HTML).not.toContain('localStorage');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('password:password');
+  });
 });

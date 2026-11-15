@@ -17,6 +17,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('wechat/login')
+  @HttpCode(200)
   async login(
     @Body() body: WechatLoginDto,
     @RequestId() requestId: string

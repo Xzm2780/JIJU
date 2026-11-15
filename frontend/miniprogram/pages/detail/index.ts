@@ -8,7 +8,14 @@ import {
   fetchPostDetail,
   setReaction
 } from '../../services/api';
-import { loadSession } from '../../services/session';
+import {
+  isAuthenticationError,
+  openLoginPage
+} from '../../services/auth-flow';
+import {
+  clearSession,
+  loadSession
+} from '../../services/session';
 import { CommentItem, PostDetail, ReactionType } from '../../types';
 import { countGraphemes, normalizeBody } from '../../utils/graphemes';
 import { formatBeijing } from '../../utils/time';
@@ -66,7 +73,7 @@ Page({
     });
   },
 
-  async loadDetail(postId: string) {
+  async loadDetail(postId: string, retryAsGuest = true) {
     if (!postId) {
       this.setData({ loading: false, unavailable: true });
       return;
@@ -92,6 +99,11 @@ Page({
       });
       await this.loadComments(true);
     } catch (error) {
+      if (isAuthenticationError(error) && retryAsGuest) {
+        clearSession();
+        await this.loadDetail(postId, false);
+        return;
+      }
       if (error instanceof ApiRequestError && error.statusCode === 404) {
         this.setData({
           loading: false,
@@ -177,16 +189,7 @@ Page({
       return;
     }
     if (!session) {
-      wx.showModal({
-        title: '请先登录',
-        content: '登录后才能发表评论。',
-        confirmText: '去登录',
-        success: (result) => {
-          if (result.confirm) {
-            wx.switchTab({ url: '/pages/my/index' });
-          }
-        }
-      });
+      openLoginPage();
       return;
     }
     if (length < 1 || length > 200) {
@@ -219,6 +222,12 @@ Page({
       });
     } catch (error) {
       this.setData({ commentSubmitting: false });
+      if (isAuthenticationError(error)) {
+        clearSession();
+        this.setData({ commentMessage: '登录已失效，请重新登录后继续回应' });
+        openLoginPage();
+        return;
+      }
       if (
         error instanceof ApiRequestError &&
         error.payload.code === 'JIJU_ACCESS_4032'
@@ -359,16 +368,7 @@ Page({
       return;
     }
     if (!session) {
-      wx.showModal({
-        title: '请先登录',
-        content: '登录后才能发送轻互动。',
-        confirmText: '去登录',
-        success: (result) => {
-          if (result.confirm) {
-            wx.switchTab({ url: '/pages/my/index' });
-          }
-        }
-      });
+      openLoginPage();
       return;
     }
     this.setData({ reactionBusy: true, reactionMessage: '' });
@@ -404,6 +404,12 @@ Page({
       });
     } catch (error) {
       this.setData({ reactionBusy: false });
+      if (isAuthenticationError(error)) {
+        clearSession();
+        this.setData({ reactionMessage: '登录已失效，请重新登录后继续互动' });
+        openLoginPage();
+        return;
+      }
       if (
         error instanceof ApiRequestError &&
         error.payload.code === 'JIJU_ACCESS_4032'
