@@ -1,7 +1,6 @@
 <view class="page">
   <view wx:if="{{!session}}" class="card login-required">
     <text class="login-title">登录后编辑个人资料</text>
-    <text class="login-copy">广场昵称、头像配色和个人简介只与当前账号关联。</text>
     <button class="primary-button" bindtap="openLogin">微信登录</button>
   </view>
 

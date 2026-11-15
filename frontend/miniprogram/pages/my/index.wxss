@@ -47,12 +47,6 @@
   font-size: 32rpx;
 }
 
-.guest-copy {
-  color: #816f70;
-  font-size: 24rpx;
-  line-height: 1.7;
-}
-
 .profile-card {
   display: flex;
   align-self: stretch;
@@ -234,19 +228,11 @@
   min-width: 0;
   flex: 1;
   flex-direction: column;
-  gap: 5rpx;
 }
 
 .menu-title {
   font-size: 26rpx;
   font-weight: 700;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.menu-desc {
-  color: #968384;
-  font-size: 21rpx;
   overflow-wrap: anywhere;
   word-break: break-word;
 }

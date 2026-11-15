@@ -11,7 +11,9 @@
 }
 
 .settings-list {
+  width: 100%;
   padding: 0 24rpx;
+  box-sizing: border-box;
 }
 
 .setting-row {
@@ -28,7 +30,8 @@
   font-size: 26rpx;
   text-align: left;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  line-height: 1.5;
   gap: 24rpx;
 }
 
@@ -43,9 +46,17 @@
   overflow: hidden;
   color: #8d7a7b;
   font-size: 23rpx;
+  margin-left: auto;
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.setting-label {
+  display: block;
+  min-width: 0;
+  flex: 1 1 0;
+  text-align: left;
 }
 
 .setting-value.active {
@@ -59,7 +70,7 @@
 }
 
 .danger-zone .group-title,
-.danger-zone .setting-row > text:first-child {
+.danger-title {
   color: #914f4f;
 }
 
@@ -95,9 +106,4 @@
   color: #30292a;
   font-size: 30rpx;
   font-weight: 750;
-}
-
-.empty-copy {
-  font-size: 23rpx;
-  line-height: 1.7;
 }

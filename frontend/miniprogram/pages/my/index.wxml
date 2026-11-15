@@ -2,7 +2,6 @@
   <view wx:if="{{!session}}" class="card guest-card">
     <view class="guest-avatar">我</view>
     <text class="guest-title">登录后管理你的情绪记录</text>
-    <text class="guest-copy">登录后可发布、回应和管理内容。JIJU 不展示你的微信头像和昵称。</text>
     <button class="primary-button" bindtap="openLogin">微信登录</button>
     <button class="secondary-button" bindtap="goPublish">先去写一条</button>
   </view>
@@ -43,12 +42,12 @@
         <view class="menu-card">
           <view class="menu-item" hover-class="menu-item-hover" bindtap="openMyPosts">
             <text class="menu-icon">▤</text>
-            <view class="menu-copy"><text class="menu-title">我的帖子</text><text class="menu-desc">查看、编辑和管理已发布内容</text></view>
+            <view class="menu-copy"><text class="menu-title">我的帖子</text></view>
             <text class="chevron">›</text>
           </view>
           <view class="menu-item" hover-class="menu-item-hover" bindtap="goPublish">
             <text class="menu-icon">＋</text>
-            <view class="menu-copy"><text class="menu-title">发布新内容</text><text class="menu-desc">记录此刻的情绪</text></view>
+            <view class="menu-copy"><text class="menu-title">发布新内容</text></view>
             <text class="chevron">›</text>
           </view>
         </view>
@@ -59,17 +58,17 @@
         <view class="menu-card">
           <view class="menu-item" hover-class="menu-item-hover" bindtap="editProfile">
             <text class="menu-icon">◎</text>
-            <view class="menu-copy"><text class="menu-title">个人资料</text><text class="menu-desc">昵称、简介和头像配色</text></view>
+            <view class="menu-copy"><text class="menu-title">个人资料</text></view>
             <text class="chevron">›</text>
           </view>
           <view class="menu-item" hover-class="menu-item-hover" bindtap="openNotice">
             <text class="menu-icon">◇</text>
-            <view class="menu-copy"><text class="menu-title">使用须知</text><text class="menu-desc">查看当前协议版本</text></view>
+            <view class="menu-copy"><text class="menu-title">使用须知</text></view>
             <text class="chevron">›</text>
           </view>
           <view class="menu-item" hover-class="menu-item-hover" bindtap="openSettings">
             <text class="menu-icon">⚙</text>
-            <view class="menu-copy"><text class="menu-title">账号设置</text><text class="menu-desc">退出登录与永久注销</text></view>
+            <view class="menu-copy"><text class="menu-title">账号设置</text></view>
             <text class="chevron">›</text>
           </view>
         </view>
