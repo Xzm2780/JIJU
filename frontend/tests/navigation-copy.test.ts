@@ -77,5 +77,6 @@ describe('miniapp navigation copy and alignment', () => {
     expect(detailLogic).toContain('openLoginPage()');
     expect(reportLogic).toContain('openLoginPage()');
     expect(myMarkup).toContain('bindtap="openLogin"');
+    expect(myMarkup).not.toContain('先去写一条');
   });
 });

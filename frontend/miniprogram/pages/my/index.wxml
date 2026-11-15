@@ -3,7 +3,6 @@
     <view class="guest-avatar">我</view>
     <text class="guest-title">登录后管理你的情绪记录</text>
     <button class="primary-button" bindtap="openLogin">微信登录</button>
-    <button class="secondary-button" bindtap="goPublish">先去写一条</button>
   </view>
 
   <block wx:else>
