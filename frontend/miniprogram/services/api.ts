@@ -20,6 +20,7 @@ import {
   UpdatedProfile,
   UserProfile
 } from '../types';
+import { createViewToken } from '../utils/view-token';
 
 export class ApiRequestError extends Error {
   constructor(
@@ -210,14 +211,14 @@ export async function fetchFeed(
 
 export async function fetchPostDetail(
   postId: string,
-  viewToken: string,
+  viewToken?: string,
   accessToken?: string
 ): Promise<PostDetail> {
   const response = await request<PostDetail>(
     `/posts/${encodeURIComponent(postId)}`,
     {
       accessToken,
-      viewToken
+      viewToken: viewToken || createViewToken()
     }
   );
   return response.data;

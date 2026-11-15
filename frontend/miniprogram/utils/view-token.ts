@@ -1,7 +1,27 @@
-import { createUuidV7 } from './idempotency';
+function pseudoRandomByte(): number {
+  return Math.floor(Math.random() * 256);
+}
 
 export function createViewToken(now = Date.now()): string {
-  return `v1:${createUuidV7(now)}`;
+  let timestamp = now;
+  const bytes = new Uint8Array(16);
+  for (let index = 5; index >= 0; index -= 1) {
+    bytes[index] = timestamp % 256;
+    timestamp = Math.floor(timestamp / 256);
+  }
+  bytes[7] = pseudoRandomByte();
+  for (let index = 9; index < 16; index += 1) {
+    bytes[index] = pseudoRandomByte();
+  }
+  bytes[6] = 0x70;
+  bytes[8] = 0x80;
+  const hex = Array.from(bytes, (byte) =>
+    byte.toString(16).padStart(2, '0')
+  ).join('');
+  return `v1:${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(
+    12,
+    16
+  )}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 export function isValidViewToken(value: string): boolean {

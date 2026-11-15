@@ -18,6 +18,7 @@ import { createIdempotencyKey } from '../../utils/idempotency';
 Page({
   data: {
     postId: '',
+    viewToken: '',
     post: null as PostDetail | null,
     publishedAt: '',
     expiresAt: '',
@@ -37,13 +38,12 @@ Page({
     commentsHasMore: true
   },
 
-  viewToken: '',
   hasShown: false,
 
   onLoad(query: Record<string, string | undefined>) {
-    this.viewToken = createViewToken();
+    const viewToken = createViewToken();
     const postId = query.id ?? '';
-    this.setData({ postId });
+    this.setData({ postId, viewToken });
     void this.loadDetail(postId);
   },
 
@@ -73,7 +73,7 @@ Page({
       const session = loadSession();
       const post = await fetchPostDetail(
         postId,
-        this.viewToken,
+        this.data.viewToken || createViewToken(),
         session?.accessToken
       );
       this.setData({
