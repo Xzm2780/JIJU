@@ -1,4 +1,5 @@
 import { AdminAccountsService } from './admin-accounts.service';
+import { AdminUserStatus } from './dto/list-admin-users.dto';
 import { AccountAction } from './dto/restrict-account.dto';
 
 const ACTOR = {
@@ -122,5 +123,149 @@ describe('AdminAccountsService', () => {
       where: { id: 'usr_target' },
       data: { accountStatus: 'BANNED' }
     });
+  });
+
+  it('lists operator-facing user profiles and content counts without identity refs', async () => {
+    const prisma = {
+      user: {
+        findMany: jest.fn().mockResolvedValue([
+          {
+            id: 'usr_target',
+            plazaNickname: '晚风 1024',
+            bio: '今天也在认真生活',
+            avatarColor: 'ROSE',
+            accountStatus: 'ACTIVE',
+            postingRestrictedUntil: new Date('2026-11-16T03:00:00.000Z'),
+            commentingRestrictedUntil: null,
+            reactionRestrictedUntil: null,
+            createdAt: new Date('2026-11-01T03:00:00.000Z'),
+            updatedAt: new Date('2026-11-14T02:00:00.000Z')
+          }
+        ])
+      },
+      post: {
+        groupBy: jest.fn().mockResolvedValue([
+          { authorId: 'usr_target', _count: { _all: 3 } }
+        ])
+      },
+      comment: {
+        groupBy: jest.fn().mockResolvedValue([
+          { authorId: 'usr_target', _count: { _all: 7 } }
+        ])
+      }
+    };
+    const service = new AdminAccountsService(prisma as any);
+
+    const result = await service.list({
+      status: AdminUserStatus.RESTRICTED,
+      query: '晚风',
+      limit: 20
+    });
+
+    expect(result.data).toEqual([
+      {
+        id: 'usr_target',
+        plaza_nickname: '晚风 1024',
+        bio: '今天也在认真生活',
+        avatar_color: 'ROSE',
+        account_status: AdminUserStatus.RESTRICTED,
+        posting_restricted_until: '2026-11-16T03:00:00.000Z',
+        commenting_restricted_until: null,
+        reaction_restricted_until: null,
+        post_count: 3,
+        comment_count: 7,
+        created_at: '2026-11-01T03:00:00.000Z',
+        updated_at: '2026-11-14T02:00:00.000Z'
+      }
+    ]);
+    expect(JSON.stringify(result.data)).not.toContain('authSubjectRef');
+    expect(JSON.stringify(result.data)).not.toContain('loginCode');
+    expect(prisma.user.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          AND: expect.arrayContaining([
+            expect.objectContaining({
+              accountStatus: 'ACTIVE',
+              OR: expect.arrayContaining([
+                expect.objectContaining({
+                  postingRestrictedUntil: { gt: expect.any(Date) }
+                })
+              ])
+            }),
+            expect.objectContaining({
+              OR: expect.arrayContaining([
+                expect.objectContaining({
+                  plazaNickname: {
+                    contains: '晚风',
+                    mode: 'insensitive'
+                  }
+                })
+              ])
+            })
+          ])
+        }),
+        select: expect.not.objectContaining({
+          authSubjectRef: true,
+          loginCode: true
+        })
+      })
+    );
+  });
+
+  it('returns stable cursor pagination for account lists', async () => {
+    const updatedAt = new Date('2026-11-14T02:00:00.000Z');
+    const prisma = {
+      user: {
+        findMany: jest.fn().mockResolvedValue([
+          {
+            id: 'usr_banned',
+            plazaNickname: '停用账号',
+            bio: null,
+            avatarColor: 'SAND',
+            accountStatus: 'BANNED',
+            postingRestrictedUntil: null,
+            commentingRestrictedUntil: null,
+            reactionRestrictedUntil: null,
+            createdAt: updatedAt,
+            updatedAt
+          },
+          {
+            id: 'usr_next',
+            plazaNickname: '下一页账号',
+            bio: null,
+            avatarColor: 'SAGE',
+            accountStatus: 'BANNED',
+            postingRestrictedUntil: null,
+            commentingRestrictedUntil: null,
+            reactionRestrictedUntil: null,
+            createdAt: updatedAt,
+            updatedAt
+          }
+        ])
+      },
+      post: { groupBy: jest.fn().mockResolvedValue([]) },
+      comment: { groupBy: jest.fn().mockResolvedValue([]) }
+    };
+    const service = new AdminAccountsService(prisma as any);
+
+    const result = await service.list({
+      status: AdminUserStatus.BANNED,
+      limit: 1
+    });
+
+    expect(result.data).toHaveLength(1);
+    expect(result.page.has_more).toBe(true);
+    expect(result.page.next_cursor).toEqual(expect.any(String));
+    expect(prisma.user.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          AND: expect.arrayContaining([
+            { accountStatus: 'BANNED' }
+          ])
+        }),
+        orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
+        take: 2
+      })
+    );
   });
 });

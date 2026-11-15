@@ -1711,6 +1711,79 @@ paths:
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
+  /admin/users:
+    get:
+      tags:
+        - Admin
+      operationId: listAdminUsers
+      summary: 查询后台用户列表
+      description: |
+        鉴权要求：独立后台身份，需 ACCOUNT_MODERATOR 或 AUDITOR 角色。
+        请求参数与校验：status 可为 ALL、ACTIVE、RESTRICTED、DEACTIVATED、BANNED、DELETED；query 搜索广场昵称或用户 ID；cursor 和 limit 为游标分页参数。
+        响应结构：返回用户 ID、广场昵称、简介、头像配色、账号状态、当前限制到期时间、未删除帖子数、未删除评论数和加入时间；不返回微信身份、登录凭据、会话或浏览历史。
+        ACTIVE 表示账号正常且无进行中的能力限制；RESTRICTED 表示账号正常但至少存在一项尚未到期的发帖、评论或互动限制。
+        错误码：引用 docs/errors.md；未登录、后台权限不足、参数校验失败和系统错误必须区分。
+        幂等要求：GET 只读，不需要 Idempotency-Key。
+        副作用：不改变用户、内容、限制或审计状态。
+        浏览量：不返回 view_count。
+      x-auth:
+        authentication: admin
+        roles: [ACCOUNT_MODERATOR, AUDITOR]
+      x-validation:
+        - status must be ALL, ACTIVE, RESTRICTED, DEACTIVATED, BANNED or DELETED
+        - query must not exceed 100 characters
+        - cursor must be an opaque server-issued cursor
+        - limit must be between 1 and 50
+      x-errors:
+        - JIJU_AUTH_4011
+        - JIJU_AUTH_4012
+        - JIJU_ACCESS_4031
+        - JIJU_VALIDATION_4221
+        - JIJU_SYSTEM_5031
+        - NETWORK_ERROR
+      x-error-reference: docs/errors.md
+      x-idempotency:
+        required: false
+        header: null
+        rule: read-only request
+      x-side-effects:
+        - none
+      x-view-count:
+        returned: false
+        rule: admin user list must never serialize view_count, viewer identity or authentication subject data
+      security:
+        - adminBearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ALL, ACTIVE, RESTRICTED, DEACTIVATED, BANNED, DELETED]
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 后台用户列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
   /admin/users/{user_id}/restrictions:
     post:
       tags:
@@ -3005,6 +3078,74 @@ components:
               $ref: '#/components/schemas/ModerationStatus'
             handled_at:
               $ref: '#/components/schemas/UtcTimestamp'
+        request_id:
+          type: string
+    AdminUserAccountStatus:
+      type: string
+      enum: [ACTIVE, RESTRICTED, DEACTIVATED, BANNED, DELETED]
+    AdminUserItem:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - plaza_nickname
+        - bio
+        - avatar_color
+        - account_status
+        - posting_restricted_until
+        - commenting_restricted_until
+        - reaction_restricted_until
+        - post_count
+        - comment_count
+        - created_at
+        - updated_at
+      properties:
+        id:
+          $ref: '#/components/schemas/OpaqueId'
+        plaza_nickname:
+          type: string
+        bio:
+          type: string
+        avatar_color:
+          type: string
+          enum: [ROSE, SAGE, SAND, LAVENDER, SKY]
+        account_status:
+          $ref: '#/components/schemas/AdminUserAccountStatus'
+        posting_restricted_until:
+          allOf:
+            - $ref: '#/components/schemas/UtcTimestamp'
+          nullable: true
+        commenting_restricted_until:
+          allOf:
+            - $ref: '#/components/schemas/UtcTimestamp'
+          nullable: true
+        reaction_restricted_until:
+          allOf:
+            - $ref: '#/components/schemas/UtcTimestamp'
+          nullable: true
+        post_count:
+          type: integer
+          minimum: 0
+          description: 作者名下未删除帖子数，包含到期或隐藏帖子
+        comment_count:
+          type: integer
+          minimum: 0
+          description: 作者名下未删除评论数
+        created_at:
+          $ref: '#/components/schemas/UtcTimestamp'
+        updated_at:
+          $ref: '#/components/schemas/UtcTimestamp'
+    AdminUserListResponse:
+      type: object
+      additionalProperties: false
+      required: [data, page, request_id]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminUserItem'
+        page:
+          $ref: '#/components/schemas/PageInfo'
         request_id:
           type: string
     AccountRestrictionRequest:

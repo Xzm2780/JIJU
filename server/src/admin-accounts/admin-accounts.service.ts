@@ -2,14 +2,23 @@ import { Injectable } from '@nestjs/common';
 import {
   AdminRole,
   IdempotencyStatus,
-  Prisma
+  Prisma,
+  PublicStatus
 } from '@prisma/client';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { ApiError } from '../common/api-error';
 import { requireIdempotencyKey } from '../common/idempotency-key';
+import {
+  decodePageCursor,
+  encodePageCursor
+} from '../common/page-cursor';
 import { stableStringify } from '../common/stable-stringify';
 import { createUuidV7 } from '../common/uuid-v7';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  AdminUserStatus,
+  ListAdminUsersDto
+} from './dto/list-admin-users.dto';
 import {
   AccountAction,
   RestrictAccountDto
@@ -18,6 +27,103 @@ import {
 @Injectable()
 export class AdminAccountsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async list(query: ListAdminUsersDto) {
+    const cursor = decodePageCursor(query.cursor);
+    const now = new Date();
+    const search = query.query?.trim();
+    const users = await this.prisma.user.findMany({
+      where: {
+        AND: [
+          this.statusWhere(query.status, now),
+          ...(search
+            ? [
+                {
+                  OR: [
+                    {
+                      id: {
+                        contains: search,
+                        mode: 'insensitive' as const
+                      }
+                    },
+                    {
+                      plazaNickname: {
+                        contains: search,
+                        mode: 'insensitive' as const
+                      }
+                    }
+                  ]
+                }
+              ]
+            : []),
+          ...(cursor
+            ? [
+                {
+                  OR: [
+                    { updatedAt: { lt: new Date(cursor.timestamp) } },
+                    {
+                      updatedAt: new Date(cursor.timestamp),
+                      id: { lt: cursor.id }
+                    }
+                  ]
+                }
+              ]
+            : [])
+        ]
+      },
+      select: {
+        id: true,
+        plazaNickname: true,
+        bio: true,
+        avatarColor: true,
+        accountStatus: true,
+        postingRestrictedUntil: true,
+        commentingRestrictedUntil: true,
+        reactionRestrictedUntil: true,
+        createdAt: true,
+        updatedAt: true
+      },
+      orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
+      take: query.limit + 1
+    });
+    const page = users.slice(0, query.limit);
+    const userIds = page.map((user) => user.id);
+    const [postCounts, commentCounts] = await Promise.all([
+      this.postCounts(userIds),
+      this.commentCounts(userIds)
+    ]);
+    const last = page.at(-1);
+    return {
+      data: page.map((user) => ({
+        id: user.id,
+        plaza_nickname: user.plazaNickname,
+        bio: user.bio ?? '',
+        avatar_color: user.avatarColor,
+        account_status: this.effectiveStatus(user, now),
+        posting_restricted_until:
+          user.postingRestrictedUntil?.toISOString() ?? null,
+        commenting_restricted_until:
+          user.commentingRestrictedUntil?.toISOString() ?? null,
+        reaction_restricted_until:
+          user.reactionRestrictedUntil?.toISOString() ?? null,
+        post_count: postCounts.get(user.id) ?? 0,
+        comment_count: commentCounts.get(user.id) ?? 0,
+        created_at: user.createdAt.toISOString(),
+        updated_at: user.updatedAt.toISOString()
+      })),
+      page: {
+        has_more: users.length > query.limit,
+        next_cursor:
+          users.length > query.limit && last
+            ? encodePageCursor({
+                version: 1,
+                timestamp: last.updatedAt.toISOString(),
+                id: last.id
+              })
+            : null
+      }
+    };
+  }
 
   async restrict(arguments_: {
     userId: string;
@@ -205,6 +311,93 @@ export class AdminAccountsService {
       data: Record<string, unknown>;
       request_id: string;
     };
+  }
+
+  private statusWhere(
+    status: AdminUserStatus,
+    now: Date
+  ): Prisma.UserWhereInput {
+    const hasActiveRestriction = {
+      OR: [
+        { postingRestrictedUntil: { gt: now } },
+        { commentingRestrictedUntil: { gt: now } },
+        { reactionRestrictedUntil: { gt: now } }
+      ]
+    } satisfies Prisma.UserWhereInput;
+    if (status === AdminUserStatus.RESTRICTED) {
+      return {
+        accountStatus: 'ACTIVE',
+        ...hasActiveRestriction
+      };
+    }
+    if (
+      status === AdminUserStatus.DEACTIVATED ||
+      status === AdminUserStatus.BANNED ||
+      status === AdminUserStatus.DELETED
+    ) {
+      return { accountStatus: status };
+    }
+    if (status === AdminUserStatus.ACTIVE) {
+      return {
+        accountStatus: 'ACTIVE',
+        NOT: hasActiveRestriction
+      };
+    }
+    return {};
+  }
+
+  private effectiveStatus(
+    user: {
+      accountStatus: string;
+      postingRestrictedUntil: Date | null;
+      commentingRestrictedUntil: Date | null;
+      reactionRestrictedUntil: Date | null;
+    },
+    now: Date
+  ): AdminUserStatus {
+    if (user.accountStatus !== 'ACTIVE') {
+      return user.accountStatus as AdminUserStatus;
+    }
+    if (
+      [
+        user.postingRestrictedUntil,
+        user.commentingRestrictedUntil,
+        user.reactionRestrictedUntil
+      ].some((value) => value && value.getTime() > now.getTime())
+    ) {
+      return AdminUserStatus.RESTRICTED;
+    }
+    return AdminUserStatus.ACTIVE;
+  }
+
+  private async postCounts(userIds: string[]): Promise<Map<string, number>> {
+    if (!userIds.length) {
+      return new Map();
+    }
+    const groups = await this.prisma.post.groupBy({
+      by: ['authorId'],
+      where: {
+        authorId: { in: userIds },
+        publicStatus: { not: PublicStatus.DELETED }
+      },
+      _count: { _all: true }
+    });
+    return new Map(groups.map((group) => [group.authorId, group._count._all]));
+  }
+
+  private async commentCounts(userIds: string[]): Promise<Map<string, number>> {
+    if (!userIds.length) {
+      return new Map();
+    }
+    const groups = await this.prisma.comment.groupBy({
+      by: ['authorId'],
+      where: {
+        authorId: { in: userIds },
+        deletedAt: null
+      },
+      _count: { _all: true }
+    });
+    return new Map(groups.map((group) => [group.authorId, group._count._all]));
   }
 }
 

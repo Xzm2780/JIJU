@@ -168,6 +168,7 @@ $requiredInterfaces = @(
     'GET /admin/review-queue',
     'POST /admin/content/{target_type}/{target_id}/reviews',
     'POST /admin/content/{target_type}/{target_id}/actions',
+    'GET /admin/users',
     'POST /admin/users/{user_id}/restrictions',
     'POST /admin/auth/login',
     'GET /admin/audit-logs'
@@ -197,4 +198,4 @@ foreach ($row in $acRows) {
     }
 }
 
-Write-Host "Task package validation passed: 19 tasks, 27 covered interfaces, acyclic dependencies, and 31 AC task mappings."
+Write-Host "Task package validation passed: 19 tasks, 28 covered interfaces, acyclic dependencies, and 31 AC task mappings."
