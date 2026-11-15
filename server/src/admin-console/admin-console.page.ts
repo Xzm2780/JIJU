@@ -18,7 +18,7 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
     .login-help{margin-top:14px;color:var(--muted);font-size:12px;line-height:1.6;text-align:center}
     .app-shell{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;padding:22px 16px;background:linear-gradient(180deg,#423637,#352c2d);color:#fff;display:flex;flex-direction:column}
     .brand{display:flex;align-items:center;gap:12px;padding:4px 8px 24px;border-bottom:1px solid rgba(255,255,255,.1)}.brand-mark{width:42px;height:42px;border-radius:13px;background:#a5686c;display:flex;align-items:center;justify-content:center;font-weight:800}.brand-name{font-size:17px;font-weight:750}.brand-sub{font-size:11px;color:var(--sidebar-muted)}
-    .nav{display:flex;flex-direction:column;gap:7px;margin-top:22px}.nav-button{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:0;border-radius:11px;background:transparent;color:#d9cdcd;text-align:left;font-weight:600}.nav-button:hover{background:rgba(255,255,255,.07)}.nav-button.active{background:#a5686c;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.12)}.nav-icon{width:20px;text-align:center;font-size:18px}.nav-section-title{margin:14px 12px 3px;color:#897879;font-size:10px;font-weight:750;letter-spacing:.12em}
+    .nav{display:flex;flex-direction:column;gap:7px;margin-top:22px}.nav-button{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:0;border-radius:11px;background:transparent;color:#d9cdcd;text-align:left;font-weight:600}.nav-button:hover{background:rgba(255,255,255,.07)}.nav-button.active{background:#a5686c;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.12)}.nav-icon{width:20px;text-align:center;font-size:18px}
     .sidebar-footer{margin-top:auto;padding:14px 8px 0;border-top:1px solid rgba(255,255,255,.1);color:var(--sidebar-muted);font-size:11px}
     .workspace{min-width:0}.topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;min-height:72px;padding:12px 28px;border-bottom:1px solid var(--line);background:rgba(255,253,252,.94);backdrop-filter:blur(12px)}.topbar h2{margin:0;font-size:20px}.breadcrumb{margin-bottom:3px;color:#a08789;font-size:11px}.topbar-sub{color:var(--muted);font-size:12px;margin-top:2px}.topbar-actions{display:flex;align-items:center;gap:12px}.operator{padding:7px 12px;border-radius:999px;background:#f5eeeb;color:#765d5f;font-size:12px}
     main{padding:26px}.panel{display:none}.panel.active{display:block}.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}.page-head h3{margin:0 0 4px;font-size:19px}.page-head p{margin:0;color:var(--muted);font-size:13px}
@@ -49,15 +49,11 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
     <aside class="sidebar">
       <div class="brand"><div class="brand-mark">J</div><div><div class="brand-name">JIJU</div><div class="brand-sub">情绪广场管理后台</div></div></div>
       <nav class="nav" id="sidebar-nav">
-        <div class="nav-section-title">概览</div>
         <button class="nav-button active" data-panel="overview"><span class="nav-icon">▦</span><span>数据工作台</span></button>
-        <div class="nav-section-title">内容运营</div>
         <button class="nav-button" data-panel="content"><span class="nav-icon">◇</span><span>内容治理</span></button>
         <button class="nav-button" data-panel="queue"><span class="nav-icon">≡</span><span>待复核内容</span></button>
-        <div class="nav-section-title">安全治理</div>
         <button class="nav-button" data-panel="reports"><span class="nav-icon">⚑</span><span>举报管理</span></button>
         <button class="nav-button" data-panel="accounts"><span class="nav-icon">◎</span><span>用户管理</span></button>
-        <div class="nav-section-title">系统</div>
         <button class="nav-button" data-panel="audit"><span class="nav-icon">⌕</span><span>审计日志</span></button>
       </nav>
       <div class="sidebar-footer">权限由 AdminRoleAssignment 控制<br>敏感数据不会进入通用日志</div>
