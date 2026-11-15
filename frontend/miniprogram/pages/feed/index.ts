@@ -17,6 +17,8 @@ Page({
     requestId: ''
   },
 
+  hasShown: false,
+
   onLoad() {
     void this.loadFirstPage();
   },
@@ -26,6 +28,11 @@ Page({
       getTabBar?: () => { setData: (value: { selected: number }) => void };
     }).getTabBar?.();
     tabBar?.setData({ selected: 0 });
+    if (!this.hasShown) {
+      this.hasShown = true;
+      return;
+    }
+    void this.loadFirstPage();
   },
 
   onPullDownRefresh() {
