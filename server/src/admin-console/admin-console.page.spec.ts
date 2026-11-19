@@ -68,4 +68,15 @@ describe('Admin console account management', () => {
     expect(ADMIN_CONSOLE_HTML).not.toContain("body.code?body.code+': '");
     expect(ADMIN_CONSOLE_HTML).not.toContain('usr_...');
   });
+
+  it('uses concise report reason fields instead of explanatory subtitles', () => {
+    expect(ADMIN_CONSOLE_HTML).not.toContain('辱骂、攻击或骚扰');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('危险或不适当内容');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('广告或垃圾信息');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('命中内容规则');
+    expect(ADMIN_CONSOLE_HTML).not.toContain("badge('常规')");
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      "['来源','原因','内容','状态','时间','操作']"
+    );
+  });
 });
