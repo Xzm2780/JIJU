@@ -8,7 +8,7 @@ describe('Admin console account management', () => {
     expect(ADMIN_CONSOLE_HTML).toContain('function selectAccount(item)');
     expect(ADMIN_CONSOLE_HTML).toContain("$('#account-user-id').value=item.id");
     expect(ADMIN_CONSOLE_HTML).toContain(
-      "id=\"account-user-id\" placeholder=\"请从上方列表选择用户\" readonly"
+      'id="account-user-id" readonly required'
     );
   });
 
@@ -58,5 +58,14 @@ describe('Admin console account management', () => {
     );
     expect(ADMIN_CONSOLE_HTML).not.toContain('localStorage');
     expect(ADMIN_CONSOLE_HTML).not.toContain('password:password');
+  });
+
+  it('does not expose internal implementation or operational instructions', () => {
+    expect(ADMIN_CONSOLE_HTML).not.toContain('AdminRoleAssignment');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('建议按“举报队列');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('浏览器标签页');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('服务端校验角色');
+    expect(ADMIN_CONSOLE_HTML).not.toContain("body.code?body.code+': '");
+    expect(ADMIN_CONSOLE_HTML).not.toContain('usr_...');
   });
 });

@@ -64,6 +64,26 @@ describe('miniapp navigation copy and alignment', () => {
     expect(settingsMarkup).toContain('使用须知');
   });
 
+  it('keeps implementation notes out of user-visible page markup', () => {
+    const pages = [
+      'feed',
+      'detail',
+      'publish',
+      'login',
+      'notice',
+      'report',
+      'my',
+      'my-posts',
+      'profile',
+      'settings'
+    ];
+
+    for (const page of pages) {
+      const markup = read(`miniprogram/pages/${page}/index.wxml`);
+      expect(markup).not.toMatch(/服务端|数据库|接口开发|开发提示|实现说明/);
+    }
+  });
+
   it('returns guests to the feed after logout and prompts login for protected actions', () => {
     const settingsLogic = read('miniprogram/pages/settings/index.ts');
     const detailLogic = read('miniprogram/pages/detail/index.ts');
