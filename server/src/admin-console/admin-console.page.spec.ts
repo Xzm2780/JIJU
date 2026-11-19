@@ -8,7 +8,7 @@ describe('Admin console account management', () => {
     expect(ADMIN_CONSOLE_HTML).toContain('function selectAccount(item)');
     expect(ADMIN_CONSOLE_HTML).toContain("$('#account-user-id').value=item.id");
     expect(ADMIN_CONSOLE_HTML).toContain(
-      'id="account-user-id" readonly required'
+      'id="account-user-id" type="hidden" required'
     );
   });
 
@@ -77,6 +77,16 @@ describe('Admin console account management', () => {
     expect(ADMIN_CONSOLE_HTML).not.toContain("badge('常规')");
     expect(ADMIN_CONSOLE_HTML).toContain(
       "['来源','原因','内容','状态','时间','操作']"
+    );
+  });
+
+  it('keeps internal identifiers out of visible table content', () => {
+    expect(ADMIN_CONSOLE_HTML).not.toContain("'编号 '+");
+    expect(ADMIN_CONSOLE_HTML).not.toContain('shortId(');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('pst_...');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('usr_...');
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      'id="content-id" type="hidden" required'
     );
   });
 });
