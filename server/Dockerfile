@@ -14,9 +14,11 @@ FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=build /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/config ./config
 COPY package.json ./
 EXPOSE 3001
-CMD ["sh", "-c", "npm run prisma:migrate && npm run prisma:seed && node dist/main.js"]
+CMD ["sh", "-c", "npm run prisma:migrate && npm run prisma:seed && node dist/src/main.js"]
