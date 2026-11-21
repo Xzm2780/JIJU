@@ -21,6 +21,7 @@
 - [验收矩阵](ac-matrix.md)
 - [任务包](../tasks/)
 - [自动化测试](../tests/)
+- [测试目录说明](../tests/README.md)
 
 ## 单一事实源
 

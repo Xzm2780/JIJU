@@ -33,38 +33,48 @@
 
 ```text
 /
-├─ docs/                         # 产品、接口、架构、运行与合规文档
-├─ frontend/                     # 前端逻辑根目录，实际名称待框架确认
-│  ├─ pages/                     # 页面入口、路由生命周期和页面级编排
-│  ├─ components/                # 可复用展示组件；不得承载服务端权限判断
-│  ├─ services/                  # 前端 API 适配、请求封装和 DTO 转换
-│  ├─ state/                     # 必要的本地状态与草稿管理
-│  ├─ utils/                     # 展示时间、字符计数等纯工具
-│  └─ assets/                    # 本地静态资源
-├─ server/                       # 服务端逻辑根目录
-│  ├─ routes/                    # HTTP/RPC 路由、协议解析、入参校验和响应映射
-│  ├─ services/                  # 业务规则编排、鉴权决策、事务边界和幂等控制
-│  ├─ repositories/              # 数据库、缓存及外部持久化访问，只处理数据存取
-│  ├─ middleware/                # 登录态解析、请求追踪、限流、统一错误处理等横切逻辑
-│  ├─ schemas/                   # 请求/响应模型、领域枚举和校验规则
-│  ├─ jobs/                      # 到期处理、复核提醒等后台任务入口
-│  └─ infra/                     # 数据库、缓存、日志、监控等基础设施适配
-├─ admin/                        # 运营后台；是否独立工程待确认
+├─ docs/                         # 正式产品、设计、接口和工程契约
+│  ├─ product/                   # 正式 PRD 与历史版本
+│  ├─ design/                    # 视觉和交互规范
+│  └─ *.md / api.yaml            # 接口、数据、权限、状态机、错误码和 AC
+├─ frontend/                     # 原生微信小程序工程
+│  ├─ miniprogram/
+│  │  ├─ pages/                  # 页面入口、生命周期和页面级编排
+│  │  ├─ components/             # 可复用展示组件，不承载服务端权限判断
+│  │  ├─ custom-tab-bar/         # 自定义底部导航
+│  │  ├─ services/               # API 适配、会话和跨页面流程
+│  │  ├─ utils/                  # 时间、字素簇、草稿和幂等键等纯工具
+│  │  ├─ app.*                   # 全局入口、路由和公共样式
+│  │  └─ types.ts                # 前端共享类型
+│  ├─ tests/                     # 小程序单元和静态 UI 规则测试
+│  └─ project.config.json        # 微信开发者工具共享配置
+├─ server/                       # NestJS API 与内置运营后台
+│  ├─ src/                       # 可编译的服务端源码
+│  │  ├─ <domain>/               # controller、service、module、dto；数据访问经 Prisma
+│  │  ├─ admin-console/          # 运营后台页面和路由
+│  │  ├─ common/                 # 错误、鉴权、游标、时间、日志等横切能力
+│  │  ├─ config/                 # 环境变量校验
+│  │  ├─ content/                # 内容规则引擎
+│  │  ├─ prisma/                 # PrismaService 与 Nest 注入
+│  │  └─ redis/                  # RedisService 与 Nest 注入
+│  ├─ prisma/                    # schema、数据迁移和 seed
+│  ├─ scripts/                   # 定时清理、数据保留等运维入口
+│  ├─ config/                    # 外置业务规则配置
+│  ├─ test/                      # 真实 PostgreSQL/Redis 集成测试
+│  ├─ compose*.yaml              # 开发与隔离测试编排
+│  └─ Dockerfile                 # API 镜像
+├─ tasks/                        # 按编号和依赖排序的任务包
 └─ tests/
-   ├─ frontend/                  # 页面、组件和客户端服务测试
-   ├─ server/
-   │  ├─ unit/                  # service、工具和领域规则单元测试
-   │  ├─ integration/           # route + service + repository 集成测试
-   │  ├─ contract/              # API 请求/响应与错误码契约测试
-   │  └─ security/              # 未登录、越权、限流、幂等和日志脱敏测试
-   ├─ e2e/                       # 微信开发者工具允许范围内的端到端测试
-   ├─ fixtures/                  # 非真实敏感数据的测试夹具
-   └─ docs/                      # 文档校验脚本
+   ├─ acceptance/                # 生产 API 契约与验收测试
+   ├─ performance/               # 读路径性能基线
+   ├─ production/                # 后端、前端、Prisma 和契约总验证
+   ├─ structure/                 # 仓库目录和文档索引结构校验
+   └─ docs/                      # PRD、契约、权限、状态机和任务校验
 ```
 
-目录依赖方向固定为 `routes -> services -> repositories`，禁止反向依赖。`routes` 不写业务规则或直接访问数据源；`services` 不直接拼接传输层响应；`repositories` 不承担鉴权或产品规则。前端页面只能经 `frontend/services` 调用已批准接口。
+服务端按领域模块组织，Controller 只处理协议和校验，Service 负责业务规则、权限、事务和幂等，DTO 限定在模块 `dto/`。数据访问通过注入的 Prisma/Redis 基础服务完成；若模块的数据访问复杂到需要独立封装，Repository 必须放在对应领域的 `repositories/` 下，且不得承担鉴权或产品规则。前端页面只能经 `frontend/miniprogram/services/` 调用已批准接口。
 
-测试目录应镜像主要模块。任何缺陷修复都必须先补充能复现问题的测试；发布前单元、集成、契约、安全测试和文档校验必须全部通过。
+业务规则单测与模块源码同目录并以 `.spec.ts` 结尾；需要真实 PostgreSQL/Redis 的测试放在 `server/test/`；跨端契约、性能和仓库检查放在根目录 `tests/`。任何缺陷修复都必须先补充能复现问题的测试；发布前单元、集成、契约、安全测试和文档校验必须全部通过。
 
 测试结论必须区分四类：真实 PostgreSQL/Redis 集成运行通过、仅生产 API 契约运行通过、仅 mock/静态检查通过、因环境或凭据缺失未验证。不得把 mock、Prisma schema 校验或文档扫描描述为数据库集成通过。
 

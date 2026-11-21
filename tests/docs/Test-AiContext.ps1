@@ -24,12 +24,27 @@ $requiredStatements = @(
     'Prisma',
     'Redis',
     'frontend/',
+    'miniprogram/',
+    'pages/',
     'components/',
-    'server/',
-    'routes/',
+    'custom-tab-bar/',
     'services/',
-    'repositories/',
+    'utils/',
+    'server/',
+    'src/',
+    '<domain>/',
+    'controller',
+    'service',
+    'dto/',
+    'prisma/',
+    'scripts/',
+    'test/',
     'tests/',
+    'acceptance/',
+    'performance/',
+    'production/',
+    'structure/',
+    'docs/',
     'JIJU_<DOMAIN>_<NNNN>',
     'UTC',
     'Asia/Shanghai',
@@ -74,4 +89,4 @@ if ($pendingQuestions.Count -lt 10) {
     throw "Expected at least 10 pending questions, found $($pendingQuestions.Count)."
 }
 
-Write-Host "AI context validation passed: 5 sections, 5 forbidden items, and $($pendingQuestions.Count) pending questions."
+Write-Host "AI context validation passed: 5 sections, current directory conventions, 5 forbidden items, and $($pendingQuestions.Count) pending questions."

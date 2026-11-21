@@ -18,8 +18,13 @@ $requiredPaths = @(
     'docs\design\ui-guidelines.md',
     'docs\product\PRD-v1.1.md',
     'docs\product\PRD-v1.2.md',
+    'server\scripts\retention.ts',
+    'tests\README.md',
+    'tests\docs\Test-AiContext.ps1',
     'tests\docs\Test-PrD-v11.ps1',
-    'tests\docs\Test-PrD-v12.ps1'
+    'tests\docs\Test-PrD-v12.ps1',
+    'tests\production\Verify-Production.ps1',
+    'tests\structure\Test-RepositoryLayout.ps1'
 )
 
 foreach ($relativePath in $requiredPaths) {
@@ -32,8 +37,12 @@ $obsoletePaths = @(
     'demo',
     'docs\T05-production.md',
     'docs\ui-design.md',
+    'frontend\custom-tab-bar',
+    'server\prisma\retention.ts',
     'tests\docs\Test-PrDemo.ps1',
-    'tests\docs\Test-PrD.ps1'
+    'tests\docs\Test-PrD.ps1',
+    'tests\docs\Test-Production.ps1',
+    'tests\docs\Test-RepositoryLayout.ps1'
 )
 
 foreach ($relativePath in $obsoletePaths) {
@@ -81,6 +90,16 @@ if ($guidelines.ToLowerInvariant().Contains('#b85b43')) {
 }
 if (-not $guidelines.Contains('flex: 1 1 0') -or -not $guidelines.Contains('min-width: 0')) {
     throw 'Visual design guideline must include the narrow-screen option layout rule.'
+}
+
+$package = Get-Content -LiteralPath (Join-Path $Root 'server\package.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($package.scripts.'retention:run' -ne 'ts-node scripts/retention.ts') {
+    throw 'Retention job must live in server/scripts and be referenced from package.json.'
+}
+
+$gitignore = Get-Content -LiteralPath (Join-Path $Root '.gitignore') -Raw -Encoding UTF8
+if (-not $gitignore.Contains('frontend/project.private.config.json')) {
+    throw 'WeChat developer-local settings must be ignored.'
 }
 
 Write-Host "Repository layout validation passed: current sources indexed and legacy paths removed."

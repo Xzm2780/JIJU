@@ -23,12 +23,12 @@
 ## 文档校验
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-RepositoryLayout.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/structure/Test-RepositoryLayout.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-AiContext.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-Domain.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-PrD-v11.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-PrD-v12.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-Production.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tests/production/Verify-Production.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-ApiDocs.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-AuthorizationDocs.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File tests/docs/Test-StateMachine.ps1
