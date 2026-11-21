@@ -7,6 +7,7 @@ describe('Admin dedicated process page', () => {
     expect(ADMIN_PROCESS_HTML).toContain('data-tab="history"');
     expect(ADMIN_PROCESS_HTML).toContain('id="content-actions"');
     expect(ADMIN_PROCESS_HTML).toContain('id="content-state-section"');
+    expect(ADMIN_PROCESS_HTML).toContain('id="review-completed"');
     expect(ADMIN_PROCESS_HTML).toContain('id="account-action-form"');
     expect(ADMIN_PROCESS_HTML).not.toContain('id="back-button"');
     expect(ADMIN_PROCESS_HTML).not.toContain('返回列表');
@@ -51,6 +52,18 @@ describe('Admin dedicated process page', () => {
     );
     expect(ADMIN_PROCESS_HTML).toContain(
       "if(isReport)$('#content-state-section').classList.add('hidden')"
+    );
+  });
+
+  it('prevents repeated submission after a report has been resolved', () => {
+    expect(ADMIN_PROCESS_HTML).toContain(
+      "const processed=item.status==='RESOLVED'"
+    );
+    expect(ADMIN_PROCESS_HTML).toContain(
+      "item={...item,status:'RESOLVED'}"
+    );
+    expect(ADMIN_PROCESS_HTML).toContain(
+      "showFeedback('已处理','该事项已完成处理，无需重复提交','info')"
     );
   });
 
