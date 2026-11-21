@@ -43,12 +43,12 @@ JIJU 是一个面向微信小程序的公共情绪表达空间。用户可以匿
 
 ```mermaid
 flowchart LR
-    MP[微信小程序] --> API[NestJS API]
-    ADMIN[运营后台] --> API
-    API --> PG[(PostgreSQL)]
-    API --> REDIS[(Redis)]
-    API --> WX[微信 code2Session]
-    JOB[每日清理任务] --> PG
+    MP["微信小程序"] --> API["NestJS API"]
+    ADMIN["运营后台"] --> API
+    API --> PG["PostgreSQL"]
+    API --> REDIS["Redis"]
+    API --> WX["微信 code2Session"]
+    JOB["每日清理任务"] --> PG
 ```
 
 - 小程序与运营后台共用业务 API，但使用独立登录体系和会话。

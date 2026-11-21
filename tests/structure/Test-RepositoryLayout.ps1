@@ -82,6 +82,13 @@ if ($readmeSectionCount -lt 10) {
 if (-not $rootReadme.Contains('```mermaid') -or -not $rootReadme.Contains('## License')) {
     throw 'Root README must include the architecture diagram and License section.'
 }
+if (-not $rootReadme.Contains('flowchart LR') -or
+    -not $rootReadme.Contains('MP["') -or
+    -not $rootReadme.Contains('API["NestJS API"]') -or
+    -not $rootReadme.Contains('PG["PostgreSQL"]') -or
+    $rootReadme.Contains('PG[(PostgreSQL)]')) {
+    throw 'README Mermaid diagram must use quoted, GitHub-compatible node labels.'
+}
 $requiredReadmeStatements = @(
     'https://github.com/Xzm2780/JIJU.git',
     'docker compose up --build',
