@@ -1,5 +1,5 @@
 param(
-    [string]$Path = (Join-Path $PSScriptRoot '..\..\docs\product\PRD-current-implementation.md')
+    [string]$Path = (Join-Path $PSScriptRoot '..\..\docs\product\PRD-v1.2.md')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -7,7 +7,7 @@ $resolvedPath = (Resolve-Path -LiteralPath $Path).Path
 $content = Get-Content -LiteralPath $resolvedPath -Raw -Encoding UTF8
 
 if ($content -notmatch '(?m)^# .+$') {
-    throw 'Missing reverse-engineered PRD title.'
+    throw 'Missing PRD v1.2 title.'
 }
 
 if (-not $content.Contains('2026-11-21')) {
@@ -69,8 +69,8 @@ $bannedSqlPatterns = @(
 
 foreach ($pattern in $bannedSqlPatterns) {
     if ($content -match $pattern) {
-        throw "Reverse PRD contains forbidden SQL pattern: $pattern"
+        throw "PRD v1.2 contains forbidden SQL pattern: $pattern"
     }
 }
 
-Write-Host "Reverse PRD validation passed: 28 API operations, 24 AC rows, 13 current acceptance rows, and 10 release blockers."
+Write-Host "PRD v1.2 validation passed: 28 API operations, 24 AC rows, 13 current acceptance rows, and 10 release blockers."
