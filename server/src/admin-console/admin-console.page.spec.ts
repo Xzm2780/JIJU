@@ -13,6 +13,9 @@ describe('Admin console account management', () => {
     expect(ADMIN_CONSOLE_HTML).toContain('id="workspace-tabs"');
     expect(ADMIN_CONSOLE_HTML).toContain('function closeWorkspaceTab(id)');
     expect(ADMIN_CONSOLE_HTML).toContain("className='process-frame'");
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      'openContentProcess({...item,source:item.source||sourceLabel})'
+    );
   });
 
   it('shows the same profile fields used by the miniapp', () => {

@@ -6,6 +6,7 @@ describe('Admin dedicated process page', () => {
     expect(ADMIN_PROCESS_HTML).toContain('data-tab="action"');
     expect(ADMIN_PROCESS_HTML).toContain('data-tab="history"');
     expect(ADMIN_PROCESS_HTML).toContain('id="content-actions"');
+    expect(ADMIN_PROCESS_HTML).toContain('id="content-state-section"');
     expect(ADMIN_PROCESS_HTML).toContain('id="account-action-form"');
     expect(ADMIN_PROCESS_HTML).not.toContain('id="back-button"');
     expect(ADMIN_PROCESS_HTML).not.toContain('返回列表');
@@ -41,6 +42,15 @@ describe('Admin dedicated process page', () => {
     );
     expect(ADMIN_PROCESS_HTML).toContain(
       "showFeedback('无法打开','当前处理数据已失效','error')"
+    );
+  });
+
+  it('hides current-content actions for report processing', () => {
+    expect(ADMIN_PROCESS_HTML).toContain(
+      "const isReport=kind==='content'&&(['report','用户举报'].includes(item.source)||Boolean(item.reason))"
+    );
+    expect(ADMIN_PROCESS_HTML).toContain(
+      "if(isReport)$('#content-state-section').classList.add('hidden')"
     );
   });
 
