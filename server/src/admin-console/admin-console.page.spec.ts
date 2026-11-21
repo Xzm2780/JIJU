@@ -73,6 +73,9 @@ describe('Admin console account management', () => {
     expect(ADMIN_CONSOLE_HTML).not.toContain('服务端校验角色');
     expect(ADMIN_CONSOLE_HTML).not.toContain("body.code?body.code+': '");
     expect(ADMIN_CONSOLE_HTML).not.toContain('usr_...');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('未成年人相关待办');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('id="summary-minor"');
+    expect(ADMIN_CONSOLE_HTML).not.toContain("item.is_minor_related?'urgent'");
   });
 
   it('uses concise report reason fields instead of explanatory subtitles', () => {
