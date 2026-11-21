@@ -75,6 +75,26 @@ if ($rootReadme.Contains('demo/publish') -or $rootReadme.Contains('docs/ui-desig
 if (-not $rootReadme.Contains('docs/product/PRD-v1.2.md')) {
     throw 'Root README must point to the formal PRD v1.2.'
 }
+$readmeSectionCount = [regex]::Matches($rootReadme, '(?m)^## .+$').Count
+if ($readmeSectionCount -lt 10) {
+    throw "Root README is missing expected sections: found $readmeSectionCount level-2 headings."
+}
+if (-not $rootReadme.Contains('```mermaid') -or -not $rootReadme.Contains('## License')) {
+    throw 'Root README must include the architecture diagram and License section.'
+}
+$requiredReadmeStatements = @(
+    'https://github.com/Xzm2780/JIJU.git',
+    'docker compose up --build',
+    'http://127.0.0.1:3001/api/v1/admin-console',
+    'tests/production/Verify-Production.ps1',
+    'frontend/project.private.config.json',
+    'MIT License'
+)
+foreach ($statement in $requiredReadmeStatements) {
+    if (-not $rootReadme.Contains($statement)) {
+        throw "Root README is missing: $statement"
+    }
+}
 
 $frontendReadme = Get-Content -LiteralPath (Join-Path $Root 'frontend\README.md') -Raw -Encoding UTF8
 if (-not $frontendReadme.Contains('../docs/design/ui-guidelines.md')) {
