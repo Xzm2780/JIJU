@@ -2,7 +2,7 @@
 
 ## 产品与设计
 
-- [正式产品需求说明书 v1.2](product/PRD-v1.2.md)
+- [正式产品需求说明书 v1.3](product/PRD-v1.3.md)
 - [视觉设计规范](design/ui-guidelines.md)
 - [历史产品需求说明书 v1.1](product/PRD-v1.1.md)：仅用于追溯，不作为新实现依据。
 

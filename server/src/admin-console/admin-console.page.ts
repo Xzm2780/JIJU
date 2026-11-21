@@ -77,7 +77,7 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
 
         <section class="panel" id="panel-reports">
           <div class="page-head"><div><h3>举报管理</h3></div></div>
-          <div class="toolbar"><div class="field"><label>处理状态</label><select id="report-status"><option value="">待处理与处理中</option><option value="PENDING">待处理</option><option value="PROCESSING">处理中</option><option value="RESOLVED">已完成</option></select></div><div class="field"><label>举报原因</label><select id="report-reason"><option value="">全部原因</option><option value="ABUSE">辱骂与骚扰</option><option value="PRIVACY">隐私</option><option value="MINOR_INVOLVED">未成年人</option><option value="DANGEROUS_OR_INAPPROPRIATE">危险内容</option><option value="SPAM">垃圾信息</option><option value="OTHER">其他</option></select></div><button id="load-reports" class="primary">查询</button></div>
+          <div class="toolbar"><div class="field"><label>处理状态</label><select id="report-status"><option value="">待处理与处理中</option><option value="PENDING">待处理</option><option value="PROCESSING">处理中</option><option value="RESOLVED">已完成</option></select></div><div class="field"><label>举报原因</label><select id="report-reason"><option value="">全部原因</option><option value="ABUSE">辱骂与骚扰</option><option value="PRIVACY">隐私</option><option value="DANGEROUS_OR_INAPPROPRIATE">危险内容</option><option value="SPAM">垃圾信息</option><option value="OTHER">其他</option></select></div><button id="load-reports" class="primary">查询</button></div>
           <div class="list" id="report-list"></div>
         </section>
 
@@ -156,8 +156,7 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
   function switchPanel(name){openPanelTab(name)}
   const labels={
     POST:'帖子',COMMENT:'评论',
-    ABUSE:'辱骂与骚扰',PRIVACY:'隐私',MINOR_INVOLVED:'未成年人',DANGEROUS_OR_INAPPROPRIATE:'危险内容',SPAM:'垃圾信息',OTHER:'其他',
-    PREEMPTIVE:'优先处理',NORMAL:'普通',
+    ABUSE:'辱骂与骚扰',PRIVACY:'隐私',DANGEROUS_OR_INAPPROPRIATE:'危险内容',SPAM:'垃圾信息',OTHER:'其他',
     PENDING:'待处理',PROCESSING:'处理中',RESOLVED:'已完成',
     report:'用户举报',moderation:'规则复核',
     PASSED:'已通过',REJECTED:'已判定违规',

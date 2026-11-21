@@ -20,7 +20,6 @@ import { createIdempotencyKey } from '../../utils/idempotency';
 const REASONS: Array<{ value: ReportReason; label: string }> = [
   { value: 'ABUSE', label: '辱骂、攻击或骚扰' },
   { value: 'PRIVACY', label: '泄露隐私信息' },
-  { value: 'MINOR_INVOLVED', label: '涉及未成年人' },
   { value: 'DANGEROUS_OR_INAPPROPRIATE', label: '危险或不适当内容' },
   { value: 'SPAM', label: '广告或垃圾信息' },
   { value: 'OTHER', label: '其他' }

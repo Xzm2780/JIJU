@@ -149,7 +149,6 @@ export type ReportTargetType = 'POST' | 'COMMENT';
 export type ReportReason =
   | 'ABUSE'
   | 'PRIVACY'
-  | 'MINOR_INVOLVED'
   | 'DANGEROUS_OR_INAPPROPRIATE'
   | 'SPAM'
   | 'OTHER';

@@ -5,7 +5,6 @@ describe('review queue cursor', () => {
     const cursor = {
       version: 1 as const,
       source: 'report' as const,
-      priorityRank: 0,
       queueAt: '2026-11-14T02:00:00.000Z',
       itemId: 'rpt_1'
     };

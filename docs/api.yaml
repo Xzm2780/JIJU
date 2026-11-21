@@ -1018,7 +1018,7 @@ paths:
         响应结构：返回举报 ID 和提交时间，不向普通用户公开举报人或处理结果细节。
         错误码：引用 docs/errors.md；内容不可用、校验失败、未登录、须知未确认和状态冲突必须区分。
         幂等要求：必须携带 Idempotency-Key，值为 v1:report.submit:<uuid_v7>；同一举报意图重试复用同一键，同时执行同用户、同对象、同原因 24 小时业务去重。
-        副作用：创建 Report 并快照当前内容版本；涉及未成年人时标记优先队列；不改变公开计数、帖子状态或配额。
+        副作用：创建 Report 并快照当前内容版本；不改变公开计数、帖子状态或配额。
         浏览量：不返回 view_count。
       x-auth:
         authentication: user
@@ -1050,7 +1050,7 @@ paths:
         rule: reuse the key for retries of the same report payload; additionally deduplicate by reporter, target and reason for 24 hours
       x-side-effects:
         - create Report with server-captured target_type, target_id and content_version
-        - mark is_minor_related and raise queue priority when reason is MINOR_INVOLVED
+        - persist the fixed report reason and server-captured content version
         - do not expose reporter identity or report details to ordinary users
         - do not change content state before authorized moderation
       x-view-count:
@@ -1323,8 +1323,8 @@ paths:
       summary: 查询举报队列
       description: |
         鉴权要求：独立后台身份，需 REPORT_REVIEWER、CONTENT_MODERATOR 或 AUDITOR 角色。
-        请求参数与校验：cursor、limit、status、priority、reason 为可选筛选；limit 为 1 至 50。
-        响应结构：返回举报对象、内容类型、目标 ID、内容版本、原因、未成年人标记、优先级、处理状态和提交时间。
+        请求参数与校验：cursor、limit、status、reason 为可选筛选；limit 为 1 至 50。
+        响应结构：返回举报对象、内容类型、目标 ID、内容版本、原因、处理状态和提交时间。
         错误码：未登录、后台权限不足和系统错误参考 docs/errors.md。
         幂等要求：GET 不需要 Idempotency-Key。
         副作用：只读，不改变举报、内容或账号状态；读取后台敏感详情的行为可进入安全审计。
@@ -1333,7 +1333,7 @@ paths:
         authentication: admin
         roles: [REPORT_REVIEWER, CONTENT_MODERATOR, AUDITOR]
       x-validation:
-        - status, priority and reason must use documented admin enums
+        - status and reason must use documented admin enums
         - cursor must be a server-issued token when present
         - limit must be an integer between 1 and 50
       x-errors:
@@ -1365,12 +1365,6 @@ paths:
           schema:
             type: string
             enum: [PENDING, PROCESSING, RESOLVED]
-        - name: priority
-          in: query
-          required: false
-          schema:
-            type: string
-            enum: [PREEMPTIVE, NORMAL]
         - name: reason
           in: query
           required: false
@@ -1400,8 +1394,8 @@ paths:
       summary: 查询统一复核队列
       description: |
         鉴权要求：独立后台身份，需 CONTENT_MODERATOR、REPORT_REVIEWER 或 AUDITOR 角色。
-        请求参数与校验：source 可选 moderation、report、all，默认 all；priority 可选 PREEMPTIVE、NORMAL；cursor 为服务端不透明游标；limit 为 1 至 50，默认 20。
-        响应结构：返回来源、队列项 ID、目标类型、目标 ID、内容版本、优先级、状态、原因或命中规则、未成年人标记和入队时间；不返回内容正文、举报说明、浏览量或浏览者身份。
+        请求参数与校验：source 可选 moderation、report、all，默认 all；cursor 为服务端不透明游标；limit 为 1 至 50，默认 20。
+        响应结构：返回来源、队列项 ID、目标类型、目标 ID、内容版本、状态、原因或命中规则和入队时间；不返回内容正文、举报说明、浏览量或浏览者身份。
         错误码：未登录、后台权限不足、游标校验失败和系统错误，引用 docs/errors.md。
         幂等要求：GET 只读，不需要 Idempotency-Key。
         副作用：不改变 Report、ModerationRecord、内容或账号状态；可记录受控的后台查询审计。
@@ -1411,11 +1405,10 @@ paths:
         roles: [CONTENT_MODERATOR, REPORT_REVIEWER, AUDITOR]
       x-validation:
         - source must be moderation, report or all
-        - priority must be PREEMPTIVE or NORMAL
         - cursor must be an opaque server-issued review queue cursor
         - limit must be an integer between 1 and 50
         - only PENDING and PROCESSING queue items are returned
-        - PREEMPTIVE items sort before NORMAL items
+        - 统一队列按入队时间稳定排序
       x-errors:
         - JIJU_AUTH_4011
         - JIJU_AUTH_4012
@@ -1445,11 +1438,6 @@ paths:
             type: string
             enum: [moderation, report, all]
             default: all
-        - name: priority
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/ModerationPriority'
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
       responses:
@@ -2140,19 +2128,12 @@ components:
       enum:
         - ABUSE
         - PRIVACY
-        - MINOR_INVOLVED
         - DANGEROUS_OR_INAPPROPRIATE
         - SPAM
         - OTHER
     ReportStatus:
       type: string
       enum: [PENDING, PROCESSING, RESOLVED]
-    ReportPriority:
-      type: string
-      enum: [PREEMPTIVE, NORMAL]
-    ModerationPriority:
-      type: string
-      enum: [PREEMPTIVE, NORMAL]
     ReviewQueueItem:
       type: object
       additionalProperties: false
@@ -2162,9 +2143,7 @@ components:
         - target_type
         - target_id
         - content_version
-        - priority
         - status
-        - is_minor_related
         - queue_at
       properties:
         source:
@@ -2179,8 +2158,6 @@ components:
         content_version:
           type: integer
           minimum: 1
-        priority:
-          $ref: '#/components/schemas/ModerationPriority'
         status:
           type: string
         reason_code:
@@ -2191,8 +2168,6 @@ components:
           nullable: true
           items:
             type: string
-        is_minor_related:
-          type: boolean
         queue_at:
           $ref: '#/components/schemas/UtcTimestamp'
     ReviewQueueResponse:
@@ -2855,8 +2830,6 @@ components:
         - target_id
         - content_version
         - reason
-        - is_minor_related
-        - priority
         - status
         - submitted_at
       properties:
@@ -2874,10 +2847,6 @@ components:
         other_description:
           type: string
           description: 仅后台可见
-        is_minor_related:
-          type: boolean
-        priority:
-          $ref: '#/components/schemas/ReportPriority'
         status:
           $ref: '#/components/schemas/ReportStatus'
         submitted_at:

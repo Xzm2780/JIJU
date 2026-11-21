@@ -17,12 +17,12 @@ $requiredPaths = @(
     'docs\state-machine.md',
     'docs\design\ui-guidelines.md',
     'docs\product\PRD-v1.1.md',
-    'docs\product\PRD-v1.2.md',
+    'docs\product\PRD-v1.3.md',
     'server\scripts\retention.ts',
     'tests\README.md',
     'tests\docs\Test-AiContext.ps1',
-    'tests\docs\Test-PrD-v11.ps1',
-    'tests\docs\Test-PrD-v12.ps1',
+    'tests\docs\Test-PRD-v11.ps1',
+    'tests\docs\Test-PRD-v13.ps1',
     'tests\production\Verify-Production.ps1',
     'tests\structure\Test-RepositoryLayout.ps1'
 )
@@ -37,6 +37,7 @@ $obsoletePaths = @(
     'demo',
     'docs\T05-production.md',
     'docs\ui-design.md',
+    'docs\product\PRD-v1.2.md',
     'frontend\custom-tab-bar',
     'server\prisma\retention.ts',
     'tests\docs\Test-PrDemo.ps1',
@@ -53,7 +54,7 @@ foreach ($relativePath in $obsoletePaths) {
 
 $docsIndex = Get-Content -LiteralPath (Join-Path $Root 'docs\README.md') -Raw -Encoding UTF8
 $requiredIndexLinks = @(
-    'product/PRD-v1.2.md',
+    'product/PRD-v1.3.md',
     'product/PRD-v1.1.md',
     'design/ui-guidelines.md',
     '../ai-context.md',
@@ -72,8 +73,8 @@ $rootReadme = Get-Content -LiteralPath (Join-Path $Root 'README.md') -Raw -Encod
 if ($rootReadme.Contains('demo/publish') -or $rootReadme.Contains('docs/ui-design.md')) {
     throw 'Root README still references a removed legacy path.'
 }
-if (-not $rootReadme.Contains('docs/product/PRD-v1.2.md')) {
-    throw 'Root README must point to the formal PRD v1.2.'
+if (-not $rootReadme.Contains('docs/product/PRD-v1.3.md')) {
+    throw 'Root README must point to the formal PRD v1.3.'
 }
 $readmeSectionCount = [regex]::Matches($rootReadme, '(?m)^## .+$').Count
 if ($readmeSectionCount -lt 10) {

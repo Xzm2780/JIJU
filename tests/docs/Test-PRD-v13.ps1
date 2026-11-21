@@ -1,16 +1,21 @@
 param(
-    [string]$Path = (Join-Path $PSScriptRoot '..\..\docs\product\PRD-v1.2.md')
+    [string]$Path = (Join-Path $PSScriptRoot '..\..\docs\product\PRD-v1.3.md')
 )
 
 $ErrorActionPreference = 'Stop'
 $resolvedPath = (Resolve-Path -LiteralPath $Path).Path
 $content = Get-Content -LiteralPath $resolvedPath -Raw -Encoding UTF8
 
-if ($content -notmatch '(?m)^# .+$') {
-    throw 'Missing PRD v1.2 title.'
+if ((Split-Path -Leaf $resolvedPath) -ne 'PRD-v1.3.md') {
+    throw 'Formal PRD filename must be PRD-v1.3.md.'
 }
-
-if (-not $content.Contains('2026-11-21')) {
+if (-not $content.Contains('PRD-JIJU-V1.3') -or $content -notmatch '\| 1\.3 \|') {
+    throw 'PRD filename, document ID and version must all use 1.3.'
+}
+if ($content -notmatch '(?m)^# .+$') {
+    throw 'Missing PRD title.'
+}
+if (-not $content.Contains('2026-11-22')) {
     throw 'Missing document date.'
 }
 
@@ -69,8 +74,8 @@ $bannedSqlPatterns = @(
 
 foreach ($pattern in $bannedSqlPatterns) {
     if ($content -match $pattern) {
-        throw "PRD v1.2 contains forbidden SQL pattern: $pattern"
+        throw "PRD v1.3 contains forbidden SQL pattern: $pattern"
     }
 }
 
-Write-Host "PRD v1.2 validation passed: 28 API operations, 24 AC rows, 13 current acceptance rows, and 10 release blockers."
+Write-Host "PRD v1.3 validation passed: filename, document ID, version, 28 API operations, 24 AC rows, 13 current acceptance rows, and 10 release blockers."

@@ -10,7 +10,7 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE "ReportReason" AS ENUM ('ABUSE', 'PRIVACY', 'MINOR_INVOLVED', 'DANGEROUS_OR_INAPPROPRIATE', 'SPAM', 'OTHER');
+CREATE TYPE "ReportReason" AS ENUM ('ABUSE', 'PRIVACY', 'DANGEROUS_OR_INAPPROPRIATE', 'SPAM', 'OTHER');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -22,7 +22,6 @@ END $$;
 ALTER TABLE "User" ALTER COLUMN "loginCode" DROP NOT NULL;
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "authSubjectRef" TEXT;
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "authProvider" TEXT NOT NULL DEFAULT 'MOCK';
-ALTER TABLE "ModerationRecord" ADD COLUMN IF NOT EXISTS "priorityRank" INTEGER NOT NULL DEFAULT 1;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "User_authSubjectRef_key" ON "User"("authSubjectRef");
 
@@ -45,9 +44,6 @@ CREATE TABLE IF NOT EXISTS "Report" (
     "contentVersion" INTEGER NOT NULL,
     "reason" "ReportReason" NOT NULL,
     "otherDescription" TEXT,
-    "isMinorRelated" BOOLEAN NOT NULL DEFAULT false,
-    "priority" "ModerationPriority" NOT NULL DEFAULT 'NORMAL',
-    "priorityRank" INTEGER NOT NULL DEFAULT 1,
     "status" "ReportStatus" NOT NULL DEFAULT 'PENDING',
     "dedupeKey" TEXT NOT NULL,
     "submittedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -75,12 +71,11 @@ CREATE TABLE IF NOT EXISTS "AuditLog" (
 
 CREATE INDEX IF NOT EXISTS "AdminRoleAssignment_userId_active_role_idx" ON "AdminRoleAssignment"("userId", "active", "role");
 CREATE INDEX IF NOT EXISTS "AdminRoleAssignment_role_active_idx" ON "AdminRoleAssignment"("role", "active");
-CREATE INDEX IF NOT EXISTS "ModerationRecord_status_priorityRank_createdAt_id_idx" ON "ModerationRecord"("status", "priorityRank", "createdAt", "id");
+CREATE INDEX IF NOT EXISTS "ModerationRecord_status_createdAt_id_idx" ON "ModerationRecord"("status", "createdAt", "id");
 CREATE UNIQUE INDEX IF NOT EXISTS "Report_dedupeKey_key" ON "Report"("dedupeKey");
-CREATE INDEX IF NOT EXISTS "Report_status_priorityRank_submittedAt_id_idx" ON "Report"("status", "priorityRank", "submittedAt", "id");
+CREATE INDEX IF NOT EXISTS "Report_status_submittedAt_id_idx" ON "Report"("status", "submittedAt", "id");
 CREATE INDEX IF NOT EXISTS "Report_reporterId_submittedAt_idx" ON "Report"("reporterId", "submittedAt");
 CREATE INDEX IF NOT EXISTS "Report_targetType_targetId_contentVersion_idx" ON "Report"("targetType", "targetId", "contentVersion");
-CREATE INDEX IF NOT EXISTS "Report_isMinorRelated_priorityRank_status_idx" ON "Report"("isMinorRelated", "priorityRank", "status");
 CREATE INDEX IF NOT EXISTS "AuditLog_objectType_objectId_occurredAt_idx" ON "AuditLog"("objectType", "objectId", "occurredAt");
 CREATE INDEX IF NOT EXISTS "AuditLog_actorId_occurredAt_idx" ON "AuditLog"("actorId", "occurredAt");
 CREATE INDEX IF NOT EXISTS "AuditLog_actionType_occurredAt_idx" ON "AuditLog"("actionType", "occurredAt");

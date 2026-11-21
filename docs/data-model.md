@@ -211,16 +211,13 @@ PostVersion 是支撑编辑历史、举报版本和审核快照的内部实体�
 | target_type | 枚举 | 是 | POST 或 COMMENT。 |
 | target_id | 不透明 ID | 是 | 被举报对象。 |
 | content_version | 整数 | 是 | 服务端在提交时捕获，不接受客户端指定。 |
-| reason | 枚举 | 是 | 辱骂/攻击/骚扰、隐私、未成年人、危险或不适当、广告或垃圾信息、其他。 |
+| reason | 枚举 | 是 | 辱骂/攻击/骚扰、隐私、危险或不适当、广告或垃圾信息、其他。 |
 | other_description | 字符串 | 条件 | reason=OTHER 时必填；仅后台可见。 |
-| is_minor_related | 布尔 | 是 | reason=MINOR_INVOLVED 时为 true。 |
-| priority | 枚举 | 是 | PREEMPTIVE 或 NORMAL。 |
-| priority_rank | 整数 | 是 | 队列内部排序投影：PREEMPTIVE=0，NORMAL=1；不返回客户端。 |
 | status | 枚举 | 是 | PENDING、PROCESSING、RESOLVED。 |
 | dedupe_key | 字符串 | 是 | 唯一；覆盖同用户、同对象、同原因的 24 小时去重窗口。 |
 | submitted_at | UTC 时间 | 是 | 提交时间。 |
 
-主要索引：`(status, priority_rank, submitted_at, id)`；`(target_type, target_id, content_version)`；`(is_minor_related, priority_rank, status)`。
+主要索引：`(status, submitted_at, id)`；`(target_type, target_id, content_version)`。
 
 ### 4.9 Tag
 
@@ -286,8 +283,6 @@ PostVersion 是支撑编辑历史、举报版本和审核快照的内部实体�
 | target_id | 不透明 ID | 是 | 被复核对象。 |
 | content_version | 整数 | 是 | 被处理内容版本。 |
 | review_round | 整数 | 是 | 内容版本内的复核轮次。 |
-| priority | 枚举 | 是 | PREEMPTIVE 或 NORMAL。 |
-| priority_rank | 整数 | 是 | 队列内部排序投影：PREEMPTIVE=0，NORMAL=1；不返回客户端。 |
 | status | 枚举 | 是 | PENDING、PROCESSING、RESOLVED。 |
 | hit_rule_refs | 规则引用列表 | 否 | 命中规则引用，不复制规则正文。 |
 | action | 枚举 | 否 | HIDE、TAKEDOWN、RESTORE 或无动作。 |
@@ -302,7 +297,7 @@ PostVersion 是支撑编辑历史、举报版本和审核快照的内部实体�
 
 主要约束：`(target_type, target_id, content_version, review_round)` 唯一。
 
-主要索引：`(status, priority_rank, created_at, id)`；`(target_type, target_id, content_version)`。
+主要索引：`(status, created_at, id)`；`(target_type, target_id, content_version)`。
 
 ### 4.13 AuditLog
 
@@ -325,7 +320,7 @@ PostVersion 是支撑编辑历史、举报版本和审核快照的内部实体�
 
 ### 4.13.1 ReviewQueue 查询投影
 
-`GET /admin/review-queue` 只读投影 `Report` 与 `ModerationRecord` 两张事实表，不新增第三张联合事实表。投影按 `priority_rank`、入队时间、来源稳定顺序和 `item_id` 形成不透明游标；`source=all` 时不得因跨来源同时间戳而漏项或重复。响应只包含来源、队列项 ID、目标类型与 ID、内容版本、优先级、状态、原因代码/命中规则引用、未成年人标记和入队时间，不包含正文、举报说明、浏览量或浏览者身份。
+`GET /admin/review-queue` 只读投影 `Report` 与 `ModerationRecord` 两张事实表，不新增第三张联合事实表。投影按入队时间、来源稳定顺序和 `item_id` 形成不透明游标；`source=all` 时不得因跨来源同时间戳而漏项或重复。响应只包含来源、队列项 ID、目标类型与 ID、内容版本、状态、原因代码/命中规则引用和入队时间，不包含正文、举报说明、浏览量或浏览者身份。
 
 ### 4.14 ViewRecord
 

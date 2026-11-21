@@ -6,17 +6,7 @@ $ErrorActionPreference = 'Stop'
 $resolvedPath = (Resolve-Path -LiteralPath $Path).Path
 $content = Get-Content -LiteralPath $resolvedPath -Raw -Encoding UTF8
 
-$requiredSections = @(
-    '1',
-    '4',
-    '5',
-    '8',
-    '9',
-    '10',
-    '11',
-    '12',
-    '13'
-)
+$requiredSections = @('1', '4', '5', '8', '9', '10', '11', '12', '13')
 
 foreach ($section in $requiredSections) {
     if ($content -notmatch "(?m)^## $section\. ") {
@@ -65,4 +55,4 @@ if ($acceptanceRows.Count -lt 20) {
     throw "Expected at least 20 acceptance scenarios, found $($acceptanceRows.Count)."
 }
 
-Write-Host "PRD validation passed: $($ids.Count) unique requirement IDs, $($acceptanceRows.Count) acceptance scenarios."
+Write-Host "PRD v1.1 archive validation passed: $($ids.Count) unique requirement IDs and $($acceptanceRows.Count) acceptance scenarios."

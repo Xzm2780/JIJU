@@ -1,6 +1,5 @@
 import { ConfigService } from '@nestjs/config';
 import {
-  ModerationPriority,
   ModerationStatus,
   PublicStatus,
   ReportReason,
@@ -113,26 +112,6 @@ describe('ReportsService', () => {
     expect(result.data).not.toHaveProperty('content_version');
     expect(result.data).not.toHaveProperty('other_description');
     expect(h.reportData.contentVersion).toBe(3);
-  });
-
-  it('prioritizes minor-related reports', async () => {
-    const h = harness();
-    await h.service.create({
-      user: USER,
-      idempotencyKey: KEY,
-      requestId: 'req_report',
-      body: {
-        target_type: ReportTargetType.POST,
-        target_id: 'pst_1',
-        reason: ReportReason.MINOR_INVOLVED
-      }
-    });
-    expect(h.reportData).toMatchObject({
-      isMinorRelated: true,
-      priority: ModerationPriority.PREEMPTIVE,
-      priorityRank: 0,
-      status: ReportStatus.PENDING
-    });
   });
 
   it('requires and trims OTHER description without echoing it', async () => {

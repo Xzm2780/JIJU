@@ -17,8 +17,6 @@ CREATE TYPE "QuotaType" AS ENUM ('POST_DAILY');
 CREATE TYPE "IdempotencyStatus" AS ENUM ('PROCESSING', 'SUCCEEDED');
 
 -- CreateEnum
-CREATE TYPE "ModerationPriority" AS ENUM ('PREEMPTIVE', 'NORMAL');
-
 -- CreateEnum
 CREATE TYPE "AdminRole" AS ENUM ('REPORT_REVIEWER', 'CONTENT_MODERATOR', 'ACCOUNT_MODERATOR', 'AUDITOR', 'CONFIG_ADMIN');
 
@@ -26,7 +24,7 @@ CREATE TYPE "AdminRole" AS ENUM ('REPORT_REVIEWER', 'CONTENT_MODERATOR', 'ACCOUN
 CREATE TYPE "ReportTargetType" AS ENUM ('POST', 'COMMENT');
 
 -- CreateEnum
-CREATE TYPE "ReportReason" AS ENUM ('ABUSE', 'PRIVACY', 'MINOR_INVOLVED', 'DANGEROUS_OR_INAPPROPRIATE', 'SPAM', 'OTHER');
+CREATE TYPE "ReportReason" AS ENUM ('ABUSE', 'PRIVACY', 'DANGEROUS_OR_INAPPROPRIATE', 'SPAM', 'OTHER');
 
 -- CreateEnum
 CREATE TYPE "ReportStatus" AS ENUM ('PENDING', 'PROCESSING', 'RESOLVED');
@@ -183,8 +181,6 @@ CREATE TABLE "ModerationRecord" (
     "targetId" TEXT NOT NULL,
     "contentVersion" INTEGER NOT NULL,
     "reviewRound" INTEGER NOT NULL DEFAULT 1,
-    "priority" "ModerationPriority" NOT NULL DEFAULT 'NORMAL',
-    "priorityRank" INTEGER NOT NULL DEFAULT 1,
     "status" TEXT NOT NULL DEFAULT 'PENDING',
     "hitRuleRefs" JSONB,
     "moderationStatusAfter" "ModerationStatus",
@@ -206,9 +202,6 @@ CREATE TABLE "Report" (
     "contentVersion" INTEGER NOT NULL,
     "reason" "ReportReason" NOT NULL,
     "otherDescription" TEXT,
-    "isMinorRelated" BOOLEAN NOT NULL DEFAULT false,
-    "priority" "ModerationPriority" NOT NULL DEFAULT 'NORMAL',
-    "priorityRank" INTEGER NOT NULL DEFAULT 1,
     "status" "ReportStatus" NOT NULL DEFAULT 'PENDING',
     "dedupeKey" TEXT NOT NULL,
     "submittedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -301,7 +294,7 @@ CREATE INDEX "IdempotencyRecord_expiresAt_idx" ON "IdempotencyRecord"("expiresAt
 CREATE UNIQUE INDEX "IdempotencyRecord_actorId_operation_idempotencyKey_key" ON "IdempotencyRecord"("actorId", "operation", "idempotencyKey");
 
 -- CreateIndex
-CREATE INDEX "ModerationRecord_status_priorityRank_createdAt_id_idx" ON "ModerationRecord"("status", "priorityRank", "createdAt", "id");
+CREATE INDEX "ModerationRecord_status_createdAt_id_idx" ON "ModerationRecord"("status", "createdAt", "id");
 
 -- CreateIndex
 CREATE INDEX "ModerationRecord_targetType_targetId_contentVersion_idx" ON "ModerationRecord"("targetType", "targetId", "contentVersion");
@@ -313,7 +306,7 @@ CREATE UNIQUE INDEX "ModerationRecord_targetType_targetId_contentVersion_reviewR
 CREATE UNIQUE INDEX "Report_dedupeKey_key" ON "Report"("dedupeKey");
 
 -- CreateIndex
-CREATE INDEX "Report_status_priorityRank_submittedAt_id_idx" ON "Report"("status", "priorityRank", "submittedAt", "id");
+CREATE INDEX "Report_status_submittedAt_id_idx" ON "Report"("status", "submittedAt", "id");
 
 -- CreateIndex
 CREATE INDEX "Report_reporterId_submittedAt_idx" ON "Report"("reporterId", "submittedAt");
@@ -322,7 +315,6 @@ CREATE INDEX "Report_reporterId_submittedAt_idx" ON "Report"("reporterId", "subm
 CREATE INDEX "Report_targetType_targetId_contentVersion_idx" ON "Report"("targetType", "targetId", "contentVersion");
 
 -- CreateIndex
-CREATE INDEX "Report_isMinorRelated_priorityRank_status_idx" ON "Report"("isMinorRelated", "priorityRank", "status");
 
 -- CreateIndex
 CREATE INDEX "AuditLog_objectType_objectId_occurredAt_idx" ON "AuditLog"("objectType", "objectId", "occurredAt");

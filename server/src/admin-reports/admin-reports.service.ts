@@ -18,24 +18,12 @@ export class AdminReportsService {
         status: query.status
           ? query.status
           : { in: [ReportStatus.PENDING, ReportStatus.PROCESSING] },
-        ...(query.priority
-          ? { priority: query.priority }
-          : {}),
         ...(query.reason ? { reason: query.reason } : {}),
         ...(cursor
           ? {
               OR: [
+                { submittedAt: { lt: new Date(cursor.timestamp) } },
                 {
-                  priorityRank: {
-                    gt: cursor.priorityRank ?? 0
-                  }
-                },
-                {
-                  priorityRank: cursor.priorityRank ?? 0,
-                  submittedAt: { lt: new Date(cursor.timestamp) }
-                },
-                {
-                  priorityRank: cursor.priorityRank ?? 0,
                   submittedAt: new Date(cursor.timestamp),
                   id: { lt: cursor.id }
                 }
@@ -43,11 +31,7 @@ export class AdminReportsService {
             }
           : {})
       },
-      orderBy: [
-        { priorityRank: 'asc' },
-        { submittedAt: 'desc' },
-        { id: 'desc' }
-      ],
+      orderBy: [{ submittedAt: 'desc' }, { id: 'desc' }],
       take: query.limit + 1
     });
     const page = reports.slice(0, query.limit);
@@ -62,8 +46,6 @@ export class AdminReportsService {
         ...(report.otherDescription
           ? { other_description: report.otherDescription }
           : {}),
-        is_minor_related: report.isMinorRelated,
-        priority: report.priority,
         status: report.status,
         submitted_at: report.submittedAt.toISOString()
       })),
@@ -74,8 +56,7 @@ export class AdminReportsService {
             ? encodePageCursor({
                 version: 1,
                 timestamp: last.submittedAt.toISOString(),
-                id: last.id,
-                priorityRank: last.priorityRank
+                id: last.id
               })
             : null
       }

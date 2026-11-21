@@ -1,5 +1,4 @@
 import {
-  ModerationPriority,
   ReportReason,
   ReportStatus,
   ReportTargetType
@@ -12,11 +11,8 @@ function report(overrides: Record<string, unknown> = {}) {
     targetType: ReportTargetType.POST,
     targetId: 'pst_00000000-0000-7000-8000-000000000001',
     contentVersion: 2,
-    reason: ReportReason.MINOR_INVOLVED,
+    reason: ReportReason.ABUSE,
     otherDescription: null,
-    isMinorRelated: true,
-    priority: ModerationPriority.PREEMPTIVE,
-    priorityRank: 0,
     status: ReportStatus.PENDING,
     submittedAt: new Date('2026-11-14T02:00:00.000Z'),
     ...overrides
@@ -24,7 +20,7 @@ function report(overrides: Record<string, unknown> = {}) {
 }
 
 describe('AdminReportsService', () => {
-  it('defaults to open reports and prioritizes minor reports without leaking identities', async () => {
+  it('defaults to open reports without leaking identities', async () => {
     const prisma = {
       report: { findMany: jest.fn().mockResolvedValue([report()]) }
     };
@@ -38,23 +34,18 @@ describe('AdminReportsService', () => {
             in: [ReportStatus.PENDING, ReportStatus.PROCESSING]
           }
         }),
-        orderBy: [
-          { priorityRank: 'asc' },
-          { submittedAt: 'desc' },
-          { id: 'desc' }
-        ]
+        orderBy: [{ submittedAt: 'desc' }, { id: 'desc' }]
       })
     );
     expect(result.data[0]).toMatchObject({
       content_version: 2,
-      is_minor_related: true,
-      priority: ModerationPriority.PREEMPTIVE
+      reason: ReportReason.ABUSE
     });
     expect(result.data[0]).not.toHaveProperty('reporter_id');
     expect(result.data[0]).not.toHaveProperty('view_count');
   });
 
-  it('applies status, priority and reason filters', async () => {
+  it('applies status and reason filters', async () => {
     const prisma = {
       report: { findMany: jest.fn().mockResolvedValue([]) }
     };
@@ -62,14 +53,12 @@ describe('AdminReportsService', () => {
     await service.list({
       limit: 20,
       status: ReportStatus.RESOLVED,
-      priority: ModerationPriority.NORMAL,
       reason: ReportReason.SPAM
     });
     expect(prisma.report.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
           status: ReportStatus.RESOLVED,
-          priority: ModerationPriority.NORMAL,
           reason: ReportReason.SPAM
         })
       })

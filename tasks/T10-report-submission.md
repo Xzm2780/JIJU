@@ -41,9 +41,9 @@ Report、Post、Comment、PostVersion、IdempotencyRecord
 ## 9. 实现要点（Implementation points / core rules）
 
 1. 举报要求登录、当前须知、可用的 POST 或 COMMENT 目标和服务端内容校验；不得举报自己的帖子或评论。
-2. 原因限定为辱骂/攻击/骚扰、隐私、涉及未成年人、危险或不适当、广告或垃圾信息、其他。
+2. 原因限定为辱骂/攻击/骚扰、隐私、危险或不适当、广告或垃圾信息、其他。
 3. `other_description` 仅在原因为 OTHER 时必填，只允许后台权限可见，不得公开回显。
-4. 服务端捕获目标当前 `content_version`；涉及未成年人时标记 `is_minor_related=true` 并提高队列优先级。
+4. 服务端捕获目标当前 `content_version`，后台按提交时间和稳定顺序处理。
 5. 使用 `report.submit` 幂等键并按同用户、同对象、同原因执行 24 小时去重；重复提交不生成第二条有效举报。
 
 ## 10. 测试要求（Test requirements）
@@ -57,6 +57,6 @@ Report、Post、Comment、PostVersion、IdempotencyRecord
 ## 11. 完成定义（Definition of done）
 
 - 登录且已确认须知的用户可举报有效帖子和评论。
-- 举报准确关联提交时内容版本，未成年人原因进入优先队列。
+- 举报准确关联提交时内容版本并进入待处理队列。
 - AC-01、AC-12、AC-19、AC-20、AC-22、SUP-06 相关断言通过。
 - 本任务仅使用 `POST /reports`，不包含举报处理或内容处罚能力。

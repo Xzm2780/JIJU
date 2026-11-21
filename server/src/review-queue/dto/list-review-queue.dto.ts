@@ -1,4 +1,3 @@
-import { ModerationPriority } from '@prisma/client';
 import {
   IsEnum,
   IsInt,
@@ -19,10 +18,6 @@ export class ListReviewQueueDto {
   @IsOptional()
   @IsEnum(ReviewQueueSource)
   source?: ReviewQueueSource = ReviewQueueSource.ALL;
-
-  @IsOptional()
-  @IsEnum(ModerationPriority)
-  priority?: ModerationPriority;
 
   @IsOptional()
   @IsString()

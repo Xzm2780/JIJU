@@ -35,11 +35,6 @@ enum IdempotencyStatus {
   SUCCEEDED
 }
 
-enum ModerationPriority {
-  PREEMPTIVE
-  NORMAL
-}
-
 enum AdminRole {
   REPORT_REVIEWER
   CONTENT_MODERATOR
@@ -56,7 +51,6 @@ enum ReportTargetType {
 enum ReportReason {
   ABUSE
   PRIVACY
-  MINOR_INVOLVED
   DANGEROUS_OR_INAPPROPRIATE
   SPAM
   OTHER
@@ -312,8 +306,6 @@ model ModerationRecord {
   targetId              String
   contentVersion        Int
   reviewRound           Int                @default(1)
-  priority              ModerationPriority @default(NORMAL)
-  priorityRank          Int                @default(1)
   status                String             @default("PENDING")
   hitRuleRefs           Json?
   moderationStatusAfter ModerationStatus?
@@ -325,7 +317,7 @@ model ModerationRecord {
   handler               User?              @relation(fields: [handledBy], references: [id])
 
   @@unique([targetType, targetId, contentVersion, reviewRound])
-  @@index([status, priorityRank, createdAt, id])
+  @@index([status, createdAt, id])
   @@index([targetType, targetId, contentVersion])
 }
 
@@ -337,9 +329,6 @@ model Report {
   contentVersion   Int
   reason           ReportReason
   otherDescription String?
-  isMinorRelated   Boolean            @default(false)
-  priority         ModerationPriority @default(NORMAL)
-  priorityRank     Int                @default(1)
   status           ReportStatus       @default(PENDING)
   dedupeKey        String             @unique
   submittedAt      DateTime           @default(now())
@@ -349,10 +338,9 @@ model Report {
   reporter         User               @relation("ReportReporter", fields: [reporterId], references: [id])
   handler          User?              @relation("ReportHandler", fields: [handledBy], references: [id])
 
-  @@index([status, priorityRank, submittedAt, id])
+  @@index([status, submittedAt, id])
   @@index([reporterId, submittedAt])
   @@index([targetType, targetId, contentVersion])
-  @@index([isMinorRelated, priorityRank, status])
 }
 
 model AuditLog {

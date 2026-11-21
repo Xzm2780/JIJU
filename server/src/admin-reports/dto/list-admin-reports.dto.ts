@@ -1,5 +1,4 @@
 import {
-  ModerationPriority,
   ReportReason,
   ReportStatus
 } from '@prisma/client';
@@ -28,10 +27,6 @@ export class ListAdminReportsDto {
   @IsOptional()
   @IsEnum(ReportStatus)
   status?: ReportStatus;
-
-  @IsOptional()
-  @IsEnum(ModerationPriority)
-  priority?: ModerationPriority;
 
   @IsOptional()
   @IsEnum(ReportReason)

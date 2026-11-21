@@ -140,12 +140,9 @@
 | target_type | 枚举（POST、COMMENT） | 是 | 无 | 与内容版本联合引用 | `(target_type, target_id, content_version)` | REPORT-01、REPORT-07 |
 | target_id | ID（Post 或 Comment） | 是 | 无 | 否 | `(target_type, target_id, content_version)` | REPORT-01、REPORT-07 |
 | content_version | 整数（内容版本引用） | 是 | 取举报提交时的目标当前版本 | 否 | `(target_type, target_id, content_version)` | POST-07、REPORT-07 |
-| reason | 枚举（辱骂/攻击/骚扰、隐私信息、涉及未成年人、危险或不适当内容、广告或垃圾信息、其他） | 是 | 无 | 否 | `(reason, submitted_at)` 供治理统计 | REPORT-02 |
+| reason | 枚举（辱骂/攻击/骚扰、隐私信息、危险或不适当内容、广告或垃圾信息、其他） | 是 | 无 | 否 | `(reason, submitted_at)` 供治理统计 | REPORT-02 |
 | other_description | 字符串（举报说明） | 条件必填：`reason = 其他` 时必填 | 空 | 否 | 不建公开检索索引 | REPORT-03 |
-| is_minor_related | 布尔 | 是 | false；`reason = 涉及未成年人` 时置为 true | 否 | `(is_minor_related, priority, status)` | REPORT-06 |
-| priority | 枚举（PREEMPTIVE、NORMAL） | 是 | NORMAL；`is_minor_related = true` 时置为 PREEMPTIVE | 否 | `(priority, status, submitted_at)` | REPORT-06 |
-| priority_rank | 整数（队列内部排序投影） | 是 | PREEMPTIVE=0，NORMAL=1 | 否 | `(status, priority_rank, submitted_at, id)` | REPORT-06 |
-| status | 枚举（PENDING、PROCESSING、RESOLVED） | 是 | PENDING | 否 | `(status, priority, submitted_at)` | REPORT-07 |
+| status | 枚举（PENDING、PROCESSING、RESOLVED） | 是 | PENDING | 否 | `(status, submitted_at, id)` | REPORT-07 |
 | dedupe_key | 字符串 | 是 | 服务端按举报人、对象、原因和 24 小时窗口生成 | 是 | 唯一索引 | REPORT-05 |
 | submitted_at | 时间戳（UTC） | 是 | 服务端当前时间 | 否 | `(submitted_at)` | REPORT-05、REPORT-07 |
 
@@ -156,8 +153,7 @@
 - 举报对象只能是 Post 或 Comment，且必须同时记录 `target_type`、`target_id` 和 `content_version`。（来源：REPORT-01、REPORT-07）
 - 同一用户对同一对象、同一原因在 24 小时内重复提交时，必须返回首次结果，不生成第二条有效举报。（来源：REPORT-05）
 - `other_description` 只供受权限保护的治理流程使用，不得作为公开内容展示。（来源：REPORT-03、REPORT-04）
-- 涉及未成年人的举报必须单独标记并进入优先人工处理队列。（来源：REPORT-06）
-- Report 与 ModerationRecord 必须是两张独立事实表；后台统一复核队列只做跨来源查询投影，不得复制正文或举报说明。（来源：REPORT-06、REPORT-07、MOD-05）
+- Report 与 ModerationRecord 必须是两张独立事实表；后台统一复核队列只做跨来源查询投影，不得复制正文或举报说明。（来源：REPORT-07、MOD-05）
 
 ## Tag
 
@@ -254,9 +250,7 @@
 | target_id | ID（Post 或 Comment） | 是 | 无 | 否 | `(target_type, target_id, content_version)` | MOD-05 |
 | content_version | 整数（内容版本引用） | 是 | 无 | 否 | `(target_type, target_id, content_version)` | POST-07、REPORT-07、MOD-05 |
 | review_round | 整数 | 是 | 1 | 与 `target_type`、`target_id`、`content_version` 联合唯一 | 唯一索引 | MOD-02、MOD-05 |
-| priority | 枚举（PREEMPTIVE、NORMAL） | 是 | NORMAL | 否 | `(status, priority, created_at)` | REPORT-06、MOD-05 |
-| priority_rank | 整数（队列内部排序投影） | 是 | PREEMPTIVE=0，NORMAL=1 | 否 | `(status, priority_rank, created_at, id)` | REPORT-06、MOD-05 |
-| status | 枚举（PENDING、PROCESSING、RESOLVED） | 是 | PENDING | 否 | `(status, priority, created_at)` | MOD-02、MOD-05 |
+| status | 枚举（PENDING、PROCESSING、RESOLVED） | 是 | PENDING | 否 | `(status, created_at, id)` | MOD-02、MOD-05 |
 | hit_rule_refs | 规则引用列表 | 否 | 空 | 否 | 不建正文索引 | MOD-01、MOD-05 |
 | action | 枚举（隐藏、下架、恢复、无动作；具体值待确认） | 否 | 空 | 否 | `(action, handled_at)` | MOD-06 |
 | public_status_before | 枚举（Post.public_status 取值） | 条件必填：执行处理动作时必填 | 空 | 否 | 审计查询 | MOD-06 |
@@ -266,7 +260,7 @@
 | handled_by | ID（User） | 条件必填：完成处理时必填 | 空 | 否 | `(handled_by, handled_at)` | MOD-06、MOD-08 |
 | handled_at | 时间戳（UTC） | 条件必填：完成处理时必填 | 空 | 否 | `(handled_at)` | MOD-06 |
 | reason | 字符串（处理原因） | 条件必填：执行处理动作时必填 | 空 | 否 | 不建公开检索索引 | MOD-06 |
-| created_at | 时间戳（UTC） | 是 | 服务端当前时间 | 否 | `(status, priority, created_at)` | MOD-02、MOD-05 |
+| created_at | 时间戳（UTC） | 是 | 服务端当前时间 | 否 | `(status, created_at, id)` | MOD-02、MOD-05 |
 
 **软删除：** 否。复核记录属于治理审计链，不得由普通业务删除。（来源：MOD-05、MOD-06、MOD-09）
 
@@ -326,7 +320,7 @@
 
 以下事项无法仅由第 5、8 节确定；在确认前不得通过默认值或删除级联隐含决定。
 
-1. `account_status`、`priority`、举报处理状态、复核状态和处理动作的最终枚举值及展示文案。（来源：REPORT-06、REPORT-07、MOD-02、MOD-06、MOD-07）
+1. `account_status`、举报处理状态、复核状态和处理动作的最终枚举值及展示文案。（来源：REPORT-07、MOD-02、MOD-06、MOD-07）
 2. `DRAFT` 客户端草稿的本地字段结构不属于服务端 Post 实体；登录恢复所需本地草稿格式须在前端方案确认后定义。（来源：AUTH-02）
 3. 内容历史版本的独立存储载体未在指定实体清单中给出；本文只规定 Post、Comment、Report 和 ModerationRecord 必须保存可追溯的内容版本引用。（来源：POST-07、REPORT-07、MOD-05）
 4. User 注销后对 Post、Comment、Reaction、Report、NoticeConfirmation、QuotaUsage、ModerationRecord、AuditLog 和 ViewRecord 的保留、匿名化或删除范围尚未由第 5、8 节确定。（来源：AUTH-06）

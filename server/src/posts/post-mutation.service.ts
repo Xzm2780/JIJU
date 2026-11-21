@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   IdempotencyStatus,
-  ModerationPriority,
   ModerationStatus,
   Prisma,
   PublicStatus,
@@ -275,7 +274,6 @@ export class PostMutationService {
               targetType: 'POST',
               targetId: post.id,
               contentVersion: nextVersion,
-              priority: ModerationPriority.NORMAL,
               status: 'PENDING',
               hitRuleRefs: matchedRuleIds,
               moderationStatusAfter: ModerationStatus.PENDING,

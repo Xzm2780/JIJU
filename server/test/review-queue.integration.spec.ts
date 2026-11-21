@@ -1,6 +1,5 @@
 import { randomUUID } from 'node:crypto';
 import {
-  ModerationPriority,
   ReportReason,
   ReportStatus,
   ReportTargetType
@@ -39,11 +38,8 @@ describeIntegration('ReviewQueueService PostgreSQL integration', () => {
         targetType: ReportTargetType.POST,
         targetId,
         contentVersion: 1,
-        reason: ReportReason.MINOR_INVOLVED,
+        reason: ReportReason.ABUSE,
         otherDescription: 'must-not-appear-in-queue',
-        isMinorRelated: true,
-        priority: ModerationPriority.PREEMPTIVE,
-        priorityRank: 0,
         status: ReportStatus.PENDING,
         dedupeKey: `dedupe_${suffix}`,
         submittedAt: queueAt
@@ -55,8 +51,6 @@ describeIntegration('ReviewQueueService PostgreSQL integration', () => {
         targetType: 'POST',
         targetId,
         contentVersion: 1,
-        priority: ModerationPriority.PREEMPTIVE,
-        priorityRank: 0,
         status: 'PENDING',
         hitRuleRefs: ['review-rule'],
         createdAt: queueAt
@@ -85,7 +79,6 @@ describeIntegration('ReviewQueueService PostgreSQL integration', () => {
     expect(first.data[0].source).toBe('report');
     expect(second.data[0].source).toBe('moderation');
     expect(first.data[0].item_id).not.toBe(second.data[0].item_id);
-    expect(first.data[0]).not.toHaveProperty('priority_rank');
     expect(JSON.stringify(first)).not.toContain('must-not-appear-in-queue');
   });
 });

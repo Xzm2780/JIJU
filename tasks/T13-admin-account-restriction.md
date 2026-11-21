@@ -15,7 +15,6 @@
 
 - 不删除或修改用户内容。
 - 不提供普通用户端治理入口。
-- 不处理年龄、未成年人资格或身份核验。
 - 不定义限制期限的产品或法务规则。
 
 ## 4. 前置任务（Dependencies）
@@ -60,4 +59,4 @@ User、AdminRoleAssignment、AuditLog、IdempotencyRecord
 - 授权后台可执行警告、单项能力限制和封禁。
 - 限制在到期前由服务端执行，到期后按批准规则恢复。
 - 所有动作可审计，普通用户不能访问后台接口。
-- 本任务使用 `GET /admin/users` 和 `POST /admin/users/{user_id}/restrictions`，未定义未成年人或保留期限规则。
+- 本任务使用 `GET /admin/users` 和 `POST /admin/users/{user_id}/restrictions`，未定义账号保留期限规则。

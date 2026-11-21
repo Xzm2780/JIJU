@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   IdempotencyStatus,
-  ModerationPriority,
   ModerationStatus,
   Prisma,
   PublicStatus,
@@ -118,7 +117,6 @@ export class ReportsService {
         };
       }
 
-      const minor = arguments_.body.reason === ReportReason.MINOR_INVOLVED;
       const report = await tx.report.create({
         data: {
           id: `rpt_${createUuidV7()}`,
@@ -131,11 +129,6 @@ export class ReportsService {
             arguments_.body.reason === ReportReason.OTHER
               ? description
               : null,
-          isMinorRelated: minor,
-          priority: minor
-            ? ModerationPriority.PREEMPTIVE
-            : ModerationPriority.NORMAL,
-          priorityRank: minor ? 0 : 1,
           status: ReportStatus.PENDING,
           dedupeKey: `report_${createUuidV7()}`,
           submittedAt: now

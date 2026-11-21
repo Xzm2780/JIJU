@@ -3,7 +3,6 @@ import { ApiError } from './api-error';
 export interface QueueCursor {
   version: 1;
   source: 'report' | 'moderation';
-  priorityRank: number;
   queueAt: string;
   itemId: string;
 }
@@ -24,7 +23,6 @@ export function decodeCursor(value: string | undefined): QueueCursor | null {
     if (
       parsed.version !== 1 ||
       !['report', 'moderation'].includes(parsed.source) ||
-      !Number.isInteger(parsed.priorityRank) ||
       Number.isNaN(Date.parse(parsed.queueAt)) ||
       typeof parsed.itemId !== 'string'
     ) {

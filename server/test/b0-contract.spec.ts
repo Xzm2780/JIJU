@@ -14,7 +14,7 @@ describe('B0 contract artifacts', () => {
     expect(api).toContain('  /admin/review-queue:');
     expect(api).toContain('operationId: listReviewQueue');
     expect(api).toContain('source 可选 moderation、report、all');
-    expect(api).toContain('PREEMPTIVE items sort before NORMAL items');
+    expect(api).toContain('统一队列按入队时间稳定排序');
     expect(api).toContain(
       'RESTORE changes HIDDEN to PUBLISHED without changing expires_at'
     );
@@ -39,13 +39,14 @@ describe('B0 contract artifacts', () => {
     expect(schema).toMatch(/model ModerationRecord\s*\{/);
     expect(schema).toMatch(/model AuditLog\s*\{/);
     expect(schema).toMatch(/model AdminRoleAssignment\s*\{/);
-    expect(schema).toContain('priorityRank');
+    expect(schema).toContain('@@index([status, submittedAt, id])');
+    expect(schema).toContain('@@index([status, createdAt, id])');
     expect(migration).toContain('CREATE TABLE "Report"');
     expect(migration).toContain('CREATE TABLE "ModerationRecord"');
     expect(migration).toContain('CREATE TABLE "AuditLog"');
-    expect(migration).toContain('Report_status_priorityRank_submittedAt_id_idx');
+    expect(migration).toContain('Report_status_submittedAt_id_idx');
     expect(migration).toContain(
-      'ModerationRecord_status_priorityRank_createdAt_id_idx'
+      'ModerationRecord_status_createdAt_id_idx'
     );
   });
 
