@@ -29,7 +29,8 @@ $requiredFiles = @(
     'frontend\miniprogram\pages\detail\index.ts',
     'frontend\README.md',
     'tasks\T18-account-deletion.md',
-    'docs\T05-production.md'
+    'docs\README.md',
+    'docs\design\ui-guidelines.md'
 )
 
 foreach ($relativePath in $requiredFiles) {
