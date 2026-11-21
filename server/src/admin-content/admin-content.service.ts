@@ -61,19 +61,40 @@ export class AdminContentService {
 
     try {
       return await this.runSerializable(async (tx) => {
-      const target = await this.getTarget(
+      const target = await this.findTarget(
         tx,
         arguments_.targetType,
         arguments_.targetId
       );
-      if (target.contentVersion !== arguments_.body.expected_content_version) {
+      const reports = await tx.report.findMany({
+        where: {
+          targetType: arguments_.targetType,
+          targetId: arguments_.targetId,
+          status: { in: ['PENDING', 'PROCESSING'] }
+        }
+      });
+      const reportForVersion = reports.some(
+        (report) =>
+          report.contentVersion === arguments_.body.expected_content_version
+      );
+      if (!target && !reportForVersion) {
+        throw new ApiError('JIJU_CONTENT_4041', 404, '内容已不可用');
+      }
+      if (
+        target &&
+        target.contentVersion !== arguments_.body.expected_content_version &&
+        !reportForVersion
+      ) {
         throw new ApiError(
           'JIJU_CONFLICT_4092',
           409,
           '内容已更新，请刷新后重试'
         );
       }
-      if (target.moderationStatus !== ModerationStatus.PENDING) {
+      if (
+        target?.moderationStatus !== ModerationStatus.PENDING &&
+        !reportForVersion
+      ) {
         throw new ApiError(
           'JIJU_CONFLICT_4091',
           409,
@@ -86,8 +107,16 @@ export class AdminContentService {
         arguments_.body.decision === ReviewDecision.PASSED
           ? ModerationStatus.PASSED
           : ModerationStatus.REJECTED;
-      let nextPublic = target.publicStatus;
-      if (arguments_.targetType === ReportTargetType.POST) {
+      let nextPublic = target?.publicStatus ?? PublicStatus.DELETED;
+      const canUpdateTarget =
+        Boolean(target) &&
+        !target?.deletedAt &&
+        target?.contentVersion === arguments_.body.expected_content_version;
+      if (
+        canUpdateTarget &&
+        arguments_.targetType === ReportTargetType.POST &&
+        target
+      ) {
         if (nextModeration === ModerationStatus.REJECTED) {
           nextPublic = PublicStatus.HIDDEN;
         }
@@ -100,10 +129,26 @@ export class AdminContentService {
               : {})
           }
         });
-      } else {
+      } else if (canUpdateTarget && target) {
         await tx.comment.update({
           where: { id: arguments_.targetId },
           data: { moderationStatus: nextModeration }
+        });
+      }
+
+      if (reportForVersion) {
+        await tx.report.updateMany({
+          where: {
+            targetType: arguments_.targetType,
+            targetId: arguments_.targetId,
+            contentVersion: arguments_.body.expected_content_version,
+            status: { in: ['PENDING', 'PROCESSING'] }
+          },
+          data: {
+            status: 'RESOLVED',
+            handledBy: arguments_.user.id,
+            handledAt: now
+          }
         });
       }
 
@@ -112,7 +157,7 @@ export class AdminContentService {
           where: {
             targetType: arguments_.targetType,
             targetId: arguments_.targetId,
-            contentVersion: target.contentVersion,
+            contentVersion: arguments_.body.expected_content_version,
             status: 'PENDING'
           },
           orderBy: { reviewRound: 'desc' }
@@ -122,7 +167,7 @@ export class AdminContentService {
             id: `mdr_${createUuidV7()}`,
             targetType: arguments_.targetType,
             targetId: arguments_.targetId,
-            contentVersion: target.contentVersion,
+            contentVersion: arguments_.body.expected_content_version,
             status: 'PENDING'
           }
         }));
@@ -139,10 +184,11 @@ export class AdminContentService {
       });
       await this.audit(tx, arguments_, {
         actionType: `REVIEW_${arguments_.body.decision}`,
-        contentVersion: target.contentVersion,
+        contentVersion: arguments_.body.expected_content_version,
         stateBefore: {
-          moderation_status: target.moderationStatus,
-          public_status: target.publicStatus
+          moderation_status:
+            target?.moderationStatus ?? ModerationStatus.PENDING,
+          public_status: target?.publicStatus ?? PublicStatus.DELETED
         },
         stateAfter: {
           moderation_status: nextModeration,
@@ -155,7 +201,7 @@ export class AdminContentService {
           id: reviewed.id,
           target_type: arguments_.targetType,
           target_id: arguments_.targetId,
-          content_version: target.contentVersion,
+          content_version: arguments_.body.expected_content_version,
           review_round: reviewed.reviewRound,
           moderation_status: nextModeration,
           public_status: nextPublic,
@@ -358,11 +404,21 @@ export class AdminContentService {
     targetType: ReportTargetType,
     targetId: string
   ) {
+    const target = await this.findTarget(tx, targetType, targetId);
+    if (!target || target.deletedAt) {
+      throw new ApiError('JIJU_CONTENT_4041', 404, '内容已不可用');
+    }
+    return target;
+  }
+
+  private async findTarget(
+    tx: Prisma.TransactionClient,
+    targetType: ReportTargetType,
+    targetId: string
+  ) {
     if (targetType === ReportTargetType.POST) {
       const post = await tx.post.findUnique({ where: { id: targetId } });
-      if (!post || post.deletedAt) {
-        throw new ApiError('JIJU_CONTENT_4041', 404, '内容已不可用');
-      }
+      if (!post) return null;
       return {
         contentVersion: post.currentContentVersion,
         publicStatus: post.publicStatus,
@@ -374,12 +430,12 @@ export class AdminContentService {
     const comment = await tx.comment.findUnique({
       where: { id: targetId }
     });
-    if (!comment || comment.deletedAt) {
-      throw new ApiError('JIJU_CONTENT_4041', 404, '内容已不可用');
-    }
+    if (!comment) return null;
     return {
       contentVersion: comment.contentVersion,
-      publicStatus: PublicStatus.PUBLISHED,
+      publicStatus: comment.deletedAt
+        ? PublicStatus.DELETED
+        : PublicStatus.PUBLISHED,
       moderationStatus: comment.moderationStatus,
       expiresAt: new Date(8640000000000000),
       deletedAt: null

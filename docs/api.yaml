@@ -1553,18 +1553,18 @@ paths:
       summary: 内容复核
       description: |
         鉴权要求：独立后台身份，需 CONTENT_MODERATOR 角色。
-        请求参数与校验：target_type 为 POST 或 COMMENT；target_id 合法；expected_content_version 必须对应当前待审版本；decision 为 PASSED 或 REJECTED；reason 非空。
+        请求参数与校验：target_type 为 POST 或 COMMENT；target_id 合法；expected_content_version 必须对应当前待审版本，或对应一条待处理举报保存的内容版本；decision 为 PASSED 或 REJECTED；reason 非空。
         响应结构：返回复核记录，包括内容版本、复核轮次、结论、处理人员、处理时间及前后状态。
         错误码：引用 docs/errors.md；权限不足、内容不可用、状态冲突、版本冲突和审核写入错误必须区分。
         幂等要求：必须携带 Idempotency-Key，值为 v1:admin.review:<uuid_v7>；同一复核结论重试复用同一键。
-        副作用：PENDING->PASSED 或 PENDING->REJECTED；REJECTED 时公开状态必须同步为 HIDDEN；关联举报处理状态更新；写入 ModerationRecord 和 AuditLog。
+        副作用：常规内容复核执行 PENDING->PASSED 或 PENDING->REJECTED，REJECTED 时当前公开内容同步为 HIDDEN；举报复核按举报保存的内容版本结案，即使目标已删除、已编辑到新版本或审核状态已变化，也不得修改当前新版本或已删除内容；关联待处理举报更新为 RESOLVED；写入 ModerationRecord 和 AuditLog。
         浏览量：不返回 view_count。
       x-auth:
         authentication: admin
         roles: [CONTENT_MODERATOR]
       x-validation:
         - target_type must be POST or COMMENT
-        - expected_content_version must be positive and match the review target
+        - expected_content_version must match the current review target or a pending report content version
         - decision must be PASSED or REJECTED
         - reason must be non-empty
       x-errors:
@@ -1587,9 +1587,9 @@ paths:
         format: 'v1:<operation>:<uuid_v7>'
         rule: reuse the key for retries of the same review decision and content version
       x-side-effects:
-        - transition moderation status according to state-machine.md
-        - REJECTED forces public status to HIDDEN
-        - update associated report processing status without exposing it to reporters
+        - transition current moderation status according to state-machine.md when reviewing the current target
+        - REJECTED forces current public status to HIDDEN
+        - resolve pending reports by their stored content version without mutating a deleted or newer content version
         - append ModerationRecord and AuditLog
       x-view-count:
         returned: false

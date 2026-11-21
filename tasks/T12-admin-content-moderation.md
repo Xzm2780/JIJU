@@ -40,11 +40,11 @@ Post、Comment、PostVersion、Report、ModerationRecord、AuditLog、Idempotenc
 
 ## 9. 实现要点（Implementation points / core rules）
 
-1. 仅具备 CONTENT_MODERATOR 后台角色的用户可以处理，且必须校验当前内容版本。
+1. 仅具备 CONTENT_MODERATOR 后台角色的用户可以处理；常规复核校验当前内容版本，举报复核校验举报保存的内容版本。
 2. 复核 PASSED 只更新审核结论；REJECTED 必须立即把公开状态转为 HIDDEN。
 3. HIDE/TAKEDOWN 使内容不可公开，记录处理人员、时间、原因和状态前后值。
 4. RESTORE 仅允许 CONTENT_MODERATOR 将 HIDDEN 恢复为 PUBLISHED，要求未到期、未删除、审核状态非 REJECTED；不得延长 expires_at。
-5. 每次复核或治理动作必须写 ModerationRecord 和 AuditLog，并保持 `admin.review`/`admin.content.action` 幂等。
+5. 目标已删除或已有新版本时，举报复核只关闭关联举报，不修改当前内容；每次动作写 ModerationRecord 和 AuditLog，并保持幂等。
 
 ## 10. 测试要求（Test requirements）
 
@@ -52,6 +52,7 @@ Post、Comment、PostVersion、Report、ModerationRecord、AuditLog、Idempotenc
 - `[AUTO]` 越权：普通用户、作者和非审核角色不能复核或治理。
 - `[AUTO]` 并发：同版本并发复核只有一个结论生效，重复幂等键不重复审计。
 - `[AUTO]` 条件：RESTORE 的成功、已到期、已删除、REJECTED、版本冲突和非后台角色拒绝路径。
+- `[AUTO]` 举报：目标删除、编辑到新版本或审核状态变化后，举报仍可按保存版本结案。
 - `[MANUAL]` UI：复核信息、内容版本、原因、状态前后值和审计记录可核验。
 - `[AUTO]` 前置：AC-06 通过 `GET /admin/review-queue` 查询待复核内容与举报来源。
 

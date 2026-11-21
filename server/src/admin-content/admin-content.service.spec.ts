@@ -51,6 +51,10 @@ function harness(overrides: Record<string, unknown> = {}) {
         reviewRound: 1
       })
     },
+    report: {
+      findMany: jest.fn().mockResolvedValue([]),
+      updateMany: jest.fn().mockResolvedValue({ count: 1 })
+    },
     auditLog: { create: jest.fn().mockResolvedValue({}) },
     idempotencyRecord: { create: jest.fn().mockResolvedValue({}) }
   };
@@ -128,6 +132,49 @@ describe('AdminContentService', () => {
     });
     const audit = h.tx.auditLog.create.mock.calls[0][0].data;
     expect(audit.stateBefore.expires_at).toBe(audit.stateAfter.expires_at);
+  });
+
+  it('resolves a report against its stored version when the post was deleted', async () => {
+    const h = harness({
+      currentContentVersion: 3,
+      publicStatus: PublicStatus.DELETED,
+      moderationStatus: ModerationStatus.PASSED,
+      deletedAt: new Date('2026-11-20T00:00:00.000Z')
+    });
+    h.tx.report.findMany.mockResolvedValue([
+      {
+        id: 'rpt_1',
+        contentVersion: 2,
+        status: 'PENDING'
+      }
+    ]);
+    const result = await h.service.review({
+      targetType: ReportTargetType.POST,
+      targetId: POST_ID,
+      user: ACTOR,
+      requestId: 'req_report_review',
+      idempotencyKey:
+        'v1:admin.review:00000000-0000-7000-8000-000000000004',
+      body: {
+        expected_content_version: 2,
+        decision: ReviewDecision.PASSED,
+        reason: '举报不成立'
+      }
+    });
+    expect(result.data).toMatchObject({
+      content_version: 2,
+      moderation_status: ModerationStatus.PASSED
+    });
+    expect(h.tx.report.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          contentVersion: 2,
+          status: { in: ['PENDING', 'PROCESSING'] }
+        }),
+        data: expect.objectContaining({ status: 'RESOLVED' })
+      })
+    );
+    expect(h.tx.post.update).not.toHaveBeenCalled();
   });
 
   it('rejects restore after expiry or REJECTED moderation', async () => {
