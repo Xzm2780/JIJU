@@ -10,6 +10,9 @@ describe('Admin console account management', () => {
       '/api/v1/admin-console/process?kind=account&id='
     );
     expect(ADMIN_CONSOLE_HTML).not.toContain('id="account-form"');
+    expect(ADMIN_CONSOLE_HTML).toContain('id="workspace-tabs"');
+    expect(ADMIN_CONSOLE_HTML).toContain('function closeWorkspaceTab(id)');
+    expect(ADMIN_CONSOLE_HTML).toContain("className='process-frame'");
   });
 
   it('shows the same profile fields used by the miniapp', () => {
@@ -50,7 +53,7 @@ describe('Admin console account management', () => {
       'sessionStorage.getItem(ADMIN_SESSION_KEY)'
     );
     expect(ADMIN_CONSOLE_HTML).toContain(
-      'sessionStorage.removeItem(ADMIN_SESSION_KEY)'
+      'for(const storageKey of [ADMIN_SESSION_KEY'
     );
     expect(ADMIN_CONSOLE_HTML).toContain('function restoreAdminSession()');
     expect(ADMIN_CONSOLE_HTML).toContain(

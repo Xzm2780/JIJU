@@ -19,6 +19,7 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
     .brand{display:flex;align-items:center;gap:12px;padding:4px 8px 24px;border-bottom:1px solid rgba(255,255,255,.1)}.brand-mark{width:42px;height:42px;border-radius:13px;background:#a5686c;display:flex;align-items:center;justify-content:center;font-weight:800}.brand-name{font-size:17px;font-weight:750}.brand-sub{font-size:11px;color:var(--sidebar-muted)}
     .nav{display:flex;flex-direction:column;gap:7px;margin-top:22px}.nav-button{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:0;border-radius:11px;background:transparent;color:#d9cdcd;text-align:left;font-weight:600}.nav-button:hover{background:rgba(255,255,255,.07)}.nav-button.active{background:#a5686c;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.12)}.nav-icon{width:20px;text-align:center;font-size:18px}
     .workspace{min-width:0}.topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;min-height:72px;padding:12px 28px;border-bottom:1px solid var(--line);background:rgba(255,253,252,.94);backdrop-filter:blur(12px)}.topbar h2{margin:0;font-size:20px}.breadcrumb{margin-bottom:3px;color:#a08789;font-size:11px}.topbar-actions{display:flex;align-items:center;gap:12px}.operator{padding:7px 12px;border-radius:999px;background:#f5eeeb;color:#765d5f;font-size:12px}
+    .workspace-tabs{position:sticky;top:72px;z-index:4;display:flex;min-height:46px;padding:7px 20px 0;border-bottom:1px solid var(--line);background:#f7f1ee;gap:6px;overflow:auto}.workspace-tab{display:flex;min-width:0;max-width:260px;border:1px solid transparent;border-radius:10px 10px 0 0;background:transparent;align-items:center}.workspace-tab.active{border-color:var(--line);border-bottom-color:var(--panel);background:var(--panel)}.workspace-tab-label{min-width:0;border:0;background:transparent;color:#746566;padding:8px 7px 9px 12px;font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.workspace-tab.active .workspace-tab-label{color:var(--accent)}.workspace-tab-close{width:25px;height:25px;margin-right:5px;border:0;border-radius:7px;background:transparent;color:#9a8586;font-size:16px;line-height:1}.workspace-tab-close:hover{background:#f1e0e2;color:#7c4c52}.process-host{min-height:calc(100vh - 118px);background:var(--bg)}.process-pane{display:none}.process-pane.active{display:block}.process-frame{display:block;width:100%;height:calc(100vh - 118px);border:0;background:var(--bg)}
     main{padding:26px}.panel{display:none}.panel.active{display:block}.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}.page-head h3{margin:0 0 4px;font-size:19px}.page-head p{margin:0;color:var(--muted);font-size:13px}
     .toolbar{display:flex;align-items:end;gap:10px;margin-bottom:16px;flex-wrap:wrap;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}.field{display:flex;flex-direction:column;gap:6px;min-width:150px;flex:1}.field label{font-size:12px;color:var(--muted);font-weight:700}.wide{grid-column:1/-1}
     .summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.summary-card{padding:18px;border:1px solid var(--line);border-radius:15px;background:var(--panel)}.summary-value{font-size:27px;font-weight:800;color:#7c4c52}.summary-label{font-size:12px;color:var(--muted)}
@@ -59,6 +60,7 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
         <div><div class="breadcrumb">JIJU 运营管理 / <span id="breadcrumb-current">数据工作台</span></div><h2 id="page-title">数据工作台</h2></div>
         <div class="topbar-actions"><span id="operator-name" class="operator">运营后台</span><button id="logout-button" class="secondary">退出登录</button></div>
       </header>
+      <div id="workspace-tabs" class="workspace-tabs"></div>
       <main>
         <div id="status" class="status"></div>
 
@@ -104,6 +106,7 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
           <div class="list" id="audit-list"></div>
         </section>
       </main>
+      <section id="process-host" class="process-host hidden"></section>
     </section>
   </div>
 
@@ -112,11 +115,15 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
   const ADMIN_SESSION_KEY='jiju.admin-console.session.v1';
   const CONTENT_PROCESS_KEY='jiju.admin.content-process.v1';
   const ACCOUNT_PROCESS_KEY='jiju.admin.account-process.v1';
+  const OPEN_TABS_KEY='jiju.admin.workspace-tabs.v1';
+  const ACTIVE_TAB_KEY='jiju.admin.active-tab.v1';
   const state={token:'',expiresAt:'',user:null};
   let contentCursor='';
   let contentItems=[];
   let accountCursor='';
   let accountItems=[];
+  let openTabs=[];
+  let activeTabId='';
   const $=(s)=>document.querySelector(s);
   const titles={overview:'数据工作台',reports:'举报管理',queue:'待复核内容',content:'内容治理',accounts:'用户管理',audit:'审计日志'};
   const setStatus=(text,error=false)=>{const el=$('#status');el.textContent=text||'';el.title=text||'';el.className='status'+(error?' error':'')};
@@ -130,14 +137,24 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
   }
   function uuidV7(){const b=crypto.getRandomValues(new Uint8Array(16));let t=BigInt(Date.now());for(let i=5;i>=0;i--){b[i]=Number(t&255n);t>>=8n}b[6]=(b[6]&15)|112;b[8]=(b[8]&63)|128;const h=[...b].map(x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)}
   const key=(operation)=>'v1:'+operation+':'+uuidV7();
-  function openContentProcess(item){const type=item.target_type||'POST';const id=item.target_id||item.id;if(!id)return;try{sessionStorage.setItem(CONTENT_PROCESS_KEY,JSON.stringify({...item,target_type:type,target_id:id}))}catch(error){}location.href='/api/v1/admin-console/process?kind=content&type='+encodeURIComponent(type)+'&id='+encodeURIComponent(id)}
-  function openAccountProcess(item){if(!item.id)return;try{sessionStorage.setItem(ACCOUNT_PROCESS_KEY,JSON.stringify(item))}catch(error){}location.href='/api/v1/admin-console/process?kind=account&id='+encodeURIComponent(item.id)}
-  function clearAdminSession(removeStored=true){state.token='';state.expiresAt='';state.user=null;if(removeStored){try{sessionStorage.removeItem(ADMIN_SESSION_KEY)}catch(error){}}}
+  function panelTab(name){return{id:'panel:'+name,kind:'panel',name,title:titles[name],closable:name!=='overview'}}
+  function persistWorkspace(){try{sessionStorage.setItem(OPEN_TABS_KEY,JSON.stringify(openTabs));sessionStorage.setItem(ACTIVE_TAB_KEY,activeTabId)}catch(error){}}
+  function renderWorkspaceTabs(){const box=$('#workspace-tabs');box.textContent='';openTabs.forEach(tab=>{const wrapper=document.createElement('div');wrapper.className='workspace-tab'+(tab.id===activeTabId?' active':'');const label=document.createElement('button');label.className='workspace-tab-label';label.textContent=tab.title;label.onclick=()=>activateWorkspaceTab(tab.id);wrapper.appendChild(label);if(tab.closable){const close=document.createElement('button');close.className='workspace-tab-close';close.textContent='×';close.title='关闭标签页';close.onclick=(event)=>{event.stopPropagation();closeWorkspaceTab(tab.id)};wrapper.appendChild(close)}box.appendChild(wrapper)})}
+  function ensureProcessPane(tab){const host=$('#process-host');let pane=host.querySelector('[data-process-id="'+tab.id+'"]');if(!pane){pane=document.createElement('div');pane.className='process-pane';pane.dataset.processId=tab.id;const frame=document.createElement('iframe');frame.className='process-frame';frame.title=tab.title;frame.src=tab.href;frame.setAttribute('loading','eager');pane.appendChild(frame);host.appendChild(pane)}return pane}
+  function loadPanel(name){if(name==='overview')loadOverview();if(name==='reports')loadReports();if(name==='queue')loadQueue();if(name==='content')loadContent();if(name==='accounts')loadAccounts()}
+  function activateWorkspaceTab(id,persist=true){const tab=openTabs.find(item=>item.id===id);if(!tab)return;activeTabId=id;renderWorkspaceTabs();const host=$('#process-host');if(tab.kind==='panel'){host.classList.add('hidden');document.querySelectorAll('.panel').forEach(panel=>panel.classList.toggle('active',panel.id==='panel-'+tab.name));document.querySelectorAll('.nav-button').forEach(button=>button.classList.toggle('active',button.dataset.panel===tab.name));loadPanel(tab.name)}else{host.classList.remove('hidden');document.querySelectorAll('.panel').forEach(panel=>panel.classList.remove('active'));document.querySelectorAll('.process-pane').forEach(pane=>pane.classList.toggle('active',pane.dataset.processId===tab.id));ensureProcessPane(tab).classList.add('active');document.querySelectorAll('.nav-button').forEach(button=>button.classList.toggle('active',button.dataset.panel===tab.section))}$('#page-title').textContent=tab.title;$('#breadcrumb-current').textContent=tab.title;if(persist)persistWorkspace()}
+  function closeWorkspaceTab(id){const index=openTabs.findIndex(tab=>tab.id===id);if(index<0||!openTabs[index].closable)return;openTabs.splice(index,1);const pane=$('#process-host').querySelector('[data-process-id="'+id+'"]');if(pane)pane.remove();if(activeTabId===id){const next=openTabs[Math.max(0,index-1)]||openTabs[0]||panelTab('overview');if(!openTabs.length)openTabs.push(panelTab('overview'));activeTabId=next.id;activateWorkspaceTab(activeTabId)}else{renderWorkspaceTabs();persistWorkspace()}}
+  function openPanelTab(name){const id='panel:'+name;if(!openTabs.some(tab=>tab.id===id))openTabs.push(panelTab(name));activateWorkspaceTab(id)}
+  function openProcessTab(kind,id,title,href,section){const tabId='process:'+kind+':'+id;const existing=openTabs.find(tab=>tab.id===tabId);if(existing){existing.href=href;existing.title=title;activateWorkspaceTab(tabId);return}openTabs.push({id:tabId,kind:'process',title,closable:true,href,section});activateWorkspaceTab(tabId)}
+  function restoreWorkspaceTabs(){try{const saved=JSON.parse(sessionStorage.getItem(OPEN_TABS_KEY)||'[]');openTabs=Array.isArray(saved)?saved.filter(tab=>tab&&tab.id&&tab.kind&&(tab.kind==='process'||(tab.kind==='panel'&&titles[tab.name]))):[]}catch(error){openTabs=[]}if(!openTabs.length)openTabs=[panelTab('overview')];if(!openTabs.some(tab=>tab.id==='panel:overview'))openTabs.unshift(panelTab('overview'));const savedActive=sessionStorage.getItem(ACTIVE_TAB_KEY)||'';activeTabId=openTabs.some(tab=>tab.id===savedActive)?savedActive:openTabs[0].id;activateWorkspaceTab(activeTabId,false)}
+  function openContentProcess(item){const type=item.target_type||'POST';const id=item.target_id||item.id;if(!id)return;try{sessionStorage.setItem(CONTENT_PROCESS_KEY,JSON.stringify({...item,target_type:type,target_id:id}))}catch(error){}const title='内容处理 · '+(item.author_nickname||human(type));const href='/api/v1/admin-console/process?kind=content&type='+encodeURIComponent(type)+'&id='+encodeURIComponent(id);openProcessTab('content',id,title,href,'content')}
+  function openAccountProcess(item){if(!item.id)return;try{sessionStorage.setItem(ACCOUNT_PROCESS_KEY,JSON.stringify(item))}catch(error){}const title='账号处理 · '+(item.plaza_nickname||'用户');const href='/api/v1/admin-console/process?kind=account&id='+encodeURIComponent(item.id);openProcessTab('account',item.id,title,href,'accounts')}
+  function clearAdminSession(removeStored=true){state.token='';state.expiresAt='';state.user=null;openTabs=[];activeTabId='';if(removeStored){try{for(const storageKey of [ADMIN_SESSION_KEY,OPEN_TABS_KEY,ACTIVE_TAB_KEY,CONTENT_PROCESS_KEY,ACCOUNT_PROCESS_KEY])sessionStorage.removeItem(storageKey)}catch(error){}}}
   function saveAdminSession(data){state.token=data.access_token;state.expiresAt=data.expires_at;state.user=data.user;try{sessionStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify({accessToken:data.access_token,expiresAt:data.expires_at,user:data.user}))}catch(error){}}
   function showLoginScreen(message=''){$('#app-shell').classList.add('hidden');$('#login-screen').classList.remove('hidden');setLoginError(message);$('#login-password').value=''}
-  function showAdminApp(){$('#login-screen').classList.add('hidden');$('#app-shell').classList.remove('hidden');$('#operator-name').textContent=state.user&&state.user.display_name?state.user.display_name+' · 运营账号':'运营后台';switchPanel('overview')}
+  function showAdminApp(){$('#login-screen').classList.add('hidden');$('#app-shell').classList.remove('hidden');$('#operator-name').textContent=state.user&&state.user.display_name?state.user.display_name+' · 运营账号':'运营后台';restoreWorkspaceTabs()}
   function restoreAdminSession(){try{const raw=sessionStorage.getItem(ADMIN_SESSION_KEY);if(!raw)return false;const saved=JSON.parse(raw);const expiresAt=Date.parse(saved.expiresAt);if(!saved.accessToken||!Number.isFinite(expiresAt)||expiresAt<=Date.now()+5000||!saved.user){clearAdminSession();return false}state.token=saved.accessToken;state.expiresAt=saved.expiresAt;state.user=saved.user;showAdminApp();return true}catch(error){clearAdminSession();return false}}
-  function switchPanel(name){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id==='panel-'+name));document.querySelectorAll('.nav-button').forEach(x=>x.classList.toggle('active',x.dataset.panel===name));$('#page-title').textContent=titles[name];$('#breadcrumb-current').textContent=titles[name];if(name==='overview')loadOverview();if(name==='reports')loadReports();if(name==='queue')loadQueue();if(name==='content')loadContent();if(name==='accounts')loadAccounts()}
+  function switchPanel(name){openPanelTab(name)}
   const labels={
     POST:'帖子',COMMENT:'评论',
     ABUSE:'辱骂与骚扰',PRIVACY:'隐私',MINOR_INVOLVED:'未成年人',DANGEROUS_OR_INAPPROPRIATE:'危险内容',SPAM:'垃圾信息',OTHER:'其他',

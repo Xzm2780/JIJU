@@ -7,9 +7,8 @@ describe('Admin dedicated process page', () => {
     expect(ADMIN_PROCESS_HTML).toContain('data-tab="history"');
     expect(ADMIN_PROCESS_HTML).toContain('id="content-actions"');
     expect(ADMIN_PROCESS_HTML).toContain('id="account-action-form"');
-    expect(ADMIN_PROCESS_HTML).toContain(
-      "location.assign('/api/v1/admin-console')"
-    );
+    expect(ADMIN_PROCESS_HTML).not.toContain('id="back-button"');
+    expect(ADMIN_PROCESS_HTML).not.toContain('返回列表');
   });
 
   it('uses the approved content and account action contracts', () => {
