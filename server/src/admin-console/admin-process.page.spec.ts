@@ -30,6 +30,20 @@ describe('Admin dedicated process page', () => {
     expect(ADMIN_PROCESS_HTML).not.toContain('usr_...');
   });
 
+  it('shows modal feedback for success, failure and unavailable data', () => {
+    expect(ADMIN_PROCESS_HTML).toContain('id="feedback-modal"');
+    expect(ADMIN_PROCESS_HTML).toContain('function showFeedback(');
+    expect(ADMIN_PROCESS_HTML).toContain(
+      "showFeedback('复核成功','复核结果已保存','success')"
+    );
+    expect(ADMIN_PROCESS_HTML).toContain(
+      "showFeedback('处理失败',error.message,'error')"
+    );
+    expect(ADMIN_PROCESS_HTML).toContain(
+      "showFeedback('无法打开','当前处理数据已失效','error')"
+    );
+  });
+
   it('contains syntactically valid inline scripts', () => {
     const match = ADMIN_PROCESS_HTML.match(/<script>([\s\S]*)<\/script>/);
     expect(match).not.toBeNull();
