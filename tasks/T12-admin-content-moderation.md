@@ -6,7 +6,8 @@
 
 ## 2. 范围（Scope）
 
-- 页面：后台内容复核与治理页。
+- 页面：后台内容复核与治理列表，以及从列表行进入的独立内容处理页。
+- 内容处理页使用“概览 / 处理 / 记录”标签页，主列表不再嵌入处理表单。
 - 接口：`GET /admin/content`、`POST /admin/content/{target_type}/{target_id}/reviews`、`POST /admin/content/{target_type}/{target_id}/actions`。
 - 支持复核通过/拒绝和隐藏、下架、恢复动作入口。
 

@@ -74,13 +74,18 @@ export class AdminContentListService {
     return {
       data: page.map((post) => {
         const preview = truncateGraphemes(post.bodyText, 180);
+        const publicStatus =
+          post.publicStatus === PublicStatus.PUBLISHED &&
+          post.expiresAt.getTime() <= now.getTime()
+            ? PublicStatus.EXPIRED
+            : post.publicStatus;
         return {
           id: post.id,
           target_type: ReportTargetType.POST,
           author_nickname: post.author.plazaNickname,
           body_excerpt: preview.value,
           content_version: post.currentContentVersion,
-          public_status: post.publicStatus,
+          public_status: publicStatus,
           moderation_status: post.moderationStatus,
           published_at: post.publishedAt.toISOString(),
           expires_at: post.expiresAt.toISOString(),

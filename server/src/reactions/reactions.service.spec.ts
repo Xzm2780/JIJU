@@ -27,7 +27,7 @@ function harness() {
         publicStatus: PublicStatus.PUBLISHED,
         moderationStatus: ModerationStatus.PASSED,
         riskConfirmedAt: null,
-        expiresAt: new Date('2026-11-21T02:00:00.000Z'),
+        expiresAt: new Date('2099-11-21T02:00:00.000Z'),
         hiddenAt: null,
         deletedAt: null
       })

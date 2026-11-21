@@ -95,4 +95,38 @@ describe('AdminContentListService', () => {
       report_count: 0
     });
   });
+
+  it('derives expired for a published post whose expiry has passed', async () => {
+    const prisma = {
+      post: {
+        findMany: jest.fn().mockResolvedValue([
+          {
+            id: 'pst_expired',
+            bodyText: '已经到期的帖子',
+            currentContentVersion: 1,
+            publicStatus: PublicStatus.PUBLISHED,
+            moderationStatus: ModerationStatus.PASSED,
+            publishedAt: new Date('2026-11-10T01:00:00.000Z'),
+            expiresAt: new Date('2026-11-11T01:00:00.000Z'),
+            hiddenAt: null,
+            deletedAt: null,
+            updatedAt: new Date('2026-11-10T01:00:00.000Z'),
+            author: { plazaNickname: '晚风 1024' }
+          }
+        ])
+      },
+      report: {
+        groupBy: jest.fn().mockResolvedValue([])
+      }
+    };
+    jest.useFakeTimers().setSystemTime(new Date('2026-11-21T00:00:00.000Z'));
+    const service = new AdminContentListService(prisma as any);
+    const result = await service.list({
+      target_type: AdminContentType.POST,
+      status: AdminContentStatus.ALL,
+      limit: 20
+    });
+    expect(result.data[0]?.public_status).toBe(PublicStatus.EXPIRED);
+    jest.useRealTimers();
+  });
 });

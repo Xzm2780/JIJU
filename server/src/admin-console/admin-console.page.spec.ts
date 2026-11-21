@@ -1,15 +1,15 @@
 import { ADMIN_CONSOLE_HTML } from './admin-console.page';
 
 describe('Admin console account management', () => {
-  it('uses a searchable user table and automatically fills the action form', () => {
+  it('uses a searchable user table and opens a dedicated processing page', () => {
     expect(ADMIN_CONSOLE_HTML).toContain('id="account-filter-status"');
     expect(ADMIN_CONSOLE_HTML).toContain('id="account-query"');
     expect(ADMIN_CONSOLE_HTML).toContain('id="account-list"');
-    expect(ADMIN_CONSOLE_HTML).toContain('function selectAccount(item)');
-    expect(ADMIN_CONSOLE_HTML).toContain("$('#account-user-id').value=item.id");
+    expect(ADMIN_CONSOLE_HTML).toContain('function openAccountProcess(item)');
     expect(ADMIN_CONSOLE_HTML).toContain(
-      'id="account-user-id" type="hidden" required'
+      '/api/v1/admin-console/process?kind=account&id='
     );
+    expect(ADMIN_CONSOLE_HTML).not.toContain('id="account-form"');
   });
 
   it('shows the same profile fields used by the miniapp', () => {
@@ -85,8 +85,9 @@ describe('Admin console account management', () => {
     expect(ADMIN_CONSOLE_HTML).not.toContain('shortId(');
     expect(ADMIN_CONSOLE_HTML).not.toContain('pst_...');
     expect(ADMIN_CONSOLE_HTML).not.toContain('usr_...');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('id="content-form"');
     expect(ADMIN_CONSOLE_HTML).toContain(
-      'id="content-id" type="hidden" required'
+      '/api/v1/admin-console/process?kind=content&type='
     );
   });
 });

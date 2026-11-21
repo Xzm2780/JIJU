@@ -19,7 +19,7 @@ const post = {
   moderationStatus: ModerationStatus.PASSED,
   riskConfirmedAt: null,
   publishedAt: new Date('2026-11-14T02:00:00.000Z'),
-  expiresAt: new Date('2026-11-21T02:00:00.000Z'),
+  expiresAt: new Date('2099-11-21T02:00:00.000Z'),
   currentContentVersion: 1,
   editedAt: null,
   hiddenAt: null,

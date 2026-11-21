@@ -23,7 +23,7 @@ function harness(overrides: Record<string, unknown> = {}) {
     currentContentVersion: 2,
     publicStatus: PublicStatus.PUBLISHED,
     moderationStatus: ModerationStatus.PENDING,
-    expiresAt: new Date('2026-11-21T02:00:00.000Z'),
+    expiresAt: new Date('2099-11-21T02:00:00.000Z'),
     hiddenAt: null,
     deletedAt: null,
     ...overrides
