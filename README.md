@@ -133,6 +133,7 @@ JIJU/
 | [状态机](docs/state-machine.md) | 公开、审核和非法迁移 |
 | [验收矩阵](docs/ac-matrix.md) | 自动化与人工验收用例 |
 | [开发流程规范](docs/development-process.md) | 需求、契约、测试、评审与交付门禁 |
+| [技术设计文档](docs/technical-design.md) | 架构、模块、数据、流程与技术边界 |
 
 ## License
 
