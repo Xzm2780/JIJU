@@ -123,4 +123,21 @@ describe('Admin console account management', () => {
       '<option value="ACCOUNT">账号</option>'
     );
   });
+
+  it('removes processing actions from already handled queue items', () => {
+    expect(ADMIN_CONSOLE_HTML).toContain("if(item.status==='RESOLVED')");
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      "processed.textContent='已处理'"
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      "item.public_status==='DELETED'?'已删除'"
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      "item.public_status==='EXPIRED'?'已到期'"
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      "item.moderation_status==='REJECTED'?'已判定违规'"
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain('if(closedText)');
+  });
 });
