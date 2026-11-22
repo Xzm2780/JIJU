@@ -77,11 +77,21 @@ if (-not $rootReadme.Contains('docs/product/PRD-v1.3.md')) {
     throw 'Root README must point to the formal PRD v1.3.'
 }
 $readmeSectionCount = [regex]::Matches($rootReadme, '(?m)^## .+$').Count
-if ($readmeSectionCount -lt 10) {
+if ($readmeSectionCount -lt 8) {
     throw "Root README is missing expected sections: found $readmeSectionCount level-2 headings."
 }
-if (-not $rootReadme.Contains('```mermaid') -or -not $rootReadme.Contains('## License')) {
-    throw 'Root README must include the architecture diagram and License section.'
+$readmeLineCount = ($rootReadme -split "`r?`n").Count
+if ($readmeLineCount -gt 160) {
+    throw "Portfolio README is too long: $readmeLineCount lines."
+}
+$requiredReadmeHeadings = @('Highlights', 'Architecture', 'Quick Start', 'Tests', 'License')
+foreach ($heading in $requiredReadmeHeadings) {
+    if (-not $rootReadme.Contains($heading)) {
+        throw "Root README is missing portfolio section: $heading"
+    }
+}
+if (-not $rootReadme.Contains('```mermaid')) {
+    throw 'Root README must include the architecture diagram.'
 }
 if (-not $rootReadme.Contains('flowchart LR') -or
     -not $rootReadme.Contains('MP["') -or
@@ -94,14 +104,15 @@ $requiredReadmeStatements = @(
     'https://github.com/Xzm2780/JIJU.git',
     'docker compose up --build',
     'http://127.0.0.1:3001/api/v1/admin-console',
-    'tests/production/Verify-Production.ps1',
-    'frontend/project.private.config.json',
     'MIT License'
 )
 foreach ($statement in $requiredReadmeStatements) {
     if (-not $rootReadme.Contains($statement)) {
         throw "Root README is missing: $statement"
     }
+}
+if ($rootReadme.Contains('Verify-Production') -or $rootReadme.Contains('production/')) {
+    throw 'Portfolio README must stay focused on the project rather than release operations.'
 }
 
 $frontendReadme = Get-Content -LiteralPath (Join-Path $Root 'frontend\README.md') -Raw -Encoding UTF8
