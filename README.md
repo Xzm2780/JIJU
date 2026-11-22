@@ -132,6 +132,7 @@ JIJU/
 | [权限矩阵](docs/permissions.md) | 角色和服务端校验点 |
 | [状态机](docs/state-machine.md) | 公开、审核和非法迁移 |
 | [验收矩阵](docs/ac-matrix.md) | 自动化与人工验收用例 |
+| [开发流程规范](docs/development-process.md) | 需求、契约、测试、评审与交付门禁 |
 
 ## License
 

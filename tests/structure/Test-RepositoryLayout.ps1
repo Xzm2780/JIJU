@@ -18,11 +18,13 @@ $requiredPaths = @(
     'docs\design\ui-guidelines.md',
     'docs\product\PRD-v1.1.md',
     'docs\product\PRD-v1.3.md',
+    'docs\development-process.md',
     'server\scripts\retention.ts',
     'tests\README.md',
     'tests\docs\Test-AiContext.ps1',
     'tests\docs\Test-PRD-v11.ps1',
     'tests\docs\Test-PRD-v13.ps1',
+    'tests\docs\Test-DevelopmentProcess.ps1',
     'tests\production\Verify-Production.ps1',
     'tests\structure\Test-RepositoryLayout.ps1'
 )
@@ -60,7 +62,8 @@ $requiredIndexLinks = @(
     '../ai-context.md',
     '../domain.md',
     'api.yaml',
-    'ac-matrix.md'
+    'ac-matrix.md',
+    'development-process.md'
 )
 
 foreach ($link in $requiredIndexLinks) {

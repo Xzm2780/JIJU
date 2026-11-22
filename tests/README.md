@@ -6,7 +6,7 @@
 - `performance/`：读路径性能基线。
 - `production/Verify-Production.ps1`：后端测试与构建、Prisma schema、前端类型检查和测试的总验证入口。
 - `structure/Test-RepositoryLayout.ps1`：仓库目录、文档索引、废弃路径和本地配置规则校验。
-- `docs/`：PRD、领域模型、OpenAPI、权限、状态机、AC 矩阵、任务包和 AI 上下文校验。
+- `docs/`：PRD、开发流程、领域模型、OpenAPI、权限、状态机、AC 矩阵、任务包和 AI 上下文校验。
 
 ## 其他测试位置
 
