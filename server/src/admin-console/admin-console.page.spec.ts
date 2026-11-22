@@ -96,4 +96,31 @@ describe('Admin console account management', () => {
       '/api/v1/admin-console/process?kind=content&type='
     );
   });
+
+  it('uses readable audit filters instead of raw internal action inputs', () => {
+    expect(ADMIN_CONSOLE_HTML).toContain('<select id="audit-action">');
+    expect(ADMIN_CONSOLE_HTML).toContain('<select id="audit-object-type">');
+    expect(ADMIN_CONSOLE_HTML).not.toContain('<input id="audit-action">');
+    expect(ADMIN_CONSOLE_HTML).not.toContain(
+      '<input id="audit-object-type">'
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      '<option value="ADMIN_LOGIN">后台登录</option>'
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      '<option value="REVIEW_REJECTED">判定违规</option>'
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      '<option value="RESTORE">恢复公开</option>'
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      '<option value="BAN">封禁账号</option>'
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      '<option value="CONTENT">内容</option>'
+    );
+    expect(ADMIN_CONSOLE_HTML).toContain(
+      '<option value="ACCOUNT">账号</option>'
+    );
+  });
 });

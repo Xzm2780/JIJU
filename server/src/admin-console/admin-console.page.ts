@@ -101,7 +101,7 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
 
         <section class="panel" id="panel-audit">
           <div class="page-head"><div><h3>审计日志</h3></div></div>
-          <div class="toolbar"><div class="field"><label>操作类型</label><input id="audit-action"></div><div class="field"><label>对象类型</label><input id="audit-object-type"></div><div class="field"><label>开始时间</label><input id="audit-from" type="datetime-local"></div><div class="field"><label>结束时间</label><input id="audit-to" type="datetime-local"></div><button id="load-audit" class="primary">查询</button></div>
+          <div class="toolbar"><div class="field"><label>操作类型</label><select id="audit-action"><option value="">全部操作</option><optgroup label="登录与账号"><option value="ADMIN_LOGIN">后台登录</option><option value="ACCOUNT_DELETE_REQUESTED">申请注销账号</option></optgroup><optgroup label="内容复核"><option value="REVIEW_PASSED">复核通过</option><option value="REVIEW_REJECTED">判定违规</option></optgroup><optgroup label="内容治理"><option value="HIDE">隐藏内容</option><option value="TAKEDOWN">下架内容</option><option value="RESTORE">恢复公开</option></optgroup><optgroup label="账号治理"><option value="WARNING">警告账号</option><option value="POST_LIMIT">限制发帖</option><option value="COMMENT_LIMIT">限制评论</option><option value="REACTION_LIMIT">限制互动</option><option value="BAN">封禁账号</option></optgroup></select></div><div class="field"><label>对象类型</label><select id="audit-object-type"><option value="">全部对象</option><option value="CONTENT">内容</option><option value="ACCOUNT">账号</option></select></div><div class="field"><label>开始时间</label><input id="audit-from" type="datetime-local"></div><div class="field"><label>结束时间</label><input id="audit-to" type="datetime-local"></div><button id="load-audit" class="primary">查询</button></div>
           <div class="list" id="audit-list"></div>
         </section>
       </main>
@@ -166,8 +166,9 @@ export const ADMIN_CONSOLE_HTML = String.raw`<!doctype html>
     WARNING:'警告',POST_LIMIT:'限制发帖',COMMENT_LIMIT:'限制评论',REACTION_LIMIT:'限制互动',BAN:'封禁账号',
     RESTRICTED:'受限',DEACTIVATED:'注销冷静期',BANNED:'已封禁',USER_ACTIVE:'正常',USER_DELETED:'已注销',
     REVIEW_PASSED:'复核通过',REVIEW_REJECTED:'判定违规',
+    ADMIN_LOGIN:'后台登录',ACCOUNT_DELETE_REQUESTED:'申请注销账号',
     CONTENT:'内容',ACCOUNT:'账号',REPORT:'举报',TAG:'标签',MODERATION_RULE:'审核规则',RATE_LIMIT:'频率限制',CRISIS_RESOURCE:'求助资源',
-    REPORT_REVIEWER:'举报审核员',CONTENT_MODERATOR:'内容审核员',ACCOUNT_MODERATOR:'账号管理员',AUDITOR:'审计员',CONFIG_ADMIN:'配置管理员',ADMIN_CONSOLE:'运营后台'
+    USER:'用户',REPORT_REVIEWER:'举报审核员',CONTENT_MODERATOR:'内容审核员',ACCOUNT_MODERATOR:'账号管理员',AUDITOR:'审计员',CONFIG_ADMIN:'配置管理员',ADMIN_CONSOLE:'运营后台'
   };
   const human=(value)=>labels[String(value||'').toUpperCase()]||labels[value]||value||'—';
   const userStatus=(item)=>item.account_status==='UNDEFINED'?'—':item.account_status==='ACTIVE'?labels.USER_ACTIVE:item.account_status==='DELETED'?labels.USER_DELETED:human(item.account_status);
