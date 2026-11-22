@@ -13,7 +13,7 @@ Copy-Item .env.example .env
 关键配置：
 
 - `DATABASE_URL`：PostgreSQL 连接串。
-- `REDIS_URL`：Redis 连接串。
+- `REDIS_URL`：Redis 连接串；本地直连 Compose Redis 时默认使用 `redis://127.0.0.1:6380`。
 - `NOTICE_VERSION`：当前使用须知版本。
 - `CONTENT_RULES_FILE`：外部内容规则配置路径。
 - `IDEMPOTENCY_TTL`：幂等记录确认的工程默认 24 小时。

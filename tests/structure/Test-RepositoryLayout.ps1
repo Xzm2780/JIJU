@@ -141,4 +141,11 @@ if (-not $gitignore.Contains('frontend/project.private.config.json')) {
     throw 'WeChat developer-local settings must be ignored.'
 }
 
+$compose = Get-Content -LiteralPath (Join-Path $Root 'server\compose.yaml') -Raw -Encoding UTF8
+$envExample = Get-Content -LiteralPath (Join-Path $Root 'server\.env.example') -Raw -Encoding UTF8
+if (-not $compose.Contains('"6380:6379"') -or
+    -not $envExample.Contains('REDIS_URL=redis://127.0.0.1:6380')) {
+    throw 'Local Compose Redis must use host port 6380 to avoid the common Windows Redis conflict.'
+}
+
 Write-Host "Repository layout validation passed: current sources indexed and legacy paths removed."
