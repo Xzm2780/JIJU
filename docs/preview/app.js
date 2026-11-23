@@ -235,7 +235,7 @@
 
     const footer = document.createElement('div');
     footer.className = 'post-footer';
-    footer.innerHTML = `<span>回应 ${post.comments.length}</span><span>被接住 ${totalReactions(post)}</span>`;
+    footer.innerHTML = `<span>评论 ${post.comments.length}</span><span>回应 ${totalReactions(post)}</span>`;
 
     button.append(authorRow, body, tags, footer);
     card.appendChild(button);
