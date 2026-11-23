@@ -14,12 +14,6 @@ foreach ($file in $requiredFiles) {
 
 $html = Get-Content -LiteralPath (Join-Path $previewRoot 'index.html') -Raw -Encoding UTF8
 $script = Get-Content -LiteralPath (Join-Path $previewRoot 'app.js') -Raw -Encoding UTF8
-$workflowPath = Join-Path $Root '.github\workflows\pages.yml'
-if (-not (Test-Path -LiteralPath $workflowPath)) {
-    throw 'Missing GitHub Pages deployment workflow.'
-}
-$workflow = Get-Content -LiteralPath $workflowPath -Raw -Encoding UTF8
-
 foreach ($marker in @(
     'id="post-list"',
     'id="publish-form"',
@@ -55,14 +49,9 @@ if ($script -match 'fetch\s*\(' -or $script -match 'XMLHttpRequest') {
 if ($script.Contains('http://') -or $script.Contains('https://')) {
     throw 'Portfolio preview must not depend on external endpoints.'
 }
-if (-not $workflow.Contains('actions/deploy-pages@v4') -or
-    -not $workflow.Contains('path: docs/preview')) {
-    throw 'Pages workflow must deploy the static preview directory.'
-}
-
 & node --check (Join-Path $previewRoot 'app.js')
 if ($LASTEXITCODE -ne 0) {
     throw 'Preview JavaScript failed syntax validation.'
 }
 
-Write-Host 'Portfolio preview validation passed: static interactions, no backend, and Pages workflow.'
+Write-Host 'Portfolio preview validation passed: static interactions and no backend dependency.'
