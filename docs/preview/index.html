@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f0ee">
+  <meta name="description" content="JIJU 几句交互演示">
+  <title>JIJU 几句 · 交互体验</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <div class="preview-shell">
+    <header class="topbar">
+      <button class="brand" type="button" data-nav="feed" aria-label="返回情绪广场">
+        <span class="brand-mark">J</span>
+        <span>
+          <strong>几句</strong>
+          <small>情绪广场</small>
+        </span>
+      </button>
+      <button id="reset-demo" class="ghost-button" type="button">重置</button>
+    </header>
+
+    <main>
+      <section id="view-feed" class="view active" aria-label="情绪广场">
+        <div class="feed-intro">
+          <p class="eyebrow">无需关系链</p>
+          <h1>把这一刻，轻轻放在这里。</h1>
+          <p>浏览陌生人的片刻心情，也可以说出自己的。</p>
+        </div>
+        <div id="post-list" class="post-list"></div>
+      </section>
+
+      <section id="view-publish" class="view" aria-label="发布内容" hidden>
+        <div class="page-heading">
+          <p class="eyebrow">新的表达</p>
+          <h1>此刻，你想说什么？</h1>
+        </div>
+
+        <form id="publish-form" class="publish-card">
+          <label class="field">
+            <span class="field-label">正文</span>
+            <textarea id="body-text" maxlength="1000" placeholder="写下此刻的感受……"></textarea>
+            <span id="body-count" class="field-meta">0 / 500</span>
+          </label>
+
+          <fieldset class="choice-group">
+            <legend>情绪</legend>
+            <div id="emotion-tags" class="chip-row"></div>
+          </fieldset>
+
+          <fieldset class="choice-group">
+            <legend>情境</legend>
+            <div id="context-tags" class="chip-row"></div>
+          </fieldset>
+
+          <fieldset class="choice-group">
+            <legend>留存时长</legend>
+            <div class="retention-row">
+              <label><input type="radio" name="retention" value="24"><span>24 小时</span></label>
+              <label><input type="radio" name="retention" value="72"><span>3 天</span></label>
+              <label><input type="radio" name="retention" value="168" checked><span>7 天</span></label>
+            </div>
+          </fieldset>
+
+          <label class="acknowledgement">
+            <input id="public-ack" type="checkbox">
+            <span>我知道内容会进入公共广场，可能被其他用户查看。</span>
+          </label>
+
+          <p id="publish-message" class="form-message" role="alert"></p>
+          <button id="publish-submit" class="primary-button" type="submit">发布</button>
+        </form>
+      </section>
+
+      <section id="view-my" class="view" aria-label="我的" hidden>
+        <div class="profile-card">
+          <span id="profile-avatar" class="profile-avatar">我</span>
+          <div>
+            <p class="eyebrow">体验账号</p>
+            <h1 id="profile-name">晚风 1024</h1>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div><strong id="stat-total">0</strong><span>发布</span></div>
+          <div><strong id="stat-active">0</strong><span>公开中</span></div>
+          <div><strong id="stat-comments">0</strong><span>收到回应</span></div>
+        </div>
+        <div class="section-title">
+          <h2>我的帖子</h2>
+          <span>仅展示体验数据</span>
+        </div>
+        <div id="my-post-list" class="post-list compact"></div>
+      </section>
+    </main>
+
+    <nav class="tabbar" aria-label="主导航">
+      <button class="tab active" type="button" data-nav="feed">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20h-6v-6h-4v6H4z"></path></svg>
+        <span>广场</span>
+      </button>
+      <button class="tab" type="button" data-nav="publish">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        <span>发布</span>
+      </button>
+      <button class="tab" type="button" data-nav="my">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5.5 20c.6-4 2.8-6 6.5-6s5.9 2 6.5 6"></path></svg>
+        <span>我的</span>
+      </button>
+    </nav>
+  </div>
+
+  <div id="detail-layer" class="layer" hidden>
+    <article class="detail-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+      <header class="sheet-header">
+        <button id="close-detail" class="icon-button" type="button" aria-label="关闭">×</button>
+        <h2 id="detail-title">情绪</h2>
+        <span class="sheet-spacer"></span>
+      </header>
+      <div id="detail-content"></div>
+    </article>
+  </div>
+
+  <div id="login-layer" class="layer" hidden>
+    <section class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="login-title">
+      <span class="dialog-mark">J</span>
+      <h2 id="login-title">先登录，再继续表达</h2>
+      <p>草稿已经保存在本机，体验登录后会恢复正文、标签和留存时长。</p>
+      <label class="acknowledgement">
+        <input id="login-notice" type="checkbox">
+        <span>我已阅读并同意《使用须知》</span>
+      </label>
+      <p id="login-message" class="form-message" role="alert"></p>
+      <button id="demo-login" class="primary-button" type="button">体验登录</button>
+      <button class="text-button" type="button" data-close="login-layer">取消</button>
+    </section>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

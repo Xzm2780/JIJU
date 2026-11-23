@@ -20,6 +20,9 @@ $requiredPaths = @(
     'docs\product\PRD-v1.1.md',
     'docs\product\PRD-v1.3.md',
     'docs\development-process.md',
+    'docs\preview\index.html',
+    'docs\preview\styles.css',
+    'docs\preview\app.js',
     'server\scripts\retention.ts',
     'tests\README.md',
     'tests\docs\Test-AiContext.ps1',
@@ -27,6 +30,7 @@ $requiredPaths = @(
     'tests\docs\Test-PRD-v13.ps1',
     'tests\docs\Test-DevelopmentProcess.ps1',
     'tests\docs\Test-TechnicalDesign.ps1',
+    'tests\structure\Test-PortfolioPreview.ps1',
     'tests\production\Verify-Production.ps1',
     'tests\structure\Test-RepositoryLayout.ps1'
 )
@@ -83,34 +87,24 @@ if (-not $rootReadme.Contains('docs/product/PRD-v1.3.md')) {
     throw 'Root README must point to the formal PRD v1.3.'
 }
 $readmeSectionCount = [regex]::Matches($rootReadme, '(?m)^## .+$').Count
-if ($readmeSectionCount -lt 8) {
+if ($readmeSectionCount -lt 6) {
     throw "Root README is missing expected sections: found $readmeSectionCount level-2 headings."
 }
 $readmeLineCount = ($rootReadme -split "`r?`n").Count
-if ($readmeLineCount -gt 160) {
+if ($readmeLineCount -gt 100) {
     throw "Portfolio README is too long: $readmeLineCount lines."
 }
-$requiredReadmeHeadings = @('Highlights', 'Architecture', 'Quick Start', 'Tests', 'License')
+$requiredReadmeHeadings = @('Access', 'Features', 'Tech Stack', 'Run', 'Docs', 'License')
 foreach ($heading in $requiredReadmeHeadings) {
     if (-not $rootReadme.Contains($heading)) {
         throw "Root README is missing portfolio section: $heading"
     }
 }
-if (-not $rootReadme.Contains('```mermaid')) {
-    throw 'Root README must include the architecture diagram.'
-}
-if (-not $rootReadme.Contains('flowchart LR') -or
-    -not $rootReadme.Contains('MP["') -or
-    -not $rootReadme.Contains('API["NestJS API"]') -or
-    -not $rootReadme.Contains('PG["PostgreSQL"]') -or
-    $rootReadme.Contains('PG[(PostgreSQL)]')) {
-    throw 'README Mermaid diagram must use quoted, GitHub-compatible node labels.'
-}
 $requiredReadmeStatements = @(
-    'https://github.com/Xzm2780/JIJU.git',
+    'https://xzm2780.github.io/JIJU/',
+    'docs/preview/cover.png',
     'docker compose up --build',
-    'http://127.0.0.1:3001/api/v1/admin-console',
-    'MIT License'
+    'MIT'
 )
 foreach ($statement in $requiredReadmeStatements) {
     if (-not $rootReadme.Contains($statement)) {
