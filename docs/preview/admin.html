@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4efed">
+  <meta name="description" content="JIJU 运营平台交互演示">
+  <title>JIJU 运营平台 · 交互体验</title>
+  <link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+  <section id="login-screen" class="login-screen">
+    <form id="login-form" class="login-card">
+      <span class="login-mark">J</span>
+      <p class="eyebrow">JIJU OPERATIONS</p>
+      <h1>运营平台体验</h1>
+      <p>演示账号已预填，点击进入即可查看运营流程。</p>
+      <label><span>用户名</span><input value="demo_admin" readonly></label>
+      <label><span>密码</span><input type="password" value="jiju-demo" readonly></label>
+      <button class="primary-button" type="submit">进入演示后台</button>
+    </form>
+  </section>
+
+  <div id="admin-app" class="admin-shell" hidden>
+    <aside class="sidebar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">J</span>
+        <span><strong>JIJU</strong><small>运营平台</small></span>
+      </a>
+      <nav id="sidebar-nav">
+        <button class="nav-button active" type="button" data-panel="overview"><span>▦</span>数据工作台</button>
+        <button class="nav-button" type="button" data-panel="queue"><span>≡</span>待处理事项</button>
+        <button class="nav-button" type="button" data-panel="content"><span>◇</span>内容治理</button>
+        <button class="nav-button" type="button" data-panel="users"><span>◎</span>用户管理</button>
+        <button class="nav-button" type="button" data-panel="audit"><span>⌕</span>审计日志</button>
+      </nav>
+      <div class="sidebar-footer"><a href="./index.html">用户端体验</a><span>静态演示数据</span></div>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar">
+        <div>
+          <p class="breadcrumb">JIJU 运营平台 / <span id="breadcrumb-current">数据工作台</span></p>
+          <h2 id="page-title">数据工作台</h2>
+        </div>
+        <div class="topbar-actions">
+          <span class="operator">演示运营账号</span>
+          <button id="logout" class="secondary-button" type="button">退出体验</button>
+        </div>
+      </header>
+
+      <div id="workspace-tabs" class="workspace-tabs"></div>
+
+      <main>
+        <section id="panel-overview" class="panel active">
+          <div class="summary-grid">
+            <article><span>今日公开帖子</span><strong>128</strong><small>较昨日新增 16</small></article>
+            <article><span>待处理举报</span><strong>3</strong><small>需要运营判断</small></article>
+            <article><span>待复核内容</span><strong>2</strong><small>规则无法直接裁决</small></article>
+          </div>
+          <div class="section-heading">
+            <div><p class="eyebrow">TODAY</p><h3>待处理事项</h3></div>
+            <button class="text-link" type="button" data-jump="queue">查看全部</button>
+          </div>
+          <div id="overview-list" class="card-list"></div>
+        </section>
+
+        <section id="panel-queue" class="panel">
+          <div class="section-heading">
+            <div><p class="eyebrow">REVIEW QUEUE</p><h3>待处理事项</h3></div>
+            <div class="toolbar">
+              <label>来源<select id="queue-source"><option value="">全部来源</option><option>用户举报</option><option>规则复核</option></select></label>
+              <label>状态<select id="queue-status"><option value="">待处理</option><option value="RESOLVED">已处理</option></select></label>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>来源</th><th>原因</th><th>对象</th><th>状态</th><th>提交时间</th><th>操作</th></tr></thead>
+              <tbody id="queue-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="panel-content" class="panel">
+          <div class="section-heading"><div><p class="eyebrow">CONTENT</p><h3>内容治理</h3></div></div>
+          <div class="filter-row">
+            <button class="filter-chip active" type="button">全部内容</button>
+            <button class="filter-chip" type="button">待复核</button>
+            <button class="filter-chip" type="button">已隐藏</button>
+            <button class="filter-chip" type="button">已到期</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>内容摘要</th><th>作者</th><th>公开状态</th><th>审核状态</th><th>到期时间</th><th>举报</th><th>操作</th></tr></thead>
+              <tbody id="content-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="panel-users" class="panel">
+          <div class="section-heading">
+            <div><p class="eyebrow">ACCOUNTS</p><h3>用户管理</h3></div>
+            <div class="toolbar"><label>查找用户<input id="user-search" placeholder="输入昵称"></label></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>用户</th><th>账号状态</th><th>内容数据</th><th>当前限制</th><th>加入时间</th><th>操作</th></tr></thead>
+              <tbody id="user-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="panel-audit" class="panel">
+          <div class="section-heading">
+            <div><p class="eyebrow">AUDIT</p><h3>审计日志</h3></div>
+            <div class="toolbar">
+              <label>操作类型<select id="audit-action"><option value="">全部操作</option><option>复核通过</option><option>判定违规</option><option>隐藏内容</option><option>恢复公开</option></select></label>
+              <label>对象类型<select><option>全部对象</option><option>内容</option><option>账号</option></select></label>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>操作</th><th>操作人</th><th>对象</th><th>原因</th><th>时间</th></tr></thead>
+              <tbody id="audit-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <div id="process-layer" class="layer" hidden>
+    <article class="process-panel" role="dialog" aria-modal="true" aria-labelledby="process-title">
+      <header class="process-header">
+        <button id="close-process" class="close-button" type="button">×</button>
+        <h2 id="process-title">处理举报</h2><span></span>
+      </header>
+      <div class="process-body">
+        <div class="content-preview">
+          <span class="mini-avatar" id="process-avatar">晚</span>
+          <div><strong id="process-author"></strong><p id="process-copy"></p></div>
+        </div>
+        <dl class="case-meta">
+          <div><dt>事项来源</dt><dd id="process-source"></dd></div>
+          <div><dt>举报原因</dt><dd id="process-reason"></dd></div>
+          <div><dt>提交时间</dt><dd id="process-time"></dd></div>
+        </dl>
+        <fieldset class="decision-group">
+          <legend>处理结果</legend>
+          <label><input type="radio" name="decision" value="PASSED" checked><span>复核通过</span></label>
+          <label><input type="radio" name="decision" value="REJECTED"><span>判定违规并隐藏</span></label>
+        </fieldset>
+        <label class="reason-field">处理原因<textarea id="process-reason-input" placeholder="填写处理依据"></textarea></label>
+        <p id="process-message" class="form-message"></p>
+        <div class="process-actions">
+          <button class="secondary-button" type="button" id="cancel-process">取消</button>
+          <button class="primary-button" type="button" id="submit-process">提交处理</button>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div id="feedback-layer" class="layer" hidden>
+    <section class="feedback-card" role="dialog" aria-modal="true">
+      <span class="feedback-mark">✓</span>
+      <h2 id="feedback-title">处理成功</h2>
+      <p id="feedback-message">事项已完成处理并写入审计日志。</p>
+      <button id="feedback-close" class="primary-button" type="button">知道了</button>
+    </section>
+  </div>
+
+  <script src="./admin.js"></script>
+</body>
+</html>
