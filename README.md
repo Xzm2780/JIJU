@@ -2,9 +2,9 @@
 
 **无关系链的公共情绪表达空间**
 
-[在线体验](https://raw.githack.com/Xzm2780/JIJU/2a3582a/docs/preview/index.html) · [产品文档](docs/README.md) · [GitHub](https://github.com/Xzm2780/JIJU)
+[用户端体验](https://raw.githack.com/Xzm2780/JIJU/0648a78/docs/preview/index.html) · [运营平台体验](https://raw.githack.com/Xzm2780/JIJU/0648a78/docs/preview/admin.html?demo=1) · [产品文档](docs/README.md)
 
-<a href="https://raw.githack.com/Xzm2780/JIJU/2a3582a/docs/preview/index.html">
+<a href="https://raw.githack.com/Xzm2780/JIJU/0648a78/docs/preview/index.html">
   <img src="docs/preview/cover.png" alt="JIJU 交互预览" width="420">
 </a>
 
@@ -16,9 +16,9 @@ JIJU 是一个面向微信生态的情绪表达产品。用户可以发布文字
 
 ## Access
 
-- H5 交互体验：<https://raw.githack.com/Xzm2780/JIJU/2a3582a/docs/preview/index.html>
+- 用户端体验：<https://raw.githack.com/Xzm2780/JIJU/0648a78/docs/preview/index.html>
+- 运营平台体验：<https://raw.githack.com/Xzm2780/JIJU/0648a78/docs/preview/admin.html?demo=1>
 - 微信小程序：原生微信小程序，代码位于 `frontend/`
-- 运营后台：NestJS 内置 HTML 管理后台
 
 ## Features
 

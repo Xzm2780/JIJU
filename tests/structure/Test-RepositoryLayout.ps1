@@ -104,7 +104,8 @@ foreach ($heading in $requiredReadmeHeadings) {
     }
 }
 $requiredReadmeStatements = @(
-    'https://raw.githack.com/Xzm2780/JIJU/2a3582a/docs/preview/index.html',
+    'https://raw.githack.com/Xzm2780/JIJU/0648a78/docs/preview/index.html',
+    'https://raw.githack.com/Xzm2780/JIJU/0648a78/docs/preview/admin.html?demo=1',
     'docs/preview/cover.png',
     'docker compose up --build',
     'MIT'
